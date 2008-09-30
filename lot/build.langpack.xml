@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="langpack" default="" basedir=".">
+<description>convert l10n files with filters and make xpi package</description>
+<property name="buildfile.langpack.loaded" value="true"/>
+
+<!-- import preset/macro library and additional targets -->
+<import file="build.diff.xml"		optional="true"/>
+<import file="build.aux.xml"		optional="true"/>
+
+
+
+		<!-- *** Convert Files Before Packaging *** -->
+
+<!-- * convert interfase * -->
+<!-- use antcall (not depends) to exec multiple convert with different properties at once -->
+<presetdef name="execconvert">
+	<antcall>
+		<target name="prepare"/><target name="clean-pre-convert"/>
+		<target name="apply-filters"/><target name="modify"/>
+		<target name="errorcheck"/>
+	</antcall>
+</presetdef>
+<target name="convert" depends="convert-locales" if="locale"
+	description="apply filters to src files and modify them">
+	<execconvert/>
+</target>
+<target name="convert-locales" unless="locale"
+	description="apply filters to src files and modify them (both ja/ja-JP-mac)">
+	<execconvert>
+		<param name="locale" value="ja"/>
+	</execconvert>
+	<execconvert>
+		<param name="locale" value="ja-JP-mac"/>
+	</execconvert>
+</target>
+
+<target name="clean-pre-convert" unless="convert.overwrite">
+	<safedelete dir="${convert.dest.dir}"/>
+</target>
+
+<!-- * main targets for convert * -->
+<target name="apply-filters" depends="prepare"
+	description="replace tokens in src files with filters">
+	<!-- first, utf-8 files (dtd, html...) -->
+	<filtering-copy taskname="convert utf-8" todir="${convert.dest.dir}" overwrite="true">
+		<fileset dir="${convert.src.dir}" includes="${convert.utf8.includes}" excludes="${convert.utf8.excludes}"/>
+	</filtering-copy>
+	
+	<!-- second, properties files -->
+	<!-- Since copy task will filterchain and filterset respectively this cannot be done by the single copy task.
+		 We must use filterset and escapeunicode respectively. -->
+	<mkdir dir="${lot.temp.dir}/${convert.dest.dir}"/><!-- avoid error even if no *.properties in the src dir -->
+	<filtering-copy taskname="convert properties" encoding="${lot.encoding.filters}" overwrite="true"
+		todir="${lot.temp.dir}/${convert.dest.dir}">
+		<fileset dir="${convert.src.dir}" includes="${convert.prop.includes}" excludes="${convert.prop.excludes}"/>
+	</filtering-copy>
+	<escapeunicoding-copy taskname="escape properties" todir="${convert.dest.dir}" overwrite="true">
+		<fileset dir="${lot.temp.dir}/${convert.dest.dir}" includes="${convert.prop.includes}" excludes="${convert.prop.excludes}"/>
+	</escapeunicoding-copy>
+	
+	<!-- next, binary files -->
+	<copy taskname="copy binary files" preservelastmodified="true" overwrite="true"
+		todir="${convert.dest.dir}">
+		<fileset dir="${convert.src.dir}" includes="${convert.bin.includes}" excludes="${convert.bin.excludes}"/>
+	</copy>
+	
+	<!-- at last, non-chrome files -->
+	<copy taskname="copy non-chrome files" preservelastmodified="true" overwrite="true"
+		todir="${convert.dest.dir}">
+		<fileset dir="${convert.src.dir}" includes="${convert.other.includes}" excludes="${convert.other.excludes}"/>
+	</copy>
+</target>
+
+<target name="modify" depends="prepare"
+	description="edit converted files not only applying filters">
+	<!-- nothing to do for langpack -->
+</target>
+
+<!-- * error check for convert * -->
+<!-- defined in build.aux.xml -->
+
+
+
+
+
+		<!-- *** Make XPI Package from Converted Files *** -->
+
+<!-- * packaging interfase * -->
+<!-- use antcall (not depends) to exec multiple packaging with different properties at once -->
+<presetdef name="execpack">
+	<antcall>
+		<target name="prepare"/><target name="clean-pre-pack"/>
+		<target name="jar"/><target name="xpi"/>
+	</antcall>
+</presetdef>
+<target name="pack" depends="pack-locales" if="locale"
+	description="make xpi package from converted src files">
+	<execpack/>
+</target>
+<target name="pack-locales" unless="locale"
+	description="make xpi package from converted src files (both ja/ja-JP-mac)">
+	<execpack>
+		<param name="locale" value="ja"/>
+	</execpack>
+	<execpack>
+		<param name="locale" value="ja-JP-mac"/>
+	</execpack>
+</target>
+
+<target name="clean-pre-pack" unless="pack.overwrite">
+	<safedelete file="${pack.dest.dir}/${xpi.filename}" dir="${xpi.dir}"/>
+</target>
+
+
+<!-- * jar * -->
+<!-- to make multiple jar file, define jar.* properties as a param of antcall -->
+<target name="jar" depends="prepare"
+	description="make jar package from converted src files">
+	<mkdir dir="${jar.dest.dir}/chrome"/>
+	<!-- パフォーマンス的には contents.rdf を最初に含めた方が良いが… -->
+	<zip taskname="packaging ${jar.filename}" compress="false" update="false" whenempty="create"
+		destfile="${jar.dest.dir}/chrome/${jar.filename}">
+		<zipfileset dir="${jar.src.dir}" includes="${jar.includes}" excludes="${jar.excludes}"/>
+	</zip>
+	<macrodef name="update-jar">
+		<attribute name="dir"/>
+		<attribute name="destfile"	default="${jar.dest.dir}/chrome/${jar.filename}"/>
+		<attribute name="includes"	default="**"/>
+		<attribute name="excludes"	default=""/>
+		<attribute name="prefix"	default=""/>
+		<attribute name="filemode"	default="644"/>
+		<attribute name="dirmode"	default="755"/>
+		<sequential>
+			<zip taskname="update-jar" destfile="@{destfile}" compress="false" update="true" duplicate="add">
+				<zipfileset dir="@{dir}" prefix="@{prefix}" includes="@{includes}" excludes="@{excludes}"
+					filemode="@{filemode}" dirmode="@{dirmode}"/>
+			</zip>
+		</sequential>
+	</macrodef>
+</target>
+
+
+<!-- * targetapp depending tasks befor xpi packanging * -->
+<target name="-pre-xpi-firefox-" if="targetapp.is.firefox">
+	<!-- L10N CVS と langpack でファイル名が異なる -->
+	<!-- <copy file="${jar.src.dir}/browser/chrome/help/firebirdhelp.rdf"
+		tofile="${lot.temp.dir}/${jar.src.dir}/browser/chrome/help/help.rdf"/> -->
+	
+	<update-jar dir="${jar.src.dir}/browser/chrome"							prefix="locale"
+		includes="**" excludes="branding/, browser/cookieviewer/, help/, overrides/"/>
+	<!-- <update-jar dir="${jar.src.dir}/browser/chrome/help"					prefix="locale/browser/help"
+		includes="**" excludes="firebirdhelp.rdf"/>
+	<update-jar dir="${lot.temp.dir}/${jar.src.dir}/browser/chrome/help/"		prefix="locale/browser/help"
+		includes="help.rdf"/> -->
+	<!-- <update-jar dir="${jar.src.dir}/dom/chrome"								prefix="locale/${locale}/global"
+		includes="**" excludes="accessibility/, layout/, appstrings.properties, netError.dtd"/> -->
+	<update-jar dir="${jar.src.dir}/dom/chrome"								prefix="locale/${locale}/global"
+		includes="**" excludes="accessibility/, layout/"/>
+	<update-jar dir="${jar.src.dir}/dom/chrome/layout"						prefix="locale/${locale}/global"
+		includes="css.properties, layout_errors.properties, printing.properties, xbl.properties, xul.properties"/>
+	<update-jar dir="${jar.src.dir}/dom/chrome/layout"						prefix="locale/${locale}/global/layout"
+		includes="HtmlForm.properties, MediaDocument.properties, xmlparser.properties"/>
+	<update-jar dir="${jar.src.dir}/dom/chrome/accessibility"				prefix="locale/${locale}/global-platform"/>
+	<update-jar dir="${jar.src.dir}/extensions/reporter/chrome"				prefix="locale/${locale}/reporter"/>
+	<update-jar dir="${jar.src.dir}/netwerk"								prefix="locale/${locale}/necko"/>
+	<update-jar dir="${jar.src.dir}/other-licenses/branding/firefox"		prefix="locale/branding"/>
+	<update-jar dir="${jar.src.dir}/security/manager/chrome"				prefix="locale/${locale}"/>
+	<update-jar dir="${jar.src.dir}/toolkit/chrome"							prefix="locale/${locale}/"
+		includes="**" excludes="mozapps/help/"/>
+	<update-jar dir="${jar.src.dir}/toolkit/chrome/mozapps/help"			prefix="locale/${locale}/help"/>
+	<update-jar dir="${jar.src.dir}/toolkit/crashreporter"					prefix="locale/${locale}/global"
+		includes="**" excludes="crashreporter.ini"/>
+	
+	<!-- overrides -->
+	<!-- <update-jar dir="${jar.src.dir}/browser/chrome/overrides"				prefix="locale/${locale}/global"/> -->
+	<update-jar dir="${jar.src.dir}/browser/chrome/overrides"				prefix="locale/browser"
+		includes="appstrings.properties, netError.dtd"/>
+	<update-jar dir="${jar.src.dir}/browser/chrome/overrides"				prefix="locale/browser/downloads"
+		includes="settingsChange.dtd"/>
+	
+	<!-- DOM Inspector リソースを同梱
+	<update-jar dir="${jar.src.dir}/extensions/inspector/chrome"			prefix="locale/inspector"/> -->
+</target>
+
+<target name="-pre-xpi-thunderbird-" if="targetapp.is.thunderbird">
+	<update-jar dir="${jar.src.dir}/mail/chrome"							prefix="locale/${locale}"
+		includes="**" excludes="branding/"/>
+	<update-jar dir="${jar.src.dir}/dom/chrome"								prefix="locale/${locale}/global"
+		includes="**" excludes="accessibility/, layout/"/>
+	<update-jar dir="${jar.src.dir}/dom/chrome/layout"						prefix="locale/${locale}/global"
+		includes="css.properties, layout_errors.properties, printing.properties, svg.properties, xbl.properties, xul.properties"/>
+	<update-jar dir="${jar.src.dir}/dom/chrome/layout"						prefix="locale/${locale}/global/layout"
+		includes="HtmlForm.properties, MediaDocument.properties, xmlparser.properties"/>
+	<update-jar dir="${jar.src.dir}/dom/chrome/accessibility"				prefix="locale/${locale}/global-platform"/>
+	<update-jar dir="${jar.src.dir}/editor/ui/chrome/composer"				prefix="locale/${locale}/editor"
+		includes="editor.properties, editorOverlay.dtd, editorSmileyOverlay.dtd"/>
+	<update-jar dir="${jar.src.dir}/editor/ui/chrome/dialogs"				prefix="locale/${locale}/editor"
+		includes="EdAdvancedEdit.dtd, EdColorPicker.dtd, EdConvertToTable.dtd, EdDialogOverlay.dtd, EditorColorProperties.dtd, EditorHLineProperties.dtd, EditorImageProperties.dtd, EditorInsertChars.dtd, EditorInsertSource.dtd, EditorInsertTable.dtd, EditorInsertTOC.dtd, EditorLinkProperties.dtd, EditorListProperties.dtd, EditorPersonalDictionary.dtd, EditorReplace.dtd, EditorSpellCheck.dtd, EditorTableProperties.dtd, EdNamedAnchorProperties.dtd"/>
+	<update-jar dir="${jar.src.dir}/netwerk"								prefix="locale/${locale}/necko"/>
+	<update-jar dir="${jar.src.dir}/other-licenses/branding/thunderbird"	prefix="locale/${locale}/branding"/>
+	<update-jar dir="${jar.src.dir}/security/manager/chrome"				prefix="locale/${locale}"/>
+	<update-jar dir="${jar.src.dir}/toolkit/chrome"							prefix="locale/${locale}/"
+		includes="**" excludes="mozapps/help/"/>
+	<update-jar dir="${jar.src.dir}/toolkit/chrome/mozapps/help"			prefix="locale/${locale}/help"/>
+</target>
+
+<target name="-pre-xpi-sunbird-" if="targetapp.is.sunbird">
+	<update-jar dir="${jar.src.dir}/calendar/chrome"						prefix="locale"
+		includes="**" excludes="branding/, lightning/, prototypes/"/>
+	<update-jar dir="${jar.src.dir}/calendar/chrome/prototypes"				prefix="locale/calendar"
+		includes="sun-calendar-event-dialog.dtd, sun-calendar-event-dialog.properties"/>
+	<update-jar dir="${jar.src.dir}/dom/chrome"								prefix="locale/${locale}/global"
+		includes="**" excludes="accessibility/, layout/"/>
+	<update-jar dir="${jar.src.dir}/dom/chrome/layout"						prefix="locale/${locale}/global"
+		includes="css.properties, layout_errors.properties, printing.properties, xbl.properties, xul.properties"/>
+	<update-jar dir="${jar.src.dir}/dom/chrome/layout"						prefix="locale/${locale}/global/layout"
+		includes="HtmlForm.properties, MediaDocument.properties, xmlparser.properties"/>
+	<update-jar dir="${jar.src.dir}/dom/chrome/accessibility"				prefix="locale/${locale}/global-platform"/>
+	<update-jar dir="${jar.src.dir}/netwerk"								prefix="locale/${locale}/necko"/>
+	<update-jar dir="${jar.src.dir}/other-licenses/branding/sunbird"		prefix="locale/branding"
+		includes="**" excludes="brand.properties"/>
+	<update-jar dir="${jar.src.dir}/security/manager/chrome"				prefix="locale/${locale}"/>
+	<update-jar dir="${jar.src.dir}/toolkit/chrome"							prefix="locale/${locale}/"
+		includes="**" excludes="mozapps/help/"/>
+	<update-jar dir="${jar.src.dir}/toolkit/chrome/mozapps/help"			prefix="locale/${locale}/help"/>
+
+	<!-- sunbird/brand.properties は %S を置き換える必要あり -->
+	<copy file="${jar.src.dir}/other-licenses/branding/sunbird/brand.properties"
+		tofile="${temp.root}/${jar.src.dir}/other-licenses/branding/sunbird/brand.properties">
+		<filterchain>
+			<replaceregex pattern="(releaseNotesURL *= *.+)%S(.+)" replace="\1${sunbird.version}\2"/>
+			<!-- <replaceregex pattern="%S" replace="${sunbird.version}"/> -->
+		</filterchain>
+	</copy>
+	<update-jar dir="${temp.root}/${jar.src.dir}/other-licenses/branding/sunbird/"	prefix="locale/branding"
+		includes="brand.properties"/>
+
+	<!-- global/brand.dtd の中身は単に branding/brand.dtd の中身を読み込むだけだから、読み込み先ファイルで置き換えてしまう。
+			<!ENTITY % realBrandDTD SYSTEM "chrome://branding/locale/brand.dtd">
+			%realBrandDTD; -->
+	<update-jar dir="${jar.src.dir}/other-licenses/branding/sunbird/"		prefix="locale/${locale}/global"
+		includes="brand.dtd"/>
+
+	<!-- sunbird-l10n.js は @AB_CD@ を置き換える必要あり -->
+	<copy file="${jar.src.dir}/calendar/sunbird-l10n.js"
+		tofile="${xpi.dir}/defaults/preferences/sunbird-l10n.js" encoding="${encoding.js}">
+		<filterchain>
+			<replaceregex pattern="@AB_CD@" replace="${locale}"/>
+		</filterchain>
+	</copy>
+</target>
+<target name="-pre-xpi-" depends="-pre-xpi-firefox-, -pre-xpi-thunderbird-, -pre-xpi-sunbird-"/>
+
+
+<!-- * xpi * -->
+<target name="xpi" depends="prepare, -pre-xpi-"
+	description="make xpi package from jar and dest files">
+	<copy todir="${xpi.src.dir}" encoding="UTF-8" preservelastmodified="true" overwrite="true">
+		<fileset dir="${langpack.src.dir}"/>
+		<filterchain><expandproperties/></filterchain>
+	</copy>
+	
+	<mkdir dir="${xpi.dest.dir}"/>
+	<zip taskname="packaging ${xpi.filename}" destfile="${xpi.dest.dir}/${xpi.filename}">
+		<zipfileset dir="${xpi.src.dir}" filemode="644" dirmode="755"
+			includes="${xpi.includes}" excludes="${xpi.excludes}"/>
+	</zip>
+</target>
+
+
+
+</project>

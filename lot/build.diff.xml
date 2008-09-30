@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="diff" default="" basedir=".">
+<description>working with diff relative commands</description>
+<property name="buildfile.diff.loaded" value="true"/>
+
+
+<!-- * diff and patch * -->
+<!-- set path to the diff command to use these tasks, or you'll see a "error=2" -->
+<target name="diff" depends="load-mainconf"
+	description="make patch file to send it as a feedback">
+	<loadmessage pattern="^vmsg\.diff\."/>
+	<fail message="${vmsg.diff.no.fromdir}">
+		<condition><not><available file="${diff.fromdir}" type="dir"/></not></condition>
+	</fail>
+	<fail message="${vmsg.diff.no.todir}">
+		<condition><not><available file="${diff.todir}" type="dir"/></not></condition>
+	</fail>
+	
+	<mkdir dir="${diff.output.dir}"/>
+	<diff dir="." from="${diff.fromdir}" to="${diff.todir}" option="${diff.option}" output="${diff.output}" append="false"/>
+	<echo message="${vmsg.diff.successed}"/>
+</target>
+
+<target name="patch" depends="load-mainconf"
+	description="apply patch file to src locale files">
+	<loadmessage pattern="^vmsg\.patch\."/>
+	<fail message="${vmsg.patch.no.patchfile}">
+		<condition><not><available file="${patch.file}" type="file"/></not></condition>
+	</fail>
+	
+	<property name="patch.strip" value="3"/>
+	<property name="patch.locale" value="ja"/>
+	<patch patchfile="${patch.file}" strip="${patch.strip}" dir="${lot.src.dir}/${mode}/${patch.locale}"/>
+	<!-- patch -p3 -d src/trunk/ja < patch/trunk/patchfile -->
+</target>
+
+<target name="patch-dry" depends="load-mainconf"
+	description="test patch file without any actual changes">
+	<loadmessage pattern="^vmsg\.patch\."/>
+	<fail message="${vmsg.patch.no.patchfile}">
+		<condition><not><available file="${patch.file}" type="file"/></not></condition>
+	</fail>
+	
+	<property name="patch.strip" value="3"/>
+	<property name="patch.locale" value="ja"/>
+	<exec executable="patch" input="${patch.file}">
+		<arg line="--dry-run -p${patch.strip} -d ${lot.src.dir}/${mode}/${patch.locale}"/>
+	</exec>
+	<!-- patch - -dry-run -p3 -d ${lot.src.dir}/${mode}/${patch.locale} < ${patch.file} -->
+</target>
+
+
+
+<!-- * diff * -->
+<!-- set path to the diff command to use these tasks, or you'll see a "error=2" -->
+<target name="diff-src" depends="load-mainconf"
+	description="diff between src directories">
+	<mkdir dir="${diff-src.dir}"/>
+	<diff option="${diff-src.option}" output="${diff-src.output}" append="false"
+		from="${diff-src.fromdir}"
+		to="${diff-src.todir}"/>
+	<copy file="${diff-src.output}" tofile="${diff-src.dir}/latest.diff"/>
+</target>
+
+<target name="diff-loose" depends="load-mainconf"
+	description="diff between loose directories">
+	<delete dir="${lot.temp.dir}/${lot.diff.dir}/${diff-loose.fromdir}"/>
+	<delete dir="${lot.temp.dir}/${lot.diff.dir}/${diff-loose.todir}"/>
+	
+	<isfalse arg="${propertiesfiles.need.escape}" property="diff-loose.from.unescapeexcludes" value="**"/>
+	<isfalse arg="${propertiesfiles.need.escape}" property="diff-loose.to.unescapeexcludes" value="**"/>
+	<unescapeunicode-copy unescapeexcludes="${diff-loose.from.unescapeexcludes}"
+		fromdir="${diff-loose.fromdir}"
+		todir="${lot.temp.dir}/${lot.diff.dir}/${diff-loose.fromdir}"/>
+	<unescapeunicode-copy unescapeexcludes="${diff-loose.to.unescapeexcludes}"
+		fromdir="${diff-loose.todir}"
+		todir="${lot.temp.dir}/${lot.diff.dir}/${diff-loose.todir}"/>
+	
+	<mkdir dir="${diff-loose.dir}"/>
+	<diff option="${diff-loose.option}" output="${diff-loose.output}" append="false"
+		dir="${lot.temp.dir}/${lot.diff.dir}"
+		from="${diff-loose.fromdir}"
+		to="${diff-loose.todir}"/>
+</target>
+
+<target name="diff-jar" depends="load-conf"
+	description="diff between jar files">
+	<!-- <equal property="diff-jar.output" arg1="${diff-jar.fromlocale}" arg2="${diff-jar.tolocale}"
+		value="${diff-jar.dir}/${diff-jar.fromlocale}-${diff-jar.fromrevision}+${diff-jar.torevision}.diff"
+		else="${diff-jar.dir}/${diff-jar.fromlocale}-${diff-jar.fromrevision}+${diff-jar.tolocale}-${diff-jar.torevision}.diff"/> -->
+	
+	<delete dir="${lot.temp.dir}/${lot.diff.dir}/${diff-jar.fromfile}"/>
+	<delete dir="${lot.temp.dir}/${lot.diff.dir}/${diff-jar.tofile}"/>
+	
+	<isfalse arg="${propertiesfiles.need.escape}" property="diff-jar.from.unescapeexcludes" value="**"/>
+	<isfalse arg="${propertiesfiles.need.escape}" property="diff-jar.to.unescapeexcludes" value="**"/>
+	<unescapeunicode-unjar unescapeexcludes="${diff-jar.from.unescapeexcludes}"
+		 src="${diff-jar.fromfile}"
+		dest="${lot.temp.dir}/${lot.diff.dir}/${diff-jar.fromfile}"/>
+	<unescapeunicode-unjar unescapeexcludes="${diff-jar.to.unescapeexcludes}"
+		 src="${diff-jar.tofile}"
+		dest="${lot.temp.dir}/${lot.diff.dir}/${diff-jar.tofile}"/>
+	
+	<mkdir dir="${diff-jar.dir}"/>
+	<diff option="${diff-jar.option}" output="${diff-jar.output}" append="false"
+		dir="${lot.temp.dir}/${lot.diff.dir}"
+		from="${diff-jar.fromfile}"
+		to="${diff-jar.tofile}"/>
+</target>
+
+<target name="diff-xpi" depends="load-conf"
+	description="diff between xpi packages">
+	<delete dir="${lot.temp.dir}/${lot.diff.dir}/${diff-xpi.fromfile}"/>
+	<delete dir="${lot.temp.dir}/${lot.diff.dir}/${diff-xpi.tofile}"/>
+	
+	<unzip src="${diff-xpi.fromfile}"
+		dest="${lot.temp.dir}/${lot.diff.dir}/${diff-xpi.fromfile}">
+	</unzip>
+	<unzip src="${diff-xpi.tofile}"
+		dest="${lot.temp.dir}/${lot.diff.dir}/${diff-xpi.tofile}">
+	</unzip>
+	
+	<mkdir dir="${diff-xpi.dir}"/>
+	<diff option="${diff-xpi.option}" output="${diff-xpi.output}" append="false"
+		dir="${lot.temp.dir}/${lot.diff.dir}"
+		from="${diff-xpi.fromfile}"
+		to="${diff-xpi.tofile}"/>
+	
+	<move file="${lot.temp.dir}/${lot.diff.dir}/${diff-xpi.jar.fromfile}"
+		tofile="${lot.temp.dir}/${lot.diff.dir}/${diff-xpi.jar.fromfile}~"/>
+	<move file="${lot.temp.dir}/${lot.diff.dir}/${diff-xpi.jar.tofile}"
+		tofile="${lot.temp.dir}/${lot.diff.dir}/${diff-xpi.jar.tofile}~"/>
+	<isfalse arg="${propertiesfiles.need.escape}" property="diff-xpi.from.unescapeexcludes" value="**"/>
+	<isfalse arg="${propertiesfiles.need.escape}" property="diff-xpi.to.unescapeexcludes" value="**"/>
+	<unescapeunicode-unjar unescapeexcludes="${diff-xpi.from.unescapeexcludes}"
+		 src="${lot.temp.dir}/${lot.diff.dir}/${diff-xpi.jar.fromfile}~"
+		dest="${lot.temp.dir}/${lot.diff.dir}/${diff-xpi.jar.fromfile}"/>
+	<unescapeunicode-unjar unescapeexcludes="${diff-xpi.to.unescapeexcludes}"
+		 src="${lot.temp.dir}/${lot.diff.dir}/${diff-xpi.jar.tofile}~"
+		dest="${lot.temp.dir}/${lot.diff.dir}/${diff-xpi.jar.tofile}"/>
+	<delete file="${lot.temp.dir}/${lot.diff.dir}/${diff-xpi.jar.fromfile}~"/>
+	<delete file="${lot.temp.dir}/${lot.diff.dir}/${diff-xpi.jar.tofile}~"/>
+	
+	<mkdir dir="${diff-xpi.jar.dir}"/>
+	<diff option="${diff-xpi.jar.option}" output="${diff-xpi.jar.output}" append="false"
+		dir="${lot.temp.dir}/${lot.diff.dir}"
+		from="${diff-xpi.jar.fromfile}"
+		to="${diff-xpi.jar.tofile}"/>
+</target>
+
+
+
+<!-- * lpdiff * -->
+<target name="lpdiff-src" depends="load-mainconf"
+	description="lpdiff between src directories">
+	<delete dir="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-src.fromdir}"/>
+	<delete dir="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-src.todir}"/>
+	<escapeunicode-copy fromdir="${lpdiff-src.fromdir}"	todir="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-src.fromdir}"/>
+	<escapeunicode-copy fromdir="${lpdiff-src.todir}"	todir="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-src.todir}"/>
+	
+	<copy file="${lpdiff.css.file}" tofile="${lpdiff-src.dir}/${lpdiff.css.filename}"/>
+	<delete file="${lpdiff-src.output}"/>
+	<lpdiff output="${lpdiff-src.output}"
+		from="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-src.fromdir}"
+		to="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-src.todir}"/>
+	<copy file="${lpdiff-src.output}" tofile="${lpdiff-src.dir}/latest.html"/>
+</target>
+
+<target name="lpdiff-loose" depends="load-mainconf"
+	description="lpdiff between loose directories">
+	<!-- escape されている場合は冗長にながる… -->
+	<delete dir="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-loose.fromdir}"/>
+	<delete dir="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-loose.todir}"/>
+	<escapeunicode-copy fromdir="${lpdiff-loose.fromdir}"	todir="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-loose.fromdir}"/>
+	<escapeunicode-copy fromdir="${lpdiff-loose.todir}"		todir="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-loose.todir}"/>
+	
+	<copy file="${lpdiff.css.file}" tofile="${lpdiff-loose.dir}/${lpdiff.css.filename}"/>
+	<delete file="${lpdiff-loose.output}"/>
+	<lpdiff output="${lpdiff-loose.output}"
+		from="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-loose.fromdir}"
+		to="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-loose.todir}"/>
+</target>
+
+<target name="lpdiff-loose-l10n">
+	<antcall target="lpdiff-loose">
+		<param name="lpdiff-loose.fromdir"	value="${lot.l10n.dir}/en-US"/>
+		<param name="lpdiff-loose.todir"	value="${lot.l10n.dir}/ja"/>
+		<param name="lpdiff-loose.output"	value="${lpdiff-loose.dir}/${l10n.revision}-en-US+ja.html"/>
+	</antcall>
+	<antcall target="lpdiff-loose">
+		<param name="lpdiff-loose.fromdir"	value="${lot.l10n.dir}/${mode}/en-US"/>
+		<param name="lpdiff-loose.todir"	value="${lot.l10n.dir}/${mode}/ja-JP-mac"/>
+		<param name="lpdiff-loose.output"	value="${lpdiff-loose.dir}/${l10n.revision}-en-US+ja-JP-mac.html"/>
+	</antcall>
+	<antcall target="lpdiff-loose">
+		<param name="lpdiff-loose.fromdir"	value="${lot.l10n.dir}/${mode}/ja"/>
+		<param name="lpdiff-loose.todir"	value="${lot.l10n.dir}/${mode}/ja-JP-mac"/>
+		<param name="lpdiff-loose.output"	value="${lpdiff-loose.dir}/${l10n.revision}-ja+ja-JP-mac.html"/>
+	</antcall>
+</target>
+
+<target name="lpdiff-jar" depends="load-conf"
+	description="lpdiff between jar files">
+	<!-- <equal property="lpdiff-jar.output" arg1="${lpdiff-jar.fromlocale}" arg2="${lpdiff-jar.tolocale}"
+		value="${lpdiff-jar.dir}/${lpdiff-jar.fromlocale}-${lpdiff-jar.fromrevision}+${lpdiff-jar.torevision}.html"
+		else="${lpdiff-jar.dir}/${lpdiff-jar.fromlocale}-${lpdiff-jar.fromrevision}+${lpdiff-jar.tolocale}-${lpdiff-jar.torevision}.html"/> -->
+	
+	<delete dir="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-jar.fromfile}"/>
+	<delete dir="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-jar.tofile}"/>
+	
+	<!-- properties が escape されているなら単に unjar で十分 -->
+	<escapeunicode-unjar src="${lpdiff-jar.fromfile}"
+		dest="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-jar.fromfile}"/>
+	<escapeunicode-unjar src="${lpdiff-jar.tofile}"
+		dest="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-jar.tofile}"/>
+	
+	<copy file="${lpdiff.css.file}" tofile="${lpdiff-jar.dir}/${lpdiff.css.filename}"/>
+	<delete file="${lpdiff-jar.output}"/>
+	<lpdiff output="${lpdiff-jar.output}"
+		from="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-jar.fromfile}"
+		to="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-jar.tofile}"/>
+</target>
+
+<target name="lpdiff-xpi" depends="load-conf"
+	description="lpdiff between xpi packages">
+	<delete dir="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-xpi.fromfile}"/>
+	<delete dir="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-xpi.tofile}"/>
+	
+	<unzip src="${lpdiff-xpi.fromfile}"
+		dest="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-xpi.fromfile}">
+	</unzip>
+	<unzip src="${lpdiff-xpi.tofile}"
+		dest="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-xpi.tofile}">
+	</unzip>
+	
+	<move file="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-xpi.jar.fromfile}"
+		tofile="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-xpi.jar.fromfile}~"/>
+	<move file="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-xpi.jar.tofile}"
+		tofile="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-xpi.jar.tofile}~"/>
+	<!-- properties が escape されているなら単に unjar で十分 -->
+	<escapeunicode-unjar src="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-xpi.jar.fromfile}~"
+		dest="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-xpi.jar.fromfile}"/>
+	<escapeunicode-unjar src="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-xpi.jar.tofile}~"
+		dest="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-xpi.jar.tofile}"/>
+	<delete file="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-xpi.jar.fromfile}~"/>
+	<delete file="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-xpi.jar.tofile}~"/>
+	
+	<copy file="${lpdiff.css.file}" tofile="${lpdiff-xpi.dir}/${lpdiff.css.filename}"/>
+	<delete file="${lpdiff-xpi.jar.output}"/>
+	<lpdiff output="${lpdiff-xpi.jar.output}"
+		from="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-xpi.jar.fromfile}"
+		to="${lot.temp.dir}/${lot.lpdiff.dir}/${lpdiff-xpi.jar.tofile}"/>
+</target>
+
+
+</project>

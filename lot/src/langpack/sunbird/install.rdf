@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+	xmlns:em="http://www.mozilla.org/2004/em-rdf#">
+
+<!-- http://lxr.mozilla.org/mozilla1.8/source/calendar/locales/generic/install.rdf -->
+
+<Description about="urn:mozilla:install-manifest">
+	<em:id>${package.guid}</em:id>
+	<em:name>${package.name}</em:name>
+	<em:version>${package.revision}</em:version>
+	<em:type>${package.type}</em:type>
+	
+	<em:targetApplication>
+		<Description>
+			<em:id>{${targetapp.guid}}</em:id>
+			<em:minVersion>${targetapp.minVersion}</em:minVersion>
+			<em:maxVersion>${targetapp.maxVersion}</em:maxVersion>
+		</Description>
+	</em:targetApplication>
+	
+	${package.description.em}
+	${package.creator.em}
+	${package.contributor.em}
+	${package.developer.em}
+	${package.translator.em}
+	${package.homepageURL.em}
+	${package.updateURL.em}
+</Description>
+</RDF>

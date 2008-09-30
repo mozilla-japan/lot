@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="shorthand" default="" basedir=".">
+<description>make it easy to specify properties from command line with shorthands</description>
+
+<propertyalias property="lang"			alias="lot.lang"/>
+
+
+
+
+<!-- old aliases... -->
+
+<propertyalias property="version"		alias="firefox.version"/>
+<propertyalias property="version"		alias="thunderbird.version"/>
+
+<propertyalias property="revision"		alias="package.revision"/>
+<propertyalias property="revision.pre"	alias="package.revision.pre"/>
+
+<propertyalias property="minVersion"	alias="firefox.minVersion"/>
+<propertyalias property="minVersion"	alias="thunderbird.minVersion"/>
+<propertyalias property="maxVersion"	alias="firefox.maxVersion"/>
+<propertyalias property="maxVersion"	alias="thunderbird.maxVersion"/>
+
+<propertyalias property="module"		alias="cvs.diff.module"/>
+<propertyalias property="module"		alias="cvs.log.module"/>
+<propertyalias property="module"		alias="cvs.tagdiff.module"/>
+
+<propertyalias property="tag"			alias="cvs.checkout.tag"/>
+<propertyalias property="tag"			alias="cvs.export.tag"/>
+<propertyalias property="tag"			alias="cvs.exportsrc.tag"/>
+
+<propertyalias property="date"			alias="cvs.checkout.date"/>
+<propertyalias property="date"			alias="cvs.export.date"/>
+<propertyalias property="date"			alias="cvs.exportsrc.date"/>
+
+<propertyalias property="starttag"		alias="cvs.diff.starttag"/>
+<propertyalias property="starttag"		alias="cvs.rdiff.starttag"/>
+<propertyalias property="starttag"		alias="cvs.exportdiff.starttag"/>
+<propertyalias property="starttag"		alias="cvs.checkoutdiff.starttag"/>
+
+<propertyalias property="endtag"		alias="cvs.diff.endtag"/>
+<propertyalias property="endtag"		alias="cvs.rdiff.endtag"/>
+<propertyalias property="endtag"		alias="cvs.exportdiff.endtag"/>
+<propertyalias property="endtag"		alias="cvs.checkoutdiff.endtag"/>
+
+<propertyalias property="startdate"		alias="cvs.diff.startdate"/>
+<propertyalias property="startdate"		alias="cvs.rdiff.startdate"/>
+<propertyalias property="startdate"		alias="cvs.exportdiff.startdate"/>
+<propertyalias property="startdate"		alias="cvs.checkoutdiff.startdate"/>
+<propertyalias property="startdate"		alias="cvs.tagdiff.startdate"/>
+
+<propertyalias property="enddate"		alias="cvs.diff.enddate"/>
+<propertyalias property="enddate"		alias="cvs.rdiff.enddate"/>
+<propertyalias property="enddate"		alias="cvs.exportdiff.enddate"/>
+<propertyalias property="enddate"		alias="cvs.checkoutdiff.enddate"/>
+<propertyalias property="enddate"		alias="cvs.tagdiff.enddate"/>
+
+<propertyalias property="option"		alias="cvs.diff.option"/>
+<propertyalias property="option"		alias="cvs.rdiff.option"/>
+<propertyalias property="option"		alias="diff-src.option"/>
+<propertyalias property="option"		alias="diff-loose.option"/>
+<propertyalias property="option"		alias="diff-jar.option"/>
+<propertyalias property="option"		alias="diff-xpi.option"/>
+<propertyalias property="option"		alias="diff-xpi.jar.option"/>
+
+<propertyalias property="file"			alias="backuplot.file"/>
+<propertyalias property="file"			alias="backupsrc.file"/>
+<propertyalias property="file"			alias="restoresrc.file"/>
+<propertyalias property="file"			alias="patch.file"/>
+
+<propertyalias property="fromfile"		alias="diff-jar.fromfile"/>
+<propertyalias property="fromfile"		alias="diff-xpi.fromfile"/>
+<propertyalias property="fromfile"		alias="lpdiff-jar.fromfile"/>
+<propertyalias property="fromfile"		alias="lpdiff-xpi.fromfile"/>
+
+<propertyalias property="tofile"		alias="diff-jar.tofile"/>
+<propertyalias property="tofile"		alias="diff-xpi.tofile"/>
+<propertyalias property="tofile"		alias="lpdiff-jar.tofile"/>
+<propertyalias property="tofile"		alias="lpdiff-xpi.tofile"/>
+
+<propertyalias property="fromdir"		alias="diff.fromdir"/>
+<propertyalias property="fromdir"		alias="diff-src.fromdir"/>
+<propertyalias property="fromdir"		alias="diff-loose.fromdir"/>
+<propertyalias property="fromdir"		alias="escape.fromdir"/>
+
+<propertyalias property="todir"			alias="diff.todir"/>
+<propertyalias property="todir"			alias="diff-src.todir"/>
+<propertyalias property="todir"			alias="diff-loose.todir"/>
+<propertyalias property="todir"			alias="escape.todir"/>
+
+<propertyalias property="output"		alias="lpdiff-src.output"/>
+<propertyalias property="output"		alias="lpdiff-loose.output"/>
+<propertyalias property="output"		alias="lpdiff-jar.output"/>
+<propertyalias property="output"		alias="lpdiff-xpi.jar.output"/>
+
+<propertyalias property="fromlocale"	alias="diff-src.fromlocale"/>
+<propertyalias property="fromlocale"	alias="diff-loose.fromlocale"/>
+<propertyalias property="fromlocale"	alias="diff-jar.fromlocale"/>
+<propertyalias property="fromlocale"	alias="diff-xpi.fromlocale"/>
+<propertyalias property="fromlocale"	alias="lpdiff-src.fromlocale"/>
+<propertyalias property="fromlocale"	alias="lpdiff-loose.fromlocale"/>
+<propertyalias property="fromlocale"	alias="lpdiff-jar.fromlocale"/>
+<propertyalias property="fromlocale"	alias="lpdiff-xpi.fromlocale"/>
+
+<propertyalias property="tolocale"		alias="diff-src.tolocale"/>
+<propertyalias property="tolocale"		alias="diff-loose.tolocale"/>
+<propertyalias property="tolocale"		alias="diff-jar.tolocale"/>
+<propertyalias property="tolocale"		alias="diff-xpi.tolocale"/>
+<propertyalias property="tolocale"		alias="lpdiff-src.tolocale"/>
+<propertyalias property="tolocale"		alias="lpdiff-loose.tolocale"/>
+<propertyalias property="tolocale"		alias="lpdiff-jar.tolocale"/>
+<propertyalias property="tolocale"		alias="lpdiff-xpi.tolocale"/>
+
+<propertyalias property="fromrevision"	alias="diff-jar.fromrevision"/>
+<propertyalias property="fromrevision"	alias="diff-xpi.fromrevision"/>
+<propertyalias property="fromrevision"	alias="lpdiff-jar.fromrevision"/>
+<propertyalias property="fromrevision"	alias="lpdiff-xpi.fromrevision"/>
+
+<propertyalias property="torevision"	alias="diff-jar.torevision"/>
+<propertyalias property="torevision"	alias="diff-xpi.torevision"/>
+<propertyalias property="torevision"	alias="lpdiff-jar.torevision"/>
+<propertyalias property="torevision"	alias="lpdiff-xpi.torevision"/>
+
+<propertyalias property="fromversion"	alias="diff-xpi.targetapp.fromversion"/>
+<propertyalias property="fromversion"	alias="lpdiff-xpi.targetapp.fromversion"/>
+
+<propertyalias property="toversion"		alias="diff-xpi.targetapp.toversion"/>
+<propertyalias property="toversion"		alias="lpdiff-xpi.targetapp.toversion"/>
+
+<propertyalias property="encoding"		alias="escape.encoding"/>
+<propertyalias property="encoding"		alias="unescape.encoding"/>
+
+</project>

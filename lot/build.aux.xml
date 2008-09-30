@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="aux" default="" basedir=".">
+<description>auxiliary targets</description>
+<property name="buildfile.aux.loaded" value="true"/>
+
+
+<!-- * backup and restore * -->
+<target name="backupsrc" depends="load-mainconf" unless="nobackup"
+	description="backup whole src files">
+	<mkdir dir="${backupsrc.dir}"/>
+	<zip destfile="${backupsrc.file}">
+		<zipfileset dir="." defaultexcludes="no"
+			includes="${backupsrc.includes}" excludes="${backupsrc.excludes}"/>
+	</zip>
+</target>
+
+<target name="restoresrc" depends="load-mainconf" unless="norestore"
+	description="restore whole src files">
+	<loadmessage pattern="^vmsg\.restoresrc\."/>
+	<fail message="${vmsg.restoresrc.notfound}">
+		<condition><not><available file="${restoresrc.file}" type="file"/></not></condition>
+	</fail>
+	<confirm message="${vmsg.restoresrc.confirm}" failmessage="${cmsg.restoresrc.cancelled}"/>
+	
+	<condition property="nobackup">
+		<not><available file="${lot.src.dir}" type="dir"/></not>
+	</condition>
+	<antcall target="backupsrc"/>
+	
+	<unzip src="${restoresrc.file}" dest="${lot.temp.dir}/restore"/>
+	<delete dir="${lot.src.dir}/"/>
+	<move todir="${lot.src.dir}">
+		<fileset dir="${lot.temp.dir}/restore/${lot.src.dir}"/>
+	</move>
+</target>
+
+<target name="backuplot" depends="load-mainconf" unless="nobackup"
+	description="zip localization tools">
+	<mkdir dir="${backuplot.dir}"/>
+	<zip destfile="${backuplot.file}">
+		<zipfileset dir="." defaultexcludes="no"
+			includes="${backuplot.includes}" excludes="${backuplot.excludes}"/>
+	</zip>
+</target>
+
+<target name="backup" depends="load-mainconf" unless="nobackup"
+	description="zip localization tools with src files">
+	<mkdir dir="${backup.dir}"/>
+	<zip destfile="${backup.file}">
+		<zipfileset dir="." defaultexcludes="no"
+			includes="${backup.includes}" excludes="${backup.excludes}"/>
+	</zip>
+</target>
+
+
+<!-- * error check * -->
+<target name="get-compare-locales" depends="load-mainconf">
+	<get src="${compare-locales.get.url}" dest="${compare-locales.file}"/>
+</target>
+<target name="compare-locales" depends="load-mainconf">
+	<fail unless="locale"/>
+	<exec taskname="perl" executable="perl" failonerror="true">
+		<arg line="${compare-locales.file} ${lot.l10n.dir}/en-US ${lot.l10n.dir}/${locale}"/>
+	</exec>
+</target>
+
+
+<target name="syntaxcheck" depends="load-mainconf" unless="nosyntaxcheck"
+	description="syntax error check of converted files">
+	<fail message="${cmsg.noprop.syntaxcheck.src.dir}" unless="syntaxcheck.src.dir"/>
+	<fail message="${cmsg.noprop.syntaxcheck.dir}" unless="syntaxcheck.dir"/>
+	<loadmessage pattern="^vmsg\.syntaxcheck\."/>
+	<fail message="${vmsg.syntaxcheck.no.srcdir}">
+		<condition><not><available file="${syntaxcheck.src.dir}" type="dir"/></not></condition>
+	</fail>
+	
+	<delete	dir="${syntaxcheck.dir}"/>
+	<mkdir	dir="${syntaxcheck.dir}"/>
+	
+	<!-- find syntax error in properties files -->
+	<copy preservelastmodified="true" todir="${syntaxcheck.dir}" encoding="UTF-8" includeemptydirs="no">
+		<fileset dir="${syntaxcheck.src.dir}" includes="**/*.properties"/>
+		<mapper type="package" from="*" to="*"/>
+		<filterchain>
+			<tokenfilter>
+				<filetokenizer/>
+				<replaceregex pattern="${pattern.properties}" replace="" flags="mg"/>
+			</tokenfilter>
+		</filterchain>
+	</copy>
+	
+	<!-- find syntax error in dtd files -->
+	<copy preservelastmodified="true" todir="${syntaxcheck.dir}" encoding="UTF-8" includeemptydirs="no">
+		<fileset dir="${syntaxcheck.src.dir}" includes="**/*.dtd"/>
+		<mapper type="package" from="*" to="*"/>
+		<filterchain>
+			<tokenfilter>
+				<filetokenizer/>
+				<replaceregex pattern="${pattern.dtd}" replace="" flags="msg"/>
+				<!-- <replaceregex pattern="^#expand$" replace="" flags=""/>exception: #expand ... in brand.dtd -->
+			</tokenfilter>
+		</filterchain>
+	</copy>
+	
+	<!-- delete all empty files, which means no error found in each correcponding src file -->
+	<delete includeemptydirs="true">
+		<fileset dir="${syntaxcheck.dir}" includes="**">
+			<size value="0" when="equal"/>
+		</fileset>
+	</delete>
+	<fail message="${vmsg.syntaxcheck.found}">
+		<condition><available file="${syntaxcheck.dir}" type="dir"/></condition>
+	</fail>
+</target>
+
+
+<target name="-wordcheck-prop-" depends="load-mainconf" unless="wordcheck.prop.unescape">
+	<copy preservelastmodified="true" todir="${wordcheck.dir}" encoding="UTF-8" includeemptydirs="no" failonerror="false">
+		<fileset dir="${wordcheck.src.dir}" includes="**/*.properties"/>
+		<mapper type="package" from="*" to="*"/>
+		<filterchain>
+			<replaceregex pattern="^#.*$" replace="" flags="mg"/><!-- allow any words in comments -->
+			<replaceregex pattern="${wordcheck.allow}" replace="${wordcheck.allow.replace}" flags="msg"/>
+			<linecontainsregexp>
+  				<regexp pattern="${wordcheck.deny}"/>
+			</linecontainsregexp>
+		</filterchain>
+	</copy>
+</target>
+<target name="-wordcheck-prop-unescape-" depends="load-mainconf" if="wordcheck.prop.unescape">
+	<!-- native2ascii task require JDK installed and JAVA_HOME env set, or you'll see the error "error starting Sun's native2ascii" -->
+	<native2ascii src="${wordcheck.src.dir}" includes="**/*.properties"
+		dest="${lot.wordcheck.dir}/unescape" reverse="true" encoding="UTF-8"/>
+	<copy preservelastmodified="true" todir="${wordcheck.dir}" encoding="UTF-8" includeemptydirs="no" failonerror="false">
+		<fileset dir="${lot.wordcheck.dir}/unescape" includes="**/*.properties"/>
+		<mapper type="package" from="*" to="*"/>
+		<filterchain>
+			<replaceregex pattern="^#.*$" replace="" flags="mg"/><!-- allow any words in comments -->
+			<replaceregex pattern="${wordcheck.allow}" replace="${wordcheck.allow.replace}" flags="msg"/>
+			<linecontainsregexp>
+  				<regexp pattern="${wordcheck.deny}"/>
+			</linecontainsregexp>
+		</filterchain>
+	</copy>
+	<delete dir="${lot.wordcheck.dir}/unescape"/>
+</target>
+<target name="wordcheck" depends="load-mainconf" unless="nowordcheck">
+	<fail message="${cmsg.noprop.wordcheck.src.dir}" unless="wordcheck.src.dir"/>
+	<fail message="${cmsg.noprop.wordcheck.dir}" unless="wordcheck.dir"/>
+	<loadmessage pattern="^vmsg\.wordcheck\."/>
+	<fail message="${vmsg.wordcheck.no.srcdir}">
+		<condition><not><available file="${wordcheck.src.dir}" type="dir"/></not></condition>
+	</fail>
+	
+	<delete dir="${wordcheck.dir}"/>
+	<mkdir dir="${wordcheck.dir}"/>
+	
+	<equals property="wordcheck.deny"	value="@@|${wordcheck.deny.common}|${wordcheck.deny.ja}" arg1="${locale}" arg2="ja"/>
+	<equals property="wordcheck.deny"	value="@@|${wordcheck.deny.common}|${wordcheck.deny.ja-JP-mac}" arg1="${locale}" arg2="ja-JP-mac"/>
+	<property name="wordcheck.deny"		value="${wordcheck.deny.common}"/>
+	<equals property="wordcheck.allow"	value="${wordcheck.allow.common}|${wordcheck.allow.ja}" arg1="${locale}" arg2="ja"/>
+	<equals property="wordcheck.allow"	value="${wordcheck.allow.common}|${wordcheck.allow.ja-JP-mac}" arg1="${locale}" arg2="ja-JP-mac"/>
+	<property name="wordcheck.allow"	value="${wordcheck.allow.common}"/>
+	
+	<copy preservelastmodified="true" todir="${wordcheck.dir}" encoding="UTF-8" includeemptydirs="no">
+		<fileset dir="${wordcheck.src.dir}" includes="**/*.dtd, **/*.xml, **/*.html, **/*.xhtml, **/*.rdf"/>
+		<mapper type="package" from="*" to="*"/>
+		<filterchain>
+			<tokenfilter><!-- allow any words in comments -->
+				<filetokenizer/>
+				<replaceregex pattern="${pattern.xmlcomment}" replace="" flags="msg"/>
+			</tokenfilter>
+			<replaceregex pattern="${wordcheck.allow}" replace="${wordcheck.allow.replace}" flags="msg"/>
+			<linecontainsregexp>
+				<regexp pattern="${wordcheck.deny}"/>
+			</linecontainsregexp>
+		</filterchain>
+	</copy>
+	
+	<istrue arg="${propertiesfiles.need.escape}" property="wordcheck.prop.unescape"/>
+	<antcall>
+		<target name="-wordcheck-prop-"/>
+		<target name="-wordcheck-prop-unescape-"/>
+	</antcall>
+	
+	<copy preservelastmodified="true" todir="${wordcheck.dir}" encoding="UTF-8" includeemptydirs="no">
+		<fileset dir="${wordcheck.src.dir}" includes="**/*.inc, **/unix/*.it"/>
+		<mapper type="package" from="*" to="*"/>
+		<filterchain>
+			<replaceregex pattern="${wordcheck.allow}" replace="${wordcheck.allow.replace}" flags="msg"/>
+			<linecontainsregexp>
+				<regexp pattern="${wordcheck.deny}"/>
+			</linecontainsregexp>
+		</filterchain>
+	</copy>
+	<copy preservelastmodified="true" todir="${wordcheck.dir}" encoding="Shift_JIS" includeemptydirs="no">
+		<fileset dir="${wordcheck.src.dir}" includes="windows/*.it"/>
+		<mapper type="package" from="*" to="*"/>
+		<filterchain>
+			<replaceregex pattern="${wordcheck.allow}" replace="${wordcheck.allow.replace}" flags="msg"/>
+			<linecontainsregexp>
+				<regexp pattern="${wordcheck.deny}"/>
+			</linecontainsregexp>
+		</filterchain>
+	</copy>
+
+	<delete includeemptydirs="true">
+		<fileset dir="${wordcheck.dir}" includes="**">
+			<size value="0" when="equal"/>
+		</fileset>
+	</delete>
+	<fail message="${vmsg.wordcheck.found}">
+		<condition><available file="${wordcheck.dir}" type="dir"/></condition>
+	</fail>
+</target>
+
+<target name="errorcheck" depends="syntaxcheck, wordcheck"/>
+
+
+
+<!-- * escape and unescape * -->
+<!-- switching unicode escape from/to utf-8 (only *.properties files are escaped/unescaped and others are just copied by default) -->
+<target name="-escape-jar-" depends="load-mainconf" if="escape.jar.file">
+	<property name="escape.jar.dir" value="${escape.todir}"/>
+	<zip taskname="JAR Packaging (${escape.jar.file})" destfile="${escape.jar.dir}/${escape.jar.file}" compress="false" update="false">
+		<zipfileset dir="${escape.todir}/" excludes="${escape.jar.file}"/>
+	</zip>
+</target>
+<target name="escape" depends="load-mainconf"
+	description="escape *.properties files and copy other files">
+	<loadmessage pattern="^vmsg\.escape\."/>
+	<fail message="${vmsg.escape.no.fromdir}">
+		<condition><not><available file="${escape.fromdir}" type="dir"/></not></condition>
+	</fail>
+	<escapeunicode-copy fromdir="${escape.fromdir}" todir="${escape.todir}" encoding="${escape.encoding}"
+		includes="${escape.includes}" excludes="${escape.excludes}"
+		escapeincludes="${escape.escapeincludes}" escapeexcludes="${escape.escapeexcludes}"/>
+	<antcall target="-escape-jar-"/>
+</target>
+
+<target name="-unescape-jar-" depends="load-mainconf" if="unescape.jar.file">
+	<unjar src="${unescape.jar.file}"
+		dest="${unescape.fromdir}"/>
+</target>
+<target name="unescape" depends="load-mainconf, -unescape-jar-"
+	description="unescape *.properties files and copy other files">
+	<loadmessage pattern="^vmsg\.unescape\."/>
+	<fail message="${vmsg.unescape.no.fromdir}">
+		<condition><not><available file="${unescape.fromdir}" type="dir"/></not></condition>
+	</fail>
+	<unescapeunicode-copy fromdir="${unescape.fromdir}" todir="${unescape.todir}" encoding="${unescape.encoding}"
+		includes="${unescape.includes}" excludes="${unescape.excludes}"
+		unescapeincludes="${unescape.unescapeincludes}" unescapeexcludes="${unescape.unescapeexcludes}"/>
+</target>
+
+
+<!-- * en-US to l10n * -->
+<target name="prepare-hg">
+	<!-- prepare properties to make this script possible to use stand alone -->
+	<property name="temp.root" value="temp"/>
+	<property name="locale" value="ja"/>
+	<!-- <property name="hg.mozilla-central.dir" value="mozilla-central"/> -->
+	<property name="hg.mozilla-central.dir" value="comm-central/mozilla"/>
+	<property name="hg.comm-central.dir" value="comm-central"/>
+</target>
+
+<target name="mozilla-to-l10n" depends="prepare-hg"
+	description="copy changing directory structure of en-US locale files within mozilla-central">
+	<!-- prepare properties to make this script possible to use stand alone -->
+	<property name="mozilla-to-l10n.temp.dir" value="${temp.root}/mozilla-to-l10n"/>
+	<property name="mozilla-to-l10n.dir" value="l10n/en-US"/>
+	
+	<!-- cleaning -->
+	<delete dir="${mozilla-to-l10n.temp.dir}"/>
+	
+	<!-- now, copy changing directory structure -->
+	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/browser"
+		failonerror="false" preservelastmodified="true">
+		<fileset dir="${hg.mozilla-central.dir}/browser/locales/en-US"/>
+	</copy><!-- only firefox -->
+	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/browser/installer/uninstaller.inc"
+		failonerror="false" preservelastmodified="true">
+		<fileset dir="${hg.mozilla-central.dir}/browser/installer/windows/uninstaller.inc"/>
+	</copy>
+	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/dom"
+		failonerror="false" preservelastmodified="true">
+		<fileset dir="${hg.mozilla-central.dir}/dom/locales/en-US"/>
+	</copy>
+	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/extensions/spellcheck"
+		failonerror="false" preservelastmodified="true">
+		<fileset dir="${hg.mozilla-central.dir}/extensions/spellcheck/locales/en-US"/>
+	</copy>
+	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/extensions/reporter"
+		failonerror="false" preservelastmodified="true">
+		<fileset dir="${hg.mozilla-central.dir}/extensions/reporter/locales/en-US"/>
+	</copy>
+	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/netwerk"
+		failonerror="false" preservelastmodified="true">
+		<fileset dir="${hg.mozilla-central.dir}/netwerk/locales/en-US"/>
+	</copy>
+	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/other-licenses/branding/firefox"
+		failonerror="false" preservelastmodified="true">
+		<fileset dir="${hg.mozilla-central.dir}/other-licenses/branding/firefox/locales/en-US"/>
+	</copy><!-- only firefox -->
+	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/security/manager"
+		failonerror="false" preservelastmodified="true">
+		<fileset dir="${hg.mozilla-central.dir}/security/manager/locales/en-US"/>
+	</copy>
+	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/toolkit"
+		failonerror="false" preservelastmodified="true">
+		<fileset dir="${hg.mozilla-central.dir}/toolkit/locales/en-US"/>
+	</copy>
+	
+	<mkdir dir="${mozilla-to-l10n.dir}"/>
+	<move todir="${mozilla-to-l10n.dir}">
+		<fileset dir="${mozilla-to-l10n.temp.dir}/en-US"/>
+	</move>
+</target>
+
+<target name="comm-to-l10n" depends="prepare-hg"
+	description="copy changing directory structure of en-US locale files within comm-central">
+	<!-- prepare properties to make this script possible to use stand alone -->
+	<property name="comm-to-l10n.temp.dir" value="${temp.root}/comm-to-l10n"/>
+	<property name="comm-to-l10n.dir" value="l10n/en-US"/>
+	
+	<!-- cleaning -->
+	<delete dir="${comm-to-l10n.temp.dir}"/>
+	
+	<!-- now, copy changing directory structure -->
+	<copy todir="${comm-to-l10n.temp.dir}/en-US/calendar"
+		failonerror="false" preservelastmodified="true">
+		<fileset dir="${hg.comm-central.dir}/calendar/locales/en-US"/>
+	</copy><!-- only sunbird -->
+	<copy todir="${comm-to-l10n.temp.dir}/en-US/editor/ui"
+		failonerror="false" preservelastmodified="true">
+		<fileset dir="${hg.comm-central.dir}/editor/ui/locales/en-US"/>
+	</copy><!-- only thunderbird -->
+	<copy todir="${comm-to-l10n.temp.dir}/en-US/extensions/inspector/chrome"
+		failonerror="false" preservelastmodified="true">
+		<fileset dir="${hg.comm-central.dir}/extensions/inspector/resources/locale/en-US"/>
+	</copy><!-- not in L10N CVS -->
+	<copy todir="${comm-to-l10n.temp.dir}/en-US/mail"
+		failonerror="false" preservelastmodified="true">
+		<fileset dir="${hg.comm-central.dir}/mail/locales/en-US"/>
+	</copy><!-- only thunderbird -->
+	<copy todir="${comm-to-l10n.temp.dir}/en-US/minimo"
+		failonerror="false" preservelastmodified="true">
+		<fileset dir="${hg.comm-central.dir}/minimo/locales/en-US"/>
+	</copy><!-- only minimo -->
+	<copy todir="${comm-to-l10n.temp.dir}/en-US/other-licenses/branding/sunbird"
+		failonerror="false" preservelastmodified="true">
+		<fileset dir="${hg.comm-central.dir}/other-licenses/branding/sunbird/locales/en-US"/>
+	</copy><!-- only sunbird -->
+	<copy todir="${comm-to-l10n.temp.dir}/en-US/other-licenses/branding/thunderbird"
+		failonerror="false" preservelastmodified="true">
+		<fileset dir="${hg.comm-central.dir}/other-licenses/branding/thunderbird/locales/en-US"/>
+	</copy><!-- only thunderbird -->
+	
+	<mkdir dir="${comm-to-l10n.dir}"/>
+	<move todir="${comm-to-l10n.dir}">
+		<fileset dir="${comm-to-l10n.temp.dir}/en-US"/>
+	</move>
+</target>
+
+<target name="en-US-to-l10n" depends="mozilla-to-l10n, comm-to-l10n"
+       description="copy changing directory structure of en-US locale files within both mozilla-central and comm-central"/>
+       
+
+
+<!-- * better to have * -->
+<target name="imedic"
+	description="generate IME dictionary for filters">
+	<!-- 例えば "ウィンドウ" で "@@Window@@" に変換するための辞書を生成 -->
+	<fail message="not implemented yet..."/>
+</target>
+
+
+</project>

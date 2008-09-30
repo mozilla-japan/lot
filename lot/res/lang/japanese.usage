@@ -1,0 +1,242 @@
+この簡易ヘルプは古いバージョン用です。
+現バージョンの簡易ヘルプは準備中です。m(_ _)m
+
+
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+               Localization Tools (lot) 簡易ヘルプ
+
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+	1. 前書き
+
+Localization Tools (通称lot) の機能や設定の数は増え続けており、一部
+についてはまだ仕様が安定していません。lot についてすべてを説明する
+ことはできません。この簡易ヘルプでは lot の一部機能についてのみ解説
+しますが、長くて詳細な解説よりも手短なチュートリアルの方が良いはず
+です。lot を使い始めるユーザの大部分にはこの程度の説明で十分かと思
+います。
+
+将来的には lot についてより詳細なドキュメントを書くことになるでしょ
+うが、今のところはこれだけです。今すぐもっと知りたければ、まずは
+ant の -p オプションを使ってください。
+  $ ant -p
+lot の公開インターフェイスがすべて一覧表示されるので、これを使って
+下さい。不振な挙動があればビルドスクリプトのソースを読むか、単に私
+に問い合わせてください。バグレポートをお待ちしております。(^^;
+
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+	2. 目次
+
+  1. 前書き
+  2. 目次
+  3. 基本的な使い方
+    3.1. Firefox 1.5 対応言語パックを作る
+    3.2. その他の言語パックを作る
+    3.3. 独自のパッケージを作る
+  4. その他の使用例
+    4.1. バックアップとリストア
+    4.2. diff 関連機能
+    4.3. cvs 関連機能
+
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+	3. 基本的な使い方
+
+    3.1 Firefox 1.5 対応言語パックを作る
+
+Firefox の言語パック xpi パッケージはこれだけで作成できます。
+  $ ant
+処理開始確認メッセージが表示されたあと、lot があなたの替わりに自動
+でパッケージを作成します。(^-^)v
+
+loose と dest ディレクトリにファイルが多数増えているはずです。
+前者には中間出力ファイルが収められています。これは(src 配下の)
+ソースファイルと(tpl 配下の)テンプレートファイルから(config 配下の)
+設定と(filters 配下の)フィルタに従って生成されます。
+後者には firefox サブディレクトリ下に xpi パッケージがあります。
+このディレクトリにはバージョン番号とロケール名のディレクトリが作ら
+れています。xpi パッケージ中のファイルがこのディレクトリ配下に作成
+されます。xpi パッケージをインストールすることもできますし、出力を
+確認することもできるのです。
+
+ソースファイルを変更したら再度パッケージを作りましょう。
+  $ ant
+変更を含む新しいパッケージが作成されます。但し今度は上書きについて
+確認されます。lot は既存のファイルを無言で削除したり上書きしたりは
+しません。xpi パッケージを作るには yes と答えるか単に事前に既存の
+ファイルを削除しておいて下さい。
+ええ、勿論これは安全ですが多少面倒です。いちいち確認に答えずに済ま
+すには次のコマンドを入力して下さい。
+  $ ant auto build
+これで既存のファイルを確認無しで上書きしてくれます。
+
+出力される xpi ファイル名その他の設定を変更したければ、以下のファイ
+ルを編集してください。
+  config/mozilla1.8/firefox.conf
+設定やソースファイルを書き換えるだけで独自の言語パックを作れます。
+
+    3.2. その他の言語パックを作る
+
+では、次に進みましょう。上の例では Firefox 1.5 用の言語パックを作
+りましたが、lot はそれだけに使用するツールではありません。
+他のパッケージについても作ってみましょう。
+  $ ant -Dmode=aviary
+  $ ant -Dmode=trunk
+  $ ant -Dpackage=thunderbird
+  $ ant -Dmode=aviary -Dpackage=thunderbird
+  $ ant -Dmode=trunk  -Dpackage=thunderbird
+  $ ant -Dmode=extension -Dpackage=venkman
+これらのコマンドにより、Firefox 1.0.x および Trunk 用言語パック、
+Thunderbird 1.5, 1.0.x および Trunk 用言語パック、そして Venkman
+拡張機能が順に作成されます。
+
+[メモ] firefox/thunderbird のソースは一部共有されています。
+       ja/ja-JP-mac の差分はフィルタファイルに分離されています。
+
+    3.3. 独自のパッケージを作る
+
+lot は Mozilla 製品用の任意のパッケージ作成に利用できます。独自の拡
+張機能用に lot を使用することもできます。すべての機能を説明すること
+はできませんが、手順とヒントを少しだけ書いておきます。
+  1. パッケージ名を決定する(ここでは foo とします)。
+  2. src/extension/foo ディレクトリを作成し、拡張機能 foo のファ
+     イルすべてを xpi パッケージ中での構造通りに収めます。
+  3. 設定ファイル config/extension/foo.conf を作ります。
+     これは sample.conf を元に作成することもできます。
+  4. そして、-Dpackage=foo オプションをつけて ant を実行します。
+問題がなければ dest/foo 配下に xpi パッケージができあがります。
+ディレクトリ構造とファイル名には注意してください。
+
+必要に応じてテンプレートや拡張機能専用のビルドファイルを追加できま
+す。既存の拡張機能の src, tpl, conf およびビルドファイルを参考にし
+てください。
+
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+	4. その他の使用例
+
+    4.1. バックアップとリストア
+
+lot 全体をバックアップするには次のようにします。
+  $ ant backuplot
+backup/lot ディレクトリに zip ファイルが作成されます。
+
+[メモ] 配布されている lot パッケージもこれで作っています。
+
+ソースファイルだけをバックアップすることもできます。
+  $ ant backupsrc
+backup/mozilla1.8 ディレクトリに zip ファイルが作成されます。お気づ
+きの通り、これは mozilla1.8 ブランチ用のソースファイルだけがバック
+アップされます。aviary, trunk や extension のソースファイルのバック
+アップは次のようにします。
+  $ ant backupsrc -Dmode=aviary
+  $ ant backupsrc -Dmode=trunk
+  $ ant backupsrc -Dmode=extension
+
+どのファイルが含められるか調整するには、config/lot.conf で設定され
+る backup* を書き換えてください。
+
+バックアップしたソースファイルのリストアは次のようにします。
+  $ ant restoresrc -Dfile=backupfile.zip
+既存のソースファイルが削除後にバックアップされていたもので置き換え
+られます。
+
+[メモ] restoresrc はファイルの置き換え前に backupsrc を実行します。
+
+    4.2. diff 関連機能
+
+lot で言語リソースの差分を生成することもできます。
+  $ ant diff-src
+  $ ant diff-loose
+  $ ant diff-jar -Dlocale=ja
+  $ ant diff-xpi -Dlocale=ja-JP-mac
+これらは順に en-US と ja の src ファイル、ja と ja-JP-mac の loose
+ファイル、ja ロケールの異なるバージョンの jar ファイル、ja-JP-mac
+ロケールの異なるバージョンの xpi パッケージの間の比較をします。
+生成された差分出力は diff ディレクトリに収められます
+config/mozilla1.8/firefox.conf 設定ファイルを変更することで比較され
+るロケールやバージョンを変更できます。
+
+[メモ] これらのターゲットでは diff コマンドが必要です。path 環境変
+       数に diff コマンドへのパスが設定されていなければなりません。
+       (windows では cygwin の diff を利用できます)
+
+勿論、aviary, trunk や thuderbird の差分をとることもできます。
+  $ ant diff-src -Dmode=aviary
+  $ ant diff-loose -Dpackage=thunderbird
+  $ ant diff-jar -Dmode=trunk -Dpackage=thunderbird -Dlocale=ja
+  $ ant diff-xpi -Dlocale=ja -Ddiff.xpi.fromrevision=1.0.5
+最後の例では diff.xpi.fromrevision プロパティを指定して、設定ファイ
+ルを書き換えずに比較されるバージョンを変更しています。設定ファイル
+で定義される任意のプロパティはこのようにコマンドラインから上書きで
+きるのです。
+
+lot では差分を HTML 形式で出力することもできます。
+  $ ant lpdiff-src
+  $ ant lpdiff-loose
+  $ ant lpdiff-jar -Dlocale=ja
+  $ ant lpdiff-xpi -Dlocale=ja
+HTML 差分表は lpdiff ディレクトリに生成されますのでご覧ください。
+これらのターゲットでは LpDiff を使用します。LpDiff についての詳細は
+以下のページを参照してください。
+  http://www.mozilla-japan.org/jp/l10n/lpdiff/
+
+[メモ] 残念ながら LpDiff が正常に機能するのは windows だけです。
+
+    4.3. cvs 関連機能
+
+lot には cvs コマンドインターフェイスとしての機能も用意されています
+(cvs コマンドが必要です)。lot を使用すれば cvs コマンドやサーバ設定
+を知らずとも簡単に mozilla.org の公開 cvs サーバを利用できます。
+
+cvs で作業する際はまず、.cvspass ファイルを作ります。
+  $ ant cvs-cvspass
+cvs/.cvspass ファイルが config/lot.conf の設定に応じて作られます。
+これで他のコマンドを使用できるようになりました。
+
+以下のコマンドにより最新の en-US と ja ロケールファイルをチェックア
+ウトできます。cvs 関連のターゲットでは en-SU がデフォルトです。
+  $ ant cvs-checkout
+  $ ant cvs-checkout -Dlocale=ja
+cvs/checkout ディレクトリの配下にチェックアウトされます。
+
+CVS ディレクトリ無しでロケールファイルが欲しければ cvs サーバからこ
+のように export します。
+  $ ant cvs-export
+cvs/export ディレクトリの配下にロケールファイルが export されます。
+
+このように日付を指定して export することもできます。
+  $ ant cvs-export -Ddate=2005-06-01
+  $ ant cvs-export -Ddate="last week"
+
+[メモ] 空白文字を含む日付文字列を使用する場合は、一重引用符ではなく
+       二重引用符で括らなければなりません。
+
+最新の更新点を調べるには、cvs の rdiff コマンドによって取得します。
+  $ ant cvs-rdiff
+最近2週間に加えられた変更の差分ファイルが cvs/mozilla1.8/rdiff ディ
+レクトリの配下に出力されます。
+
+勿論、期間を指定することもできます。
+  $ ant cvs-rdiff -Dstartdate=2005-07-01
+  $ ant cvs-rdiff -Dstartdate=2005-06-01 -Denddate=2005-07-01
+
+cvs のコミットログは変更ログを HTML に出力して確認できます。
+  $ ant cvs-chengelog
+  $ ant cvs-changelog -Dcvs.log.module=l10n/ja
+デフォルトではここ 2週間以内にコミットされた変更について HTML 出力
+されます。変更ログ HTML ファイルは cvs/mozilla1.8/changelog ディレ
+クトリの配下に出力されます。この HTML では変更点の詳細を確認しやす
+いよう lxr や bonsai へのリンクが含められます。
+
+[メモ] cvs-changelog を使うには先に cvs-checkout でチェックアウトし
+       ておく必要があります。
+
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+                                           lastupdate: 2005/12/17
+                                               author: dynamis
+
+ 
