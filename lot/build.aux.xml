@@ -254,6 +254,7 @@
 </target>
 
 
+
 <!-- * en-US to l10n * -->
 <target name="prepare-hg">
 	<!-- prepare properties to make this script possible to use stand alone -->
@@ -364,7 +365,29 @@
 
 <target name="en-US-to-l10n" depends="mozilla-to-l10n, comm-to-l10n"
        description="copy changing directory structure of en-US locale files within both mozilla-central and comm-central"/>
-       
+
+
+
+<!-- * copy current lot to src/l10n/lot * -->
+<target name="pre-commit-lot" depends="load-mainconf"
+	description="copy current lot to svn working directory (src/l10n/lot)">
+	<copy todir="${lot.src.dir}/l10n/lot" preservelastmodified="true">
+		<fileset dir="." defaultexcludes="no"
+			includes="${backuplot.includes}" excludes="${backuplot.excludes}"/>
+	</copy>
+</target>
+
+<target name="update-lot" depends="load-mainconf"
+	description="replace current lot with checkouted lot (src/l10n/lot)">
+	<confirm message="現在使用中の Localization Tools を SVN からチェックアウトしたバージョンで置き換えます。本当に置き換えてよろしいですか？(Y/N)"
+		failmessage="Localization Tools の 置き換えを中止しました"/>
+	<!-- svn update src/l10n -->
+	<copy todir="." overwrite="true">
+		<fileset dir="${lot.src.dir}/l10n/lot" defaultexcludes="yes"
+			includes="${backuplot.includes}" excludes="${backuplot.excludes}"/>
+	</copy>
+</target>
+
 
 
 <!-- * better to have * -->

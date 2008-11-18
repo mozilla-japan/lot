@@ -305,20 +305,6 @@ ant lpdiff-loose -Dfromlocale=en-US -Dtolocale=ja-JP-mac
 ant lpdiff-jar -Dlocale=ja
 ant lpdiff-xpi -Dlocale=ja-JP-mac
 </echo><echo/>
-
-<echo taskname="*">ant cvs-cvspass
-ant cvs-checkout
-ant cvs-checkout -Dlocale=ja
-ant cvs-export -Ddate=2005-06-01
-ant cvs-exportsrc
-ant cvs-rdiff
-ant cvs-rdiff -Dcvs.module=mozilla/browser/locales
-ant cvs-rdiff -Dstartdate=2005-08-01 -Denddate=2005-08-15
-ant cvs-chengelog
-ant cvs-changelog -Dcvs.log.module=l10n/ja
-ant cvs-exportdiff -Dstartdate=2005-09-15 -Denddate=2005-10-01
-ant cvs-checkoutdiff -Dstartdate=2005-09-15 -Denddate=2005-10-01
-</echo>
 </target>
 
 

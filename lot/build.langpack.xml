@@ -35,7 +35,12 @@
 </target>
 
 <target name="clean-pre-convert" unless="convert.overwrite">
-	<safedelete dir="${convert.dest.dir}"/>
+	<available property="convert.dest.dir.exists" file="${convert.dest.dir}" type="dir"/>
+	<loadmessage pattern="^vmsg\.delete\.converted"/>
+	<confirm message="${vmsg.delete.converted.confirm}" failmessage="${cmsg.delete.converted.aborted}" if="convert.dest.dir.exists"/>
+	<delete includeEmptyDirs="true">
+		<fileset dir="${convert.dest.dir}" excludes=".hg/, .hg*"/>
+	</delete>
 </target>
 
 <!-- * main targets for convert * -->
@@ -108,7 +113,10 @@
 </target>
 
 <target name="clean-pre-pack" unless="pack.overwrite">
-	<safedelete file="${pack.dest.dir}/${xpi.filename}" dir="${xpi.dir}"/>
+	<available property="pack.xpi.exists" file="${pack.dest.dir}/${xpi.filename}" type="file"/>
+	<loadmessage pattern="^vmsg\.delete\.xpi"/>
+	<confirm message="${vmsg.delete.xpi.confirm}" failmessage="${cmsg.delete.xpi.aborted}" if="pack.xpi.exists"/>
+	<delete file="${pack.dest.dir}/${xpi.filename}"/>
 </target>
 
 

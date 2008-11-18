@@ -39,6 +39,11 @@ cmsg.intro			= Localization Tools (通称 lot) のご利用ありがとうござ
 cmsg.clean.confirm		= 全ての一時ファイルを削除します。${lot.temp.dir} ディレクトリを削除してもよろしいですか？(Y/N)
 cmsg.clean.aborted		= 一時ファイルの削除は中断されました。
 
+vmsg.delete.converted.confirm	= 既存のファイルを削除します。${convert.dest.dir} ディレクトリのファイルを削除してもよろしいですか？(Y/N)
+cmsg.delete.converted.aborted	= 既存ファイルの削除は中断されました。
+vmsg.delete.xpi.confirm		= 既存の XPI パッケージを削除します。 ${pack.dest.dir}/${xpi.filename} ファイルを削除してもよろしいですか？(Y/N)
+cmsg.delete.xpi.aborted		= 既存の XPI パッケージの削除は中断されました。
+
 cmsg.localeconf.no.locale	= ロケール別設定ファイルの読み込み以前に locale プロパティが設定されていなければなりません
 
 
