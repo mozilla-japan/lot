@@ -101,7 +101,8 @@ cd src/l10n
 svn up
 svn status
 svn diff
-svn commit -m "コミットログ"
+# en-US との同期をするときは対象リビジョンをコミットログに明記
+svn commit -m "sync with en-US rev{MOZILLA_REV_TIP}+{COMM_REV_TIP}"
 cd ../..
 
 # 更に L10N HG にもコミット＆プッシュ
@@ -110,14 +111,14 @@ hg pull
 hg up
 hg status
 hg diff
-hg commit -m "sync with en-US rev{MOZILLA_REV_TIP}"
+hg commit -m "sync with en-US rev{MOZILLA_REV_TIP}+{COMM_REV_TIP}"
 hg push
 cd ../ja-JP-mac
 hg pull
 hg up
 hg status
 hg diff
-hg commit -m "sync with en-US rev{MOZILLA_REV_TIP}"
+hg commit -m "sync with en-US rev{MOZILLA_REV_TIP}+{COMM_REV_TIP}"
 cd ../..
 
 # l10n dashboard や tinderbox をチェック
