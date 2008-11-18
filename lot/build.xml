@@ -114,17 +114,21 @@
 	<concat destfile="${filters.file}" encoding="${lot.encoding.filters}" fixlastline="yes">
 		<filelist dir="${lot.src.dir}" files="${filters.filelist}"/>
 		<filelist dir="${lot.res.dir}" files="${filters.accesskey.filename}"/>
-		<footer trimleading="true">
-			locale					= ${locale}
-			package.creator			= ${package.creator}
-			package.contributor.em	= ${package.contributor.em}
-			alwaysappendaccesskeys	= ${filters.alwaysappendaccesskeys}
-		</footer>
 		<filterchain>
 			<replaceregex pattern="^(${filters.stripprefix})\." replace="" flags="i"/>
 			<expandproperties/>
 			<escapeunicode/>
 		</filterchain>
+		<!-- set some filters from properties -->
+		<footer trimleading="true" filtering="no">
+			locale						= ${locale}
+			package.creator				= ${package.creator}
+			firefox.l10n.contributor.em		= ${firefox.l10n.contributor.em}
+			thunderbird.l10n.contributor.em	= ${thunderbird.l10n.contributor.em}
+			sunbird.l10n.contributor.em		= ${sunbird.l10n.contributor.em}
+			seamonkey.l10n.contributor.em		= ${seamonkey.l10n.contributor.em}
+			alwaysappendaccesskeys			= ${filters.alwaysappendaccesskeys}
+		</footer>
 	</concat>
 	
 	<!-- As workaround of Ant 1.7.0 bug(spec change?), define here...  -->
