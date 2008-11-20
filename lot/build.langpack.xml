@@ -43,6 +43,7 @@
 	</delete>
 </target>
 
+
 <!-- * main targets for convert * -->
 <target name="apply-filters" depends="prepare"
 	description="replace tokens in src files with filters">
@@ -81,10 +82,9 @@
 	<!-- nothing to do for langpack -->
 </target>
 
+
 <!-- * error check for convert * -->
 <!-- defined in build.aux.xml -->
-
-
 
 
 
@@ -121,8 +121,8 @@
 
 
 <!-- * jar * -->
-<!-- to make multiple jar file, define jar.* properties as a param of antcall -->
-<target name="jar" depends="prepare"
+<!-- common part of firefox/thunderbird/sunbird/seamonkey jar packaging -->
+<target name="-jar-common-" depends="prepare"
 	description="make jar package from converted src files">
 	<mkdir dir="${jar.dest.dir}/chrome"/>
 	<!-- パフォーマンス的には contents.rdf を最初に含めた方が良いが… -->
@@ -145,23 +145,7 @@
 			</zip>
 		</sequential>
 	</macrodef>
-</target>
-
-
-<!-- * targetapp depending tasks befor xpi packanging * -->
-<target name="-pre-xpi-firefox-" if="targetapp.is.firefox">
-	<!-- L10N CVS と langpack でファイル名が異なる -->
-	<!-- <copy file="${jar.src.dir}/browser/chrome/help/firebirdhelp.rdf"
-		tofile="${lot.temp.dir}/${jar.src.dir}/browser/chrome/help/help.rdf"/> -->
 	
-	<update-jar dir="${jar.src.dir}/browser/chrome"							prefix="locale"
-		includes="**" excludes="branding/, browser/cookieviewer/, help/, overrides/"/>
-	<!-- <update-jar dir="${jar.src.dir}/browser/chrome/help"					prefix="locale/browser/help"
-		includes="**" excludes="firebirdhelp.rdf"/>
-	<update-jar dir="${lot.temp.dir}/${jar.src.dir}/browser/chrome/help/"		prefix="locale/browser/help"
-		includes="help.rdf"/> -->
-	<!-- <update-jar dir="${jar.src.dir}/dom/chrome"								prefix="locale/${locale}/global"
-		includes="**" excludes="accessibility/, layout/, appstrings.properties, netError.dtd"/> -->
 	<update-jar dir="${jar.src.dir}/dom/chrome"								prefix="locale/${locale}/global"
 		includes="**" excludes="accessibility/, layout/"/>
 	<update-jar dir="${jar.src.dir}/dom/chrome/layout"						prefix="locale/${locale}/global"
@@ -169,15 +153,25 @@
 	<update-jar dir="${jar.src.dir}/dom/chrome/layout"						prefix="locale/${locale}/global/layout"
 		includes="HtmlForm.properties, MediaDocument.properties, xmlparser.properties"/>
 	<update-jar dir="${jar.src.dir}/dom/chrome/accessibility"				prefix="locale/${locale}/global-platform"/>
-	<update-jar dir="${jar.src.dir}/extensions/reporter/chrome"				prefix="locale/${locale}/reporter"/>
+	
 	<update-jar dir="${jar.src.dir}/netwerk"								prefix="locale/${locale}/necko"/>
-	<update-jar dir="${jar.src.dir}/other-licenses/branding/firefox"		prefix="locale/branding"/>
 	<update-jar dir="${jar.src.dir}/security/manager/chrome"				prefix="locale/${locale}"/>
+	
 	<update-jar dir="${jar.src.dir}/toolkit/chrome"							prefix="locale/${locale}/"
-		includes="**" excludes="mozapps/help/"/>
+		includes="**" excludes="mozapps/help/, search/"/>
 	<update-jar dir="${jar.src.dir}/toolkit/chrome/mozapps/help"			prefix="locale/${locale}/help"/>
+</target>
+
+<!--  targetapp depending part of jar packanging -->
+<target name="-jar-firefox-" if="targetapp.is.firefox">
+	<update-jar dir="${jar.src.dir}/browser/chrome"							prefix="locale"
+		includes="**" excludes="branding/, browser/cookieviewer/, overrides/"/>
+	
+	<update-jar dir="${jar.src.dir}/extensions/reporter/chrome"				prefix="locale/${locale}/reporter"/>
+	<update-jar dir="${jar.src.dir}/other-licenses/branding/firefox"		prefix="locale/branding"/>
 	<update-jar dir="${jar.src.dir}/toolkit/crashreporter"					prefix="locale/${locale}/global"
 		includes="**" excludes="crashreporter.ini"/>
+	<update-jar dir="${jar.src.dir}/toolkit/chrome/search"					prefix="locale/${locale}/global/search"/>
 	
 	<!-- overrides -->
 	<!-- <update-jar dir="${jar.src.dir}/browser/chrome/overrides"				prefix="locale/${locale}/global"/> -->
@@ -190,47 +184,25 @@
 	<update-jar dir="${jar.src.dir}/extensions/inspector/chrome"			prefix="locale/inspector"/> -->
 </target>
 
-<target name="-pre-xpi-thunderbird-" if="targetapp.is.thunderbird">
-	<update-jar dir="${jar.src.dir}/mail/chrome"							prefix="locale/${locale}"
-		includes="**" excludes="branding/"/>
-	<update-jar dir="${jar.src.dir}/dom/chrome"								prefix="locale/${locale}/global"
-		includes="**" excludes="accessibility/, layout/"/>
-	<update-jar dir="${jar.src.dir}/dom/chrome/layout"						prefix="locale/${locale}/global"
-		includes="css.properties, layout_errors.properties, printing.properties, svg.properties, xbl.properties, xul.properties"/>
-	<update-jar dir="${jar.src.dir}/dom/chrome/layout"						prefix="locale/${locale}/global/layout"
-		includes="HtmlForm.properties, MediaDocument.properties, xmlparser.properties"/>
-	<update-jar dir="${jar.src.dir}/dom/chrome/accessibility"				prefix="locale/${locale}/global-platform"/>
+<target name="-jar-thunderbird-" if="targetapp.is.thunderbird">
+	<update-jar dir="${jar.src.dir}/mail/chrome"							prefix="locale/${locale}"/>
+	
 	<update-jar dir="${jar.src.dir}/editor/ui/chrome/composer"				prefix="locale/${locale}/editor"
 		includes="editor.properties, editorOverlay.dtd, editorSmileyOverlay.dtd"/>
 	<update-jar dir="${jar.src.dir}/editor/ui/chrome/dialogs"				prefix="locale/${locale}/editor"
 		includes="EdAdvancedEdit.dtd, EdColorPicker.dtd, EdConvertToTable.dtd, EdDialogOverlay.dtd, EditorColorProperties.dtd, EditorHLineProperties.dtd, EditorImageProperties.dtd, EditorInsertChars.dtd, EditorInsertSource.dtd, EditorInsertTable.dtd, EditorInsertTOC.dtd, EditorLinkProperties.dtd, EditorListProperties.dtd, EditorPersonalDictionary.dtd, EditorReplace.dtd, EditorSpellCheck.dtd, EditorTableProperties.dtd, EdNamedAnchorProperties.dtd"/>
-	<update-jar dir="${jar.src.dir}/netwerk"								prefix="locale/${locale}/necko"/>
+	
 	<update-jar dir="${jar.src.dir}/other-licenses/branding/thunderbird"	prefix="locale/${locale}/branding"/>
-	<update-jar dir="${jar.src.dir}/security/manager/chrome"				prefix="locale/${locale}"/>
-	<update-jar dir="${jar.src.dir}/toolkit/chrome"							prefix="locale/${locale}/"
-		includes="**" excludes="mozapps/help/"/>
-	<update-jar dir="${jar.src.dir}/toolkit/chrome/mozapps/help"			prefix="locale/${locale}/help"/>
 </target>
 
-<target name="-pre-xpi-sunbird-" if="targetapp.is.sunbird">
+<target name="-jar-sunbird-" if="targetapp.is.sunbird">
 	<update-jar dir="${jar.src.dir}/calendar/chrome"						prefix="locale"
 		includes="**" excludes="branding/, lightning/, prototypes/"/>
 	<update-jar dir="${jar.src.dir}/calendar/chrome/prototypes"				prefix="locale/calendar"
 		includes="sun-calendar-event-dialog.dtd, sun-calendar-event-dialog.properties"/>
-	<update-jar dir="${jar.src.dir}/dom/chrome"								prefix="locale/${locale}/global"
-		includes="**" excludes="accessibility/, layout/"/>
-	<update-jar dir="${jar.src.dir}/dom/chrome/layout"						prefix="locale/${locale}/global"
-		includes="css.properties, layout_errors.properties, printing.properties, xbl.properties, xul.properties"/>
-	<update-jar dir="${jar.src.dir}/dom/chrome/layout"						prefix="locale/${locale}/global/layout"
-		includes="HtmlForm.properties, MediaDocument.properties, xmlparser.properties"/>
-	<update-jar dir="${jar.src.dir}/dom/chrome/accessibility"				prefix="locale/${locale}/global-platform"/>
-	<update-jar dir="${jar.src.dir}/netwerk"								prefix="locale/${locale}/necko"/>
+	
 	<update-jar dir="${jar.src.dir}/other-licenses/branding/sunbird"		prefix="locale/branding"
 		includes="**" excludes="brand.properties"/>
-	<update-jar dir="${jar.src.dir}/security/manager/chrome"				prefix="locale/${locale}"/>
-	<update-jar dir="${jar.src.dir}/toolkit/chrome"							prefix="locale/${locale}/"
-		includes="**" excludes="mozapps/help/"/>
-	<update-jar dir="${jar.src.dir}/toolkit/chrome/mozapps/help"			prefix="locale/${locale}/help"/>
 
 	<!-- sunbird/brand.properties は %S を置き換える必要あり -->
 	<copy file="${jar.src.dir}/other-licenses/branding/sunbird/brand.properties"
@@ -243,9 +215,7 @@
 	<update-jar dir="${temp.root}/${jar.src.dir}/other-licenses/branding/sunbird/"	prefix="locale/branding"
 		includes="brand.properties"/>
 
-	<!-- global/brand.dtd の中身は単に branding/brand.dtd の中身を読み込むだけだから、読み込み先ファイルで置き換えてしまう。
-			<!ENTITY % realBrandDTD SYSTEM "chrome://branding/locale/brand.dtd">
-			%realBrandDTD; -->
+	<!-- global/brand.dtd では branding/brand.dtd をインポートするだけだから置き換えてしまう。 -->
 	<update-jar dir="${jar.src.dir}/other-licenses/branding/sunbird/"		prefix="locale/${locale}/global"
 		includes="brand.dtd"/>
 
@@ -257,11 +227,70 @@
 		</filterchain>
 	</copy>
 </target>
-<target name="-pre-xpi-" depends="-pre-xpi-firefox-, -pre-xpi-thunderbird-, -pre-xpi-sunbird-"/>
+
+<target name="-jar-seamonkey-" if="targetapp.is.seamonkey">
+	<update-jar dir="${jar.src.dir}/suite/chrome"							prefix="locale/${locale}"
+		includes="**" excludes="browser/, common/, mailnews/"/>
+	
+	<update-jar dir="${jar.src.dir}/suite/chrome/browser"					prefix="locale/${locale}/navigator"
+		includes="**" excludes="mac/, unix/, win/, region.properties"/>
+	<update-jar dir="${jar.src.dir}/suite/chrome/browser"					prefix="locale/${locale}/navigator-platform"
+		includes="mac/, unix,/ win/"/>
+	<update-jar dir="${jar.src.dir}/suite/chrome/browser"					prefix="locale/${locale}/navigator-region"
+		includes="region.properties"/>
+	
+	<update-jar dir="${jar.src.dir}/suite/chrome/common"					prefix="locale/${locale}/communicator"
+		includes="**" excludes="mac/, unix/, win/, pref/mac/, pref/unix/, pref/win/, region.properites,
+			pref/pref-certs.dtd, pref/pref-masterpass.dtd, pref/pref-ssl.dtd, pref/pref-validation.dtd"/>
+	<update-jar dir="${jar.src.dir}/suite/chrome/common"					prefix="locale/${locale}/communicator-platform"
+		includes="mac/, unix,/ win/"/>
+	<update-jar dir="${jar.src.dir}/suite/chrome/common"					prefix="locale/${locale}/communicator-region"
+		includes="region.properties"/>
+	<update-jar dir="${jar.src.dir}/suite/chrome/common/pref"				prefix="locale/${locale}/pippki"
+		includes="pref-certs.dtd, pref-masterpass.dtd, pref-ssl.dtd, pref-validation.dtd"/>
+	<update-jar dir="${jar.src.dir}/suite/chrome/common/pref/mac"			prefix="locale/${locale}/communicator-platform/mac/pref"
+		includes="platformPrefOverlay.dtd"/>
+	<update-jar dir="${jar.src.dir}/suite/chrome/common/pref/unix"			prefix="locale/${locale}/communicator-platform/unix/pref"
+		includes="platformPrefOverlay.dtd"/>
+	<update-jar dir="${jar.src.dir}/suite/chrome/common/pref/win"			prefix="locale/${locale}/communicator-platform/win/pref"
+		includes="platformPrefOverlay.dtd"/>
+	
+	<update-jar dir="${jar.src.dir}/suite/chrome/mailnews"					prefix="locale/${locale}/messenger"
+		includes="**" excludes="compose/, mapi/, newsblog/, pref/, smime/, region.properites"/>
+	<update-jar dir="${jar.src.dir}/suite/chrome/mailnews"					prefix="locale/${locale}/messenger-region"
+		includes="region.properties"/>
+	<update-jar dir="${jar.src.dir}/suite/chrome/mailnews/compose"			prefix="locale/${locale}/messenger/messengercompose"/>
+	<update-jar dir="${jar.src.dir}/suite/chrome/mailnews/mapi"			prefix="locale/${locale}/messenger-mapi"/>
+	<update-jar dir="${jar.src.dir}/suite/chrome/mailnews/newsblog"			prefix="locale/${locale}/messenger-newsblog"/>
+	<update-jar dir="${jar.src.dir}/suite/chrome/mailnews/pref"				prefix="locale/${locale}/messenger"
+		includes="**" excludes="pref-addressing.dtd, pref-directory-add.dtd, pref-directory.dtd, replicationProgress.properties,
+								pref-composing_messages.dtd, pref-formatting.dtd"/>
+	<update-jar dir="${jar.src.dir}/suite/chrome/mailnews/pref"				prefix="locale/${locale}/messenger/addressbook"
+		includes="pref-addressing.dtd, pref-directory-add.dtd, pref-directory.dtd, replicationProgress.properties"/>
+	<update-jar dir="${jar.src.dir}/suite/chrome/mailnews/pref"				prefix="locale/${locale}/messenger/messengercompose"
+		includes="pref-composing_messages.dtd, pref-formatting.dtd"/>
+	<update-jar dir="${jar.src.dir}/suite/chrome/mailnews/smime"			prefix="locale/${locale}/messenger"
+		includes="am-smime.dtd, am-smime.properties"/>
+	<update-jar dir="${jar.src.dir}/suite/chrome/mailnews/smime"			prefix="locale/${locale}/messenger-smime"
+		includes="**" excludes="am-smime.dtd, am-smime.properties"/>
+	
+	<update-jar dir="${jar.src.dir}/editor/ui/chrome/composer"				prefix="locale/${locale}/editor"/>
+	<update-jar dir="${jar.src.dir}/editor/ui/chrome/dialogs"				prefix="locale/${locale}/editor"/>
+	<update-jar dir="${jar.src.dir}/editor/ui/chrome/region"				prefix="locale/${locale}/editor-region"/>
+
+	<update-jar dir="${jar.src.dir}/toolkit/crashreporter"					prefix="locale/${locale}/global"
+		includes="**" excludes="crashreporter.ini"/>
+	
+	<!-- global/brand.dtd では branding/brand.dtd をインポートするだけだから置き換えてしまう。 -->
+	<update-jar dir="${jar.src.dir}/suite/branding"							prefix="locale/${locale}/global"
+		includes="brand.dtd"/>
+</target>
+
+<target name="jar" depends="-jar-common-, -jar-firefox-, -jar-thunderbird-, -jar-sunbird-, -jar-seamonkey-"/>
 
 
 <!-- * xpi * -->
-<target name="xpi" depends="prepare, -pre-xpi-"
+<target name="xpi" depends="prepare"
 	description="make xpi package from jar and dest files">
 	<copy todir="${xpi.src.dir}" encoding="UTF-8" preservelastmodified="true" overwrite="true">
 		<fileset dir="${langpack.src.dir}"/>
@@ -274,7 +303,6 @@
 			includes="${xpi.includes}" excludes="${xpi.excludes}"/>
 	</zip>
 </target>
-
 
 
 </project>

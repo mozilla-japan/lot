@@ -356,6 +356,10 @@
 		failonerror="false" preservelastmodified="true">
 		<fileset dir="${hg.comm-central.dir}/other-licenses/branding/thunderbird/locales/en-US"/>
 	</copy><!-- only thunderbird -->
+	<copy todir="${comm-to-l10n.temp.dir}/en-US/suite"
+		failonerror="false" preservelastmodified="true">
+		<fileset dir="${hg.comm-central.dir}/suite/locales/en-US"/>
+	</copy><!-- only seamonkey -->
 	
 	<mkdir dir="${comm-to-l10n.dir}"/>
 	<move todir="${comm-to-l10n.dir}">

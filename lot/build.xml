@@ -149,7 +149,6 @@
 	<equals property="targetapp.is.firefox"		value="true" arg1="${targetapp}" arg2="firefox"/>
 	<equals property="targetapp.is.thunderbird"	value="true" arg1="${targetapp}" arg2="thunderbird"/>
 	<equals property="targetapp.is.sunbird"		value="true" arg1="${targetapp}" arg2="sunbird"/>
-	<equals property="targetapp.is.lightning"	value="true" arg1="${targetapp}" arg2="lightning"/>
 	<equals property="targetapp.is.seamonkey"	value="true" arg1="${targetapp}" arg2="seamonkey"/>
 	<property name="prepare.done" value="yes"/>
 </target>
@@ -186,6 +185,12 @@
 		<param name="targetapp" value="sunbird"/>
 	</antcall>
 </target>
+<target name="buildsm">
+	<antcall target="build">
+		<param name="package" value="langpack"/>
+		<param name="targetapp" value="seamonkey"/>
+	</antcall>
+</target>
 <target name="buildfxtb">
 	<!-- exec common part only once -->
 	<antcall>
@@ -220,6 +225,10 @@
 	<antcall target="pack">
 		<param name="package" value="langpack"/>
 		<param name="targetapp" value="sunbird"/>
+	</antcall>
+	<antcall target="pack">
+		<param name="package" value="langpack"/>
+		<param name="targetapp" value="seamonkey"/>
 	</antcall>
 </target>
 

@@ -52,6 +52,13 @@ svn checkout svn+ssh://svn.mozilla.l10n.jp/usr/local/var/svn/l10n/trunk/ src/l10
 # SVN サーバのアカウントを持っていない場合:
 # svn checkout http://svn.mozilla.l10n.jp/trunk/ src/l10n/
 
+# l10n-central リポジトリを clone (L10N HG にコミットしない場合は不要)
+mkdir l10n
+hg clone http://hg.mozilla.org/l10n-central/ja l10n/ja
+hg clone http://hg.mozilla.org/l10n-central/ja-JP-mac l10n/ja-JP-mac
+# .hg/hgrc で次のように push 時には ssh を使うように指定
+# default-push = ssh://hg.mozilla.org/l10n-central/ja
+
 # comm-central リポジトリを clone
 hg clone http://hg.mozilla.org/comm-central/
 
