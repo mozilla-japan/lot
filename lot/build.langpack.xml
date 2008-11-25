@@ -282,7 +282,7 @@
 		includes="**" excludes="crashreporter.ini"/>
 	
 	<!-- global/brand.dtd では branding/brand.dtd をインポートするだけだから置き換えてしまう。 -->
-	<update-jar dir="${jar.src.dir}/suite/branding"							prefix="locale/${locale}/global"
+	<update-jar dir="${jar.src.dir}/suite/chrome/branding"					prefix="locale/${locale}/global"
 		includes="brand.dtd"/>
 </target>
 
