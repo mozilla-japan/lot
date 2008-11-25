@@ -61,6 +61,11 @@
 <import file="${package.buildfile}" optional="false"/>
 
 
+<!-- * property alias * -->
+<!-- make easy to specify properties from commandline -->
+<propertyalias property="fromdir"		alias="escape.fromdir"/>
+<propertyalias property="todir"			alias="escape.todir"/>
+
 
 		<!-- *** Prepare Phase *** -->
 

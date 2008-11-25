@@ -48,24 +48,6 @@ cmsg.localeconf.no.locale	= ロケール別設定ファイルの読み込み以�
 
 
 
-#	cvs targets
-vmsg.cvs.cvspass.notfound	= cvspass ファイルが見つかりませんでした: ${altcvs.passfile}
-
-cmsg.cvs.exportsrc.not.supported= 指定された動作モードでは CVS サーバからソースファイルを取得できません。
-cmsg.cvs.exportsrc.confirm	= 現在のソースファイルを削除した後で新しいソースファイルが取得されます。${N}\
-				  CVS サーバからソースファイルを取得してもよろしいですか？(Y/N)
-cmsg.cvs.exportsrc.cancelled	= ソースファイルの取得は中止されました。
-
-cmsg.cvs.diff.dateandtag	= タグ(リビジョン)と日付の両方を同時に指定することはできません。ブランチ上の日付間差分を取得するには exportdiff ターゲットを使用します。
-vmsg.cvs.diff.checkoutfirst	= ${cvs.diff.module} モジュールの差分を取得するには、先にモジュールをチェックアウトしてください。
-cmsg.cvs.diff.onlyend		= 比較元リソースを指定せずに、比較先リソースだけを指定することはできません。
-cmsg.cvs.rdiff.no.start		= 比較元リソースのタグ(リビジョン)または(トランク上の)日付を指定してください。
-
-vmsg.cvs.changelog.checkoutfirst= ${cvs.log.module} モジュールの変更ログを取得するには、先にモジュールをチェックアウトしてください。
-vmsg.cvs.tagdiff.checkoutfirst	= ${cvs.tagdiff.module} モジュールの変更ログを取得するには、先にモジュールをチェックアウトしてください。
-
-
-
 #	diff targets
 vmsg.diff.no.fromdir		= 比較元ディレクトリ "${diff.fromdir}" が存在しません。変更前のファイルを含むディレクトリを diff.fromdir プロパティで指定してください。
 vmsg.diff.no.todir		= 比較先ディレクトリ "${diff.todir}" が存在しません。変更後のファイルを含むディレクトリを diff.todir プロパティで指定してください。

@@ -43,25 +43,6 @@ cmsg.localeconf.no.locale	= 'locale' property must be set before loading locale 
 
 
 
-#	cvs targets
-vmsg.cvs.cvspass.notfound	= cvspass file not found: ${altcvs.passfile}
-
-cmsg.cvs.exportsrc.not.supported= Export from CVS server is not suported in this mode.
-
-cmsg.cvs.exportsrc.confirm	= Src files will be exported aftere current src files are removed. \
-				  Are you sure you want to export src from cvs server? (Y/N)
-cmsg.cvs.exportsrc.cancelled	= Export was cancelled.
-
-cmsg.cvs.diff.dateandtag	= You cannot specify both tag (revision) and date at a time. Use exportdiff target to get diff between two dates on a branch.
-vmsg.cvs.diff.checkoutfirst	= Checkout ${cvs.diff.module} module before retrieving diff of the module.
-cmsg.cvs.diff.onlyend		= You cannot specify only end resource not specifying start resource.
-cmsg.cvs.rdiff.no.start		= Specify tag (revision) or date (on trunk) of the start resource.
-
-vmsg.cvs.changelog.checkoutfirst= Checkout ${cvs.log.module} module before retrieving changelog of the module.
-vmsg.cvs.tagdiff.checkoutfirst	= Checkout ${cvs.tagdiff.module} module before retrieving changelog of the module.
-
-
-
 #	diff targets
 vmsg.diff.no.fromdir		= "${diff.fromdir}" directory is not exists. Please specify the directory containing original source files with 'diff.fromdir' property.
 vmsg.diff.no.todir		= "${diff.todir}" directory is not exists. Please specify the directory containing updated source files with 'diff.todir' property.

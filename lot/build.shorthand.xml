@@ -4,6 +4,12 @@
 
 <propertyalias property="lang"			alias="lot.lang"/>
 
+<propertyalias property="fromdir"		alias="escape.fromdir"/>
+<propertyalias property="fromdir"		alias="unescape.fromdir"/>
+<propertyalias property="todir"			alias="escape.todir"/>
+<propertyalias property="todir"			alias="unescape.todir"/>
+
+
 
 
 
@@ -80,12 +86,10 @@
 <propertyalias property="fromdir"		alias="diff.fromdir"/>
 <propertyalias property="fromdir"		alias="diff-src.fromdir"/>
 <propertyalias property="fromdir"		alias="diff-loose.fromdir"/>
-<propertyalias property="fromdir"		alias="escape.fromdir"/>
 
 <propertyalias property="todir"			alias="diff.todir"/>
 <propertyalias property="todir"			alias="diff-src.todir"/>
 <propertyalias property="todir"			alias="diff-loose.todir"/>
-<propertyalias property="todir"			alias="escape.todir"/>
 
 <propertyalias property="output"		alias="lpdiff-src.output"/>
 <propertyalias property="output"		alias="lpdiff-loose.output"/>
