@@ -287,6 +287,14 @@
 		failonerror="false" preservelastmodified="true">
 		<fileset dir="${hg.mozilla-central.dir}/dom/locales/en-US"/>
 	</copy>
+	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/extensions/inspector"
+		failonerror="false" preservelastmodified="true">
+		<fileset dir="${hg.mozilla-central.dir}/extensions/inspector/locales/en-US"/>
+	</copy>
+	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/extensions/irc"
+		failonerror="false" preservelastmodified="true">
+		<fileset dir="${hg.mozilla-central.dir}/extensions/irc/locales/en-US"/>
+	</copy>
 	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/extensions/spellcheck"
 		failonerror="false" preservelastmodified="true">
 		<fileset dir="${hg.mozilla-central.dir}/extensions/spellcheck/locales/en-US"/>
@@ -294,6 +302,10 @@
 	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/extensions/reporter"
 		failonerror="false" preservelastmodified="true">
 		<fileset dir="${hg.mozilla-central.dir}/extensions/reporter/locales/en-US"/>
+	</copy>
+	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/extensions/venkman"
+		failonerror="false" preservelastmodified="true">
+		<fileset dir="${hg.mozilla-central.dir}/extensions/venkman/locales/en-US"/>
 	</copy>
 	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/netwerk"
 		failonerror="false" preservelastmodified="true">
