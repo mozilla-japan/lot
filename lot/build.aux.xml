@@ -292,17 +292,13 @@
 		failonerror="false" preservelastmodified="true">
 		<fileset dir="${hg.mozilla-central.dir}/browser/locales/en-US"/>
 	</copy><!-- only firefox -->
-	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/browser/installer/uninstaller.inc"
-		failonerror="false" preservelastmodified="true">
-		<fileset dir="${hg.mozilla-central.dir}/browser/installer/windows/uninstaller.inc"/>
-	</copy>
 	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/dom"
 		failonerror="false" preservelastmodified="true">
 		<fileset dir="${hg.mozilla-central.dir}/dom/locales/en-US"/>
 	</copy>
-	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/extensions/inspector"
+	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/extensions/inspector/chrome"
 		failonerror="false" preservelastmodified="true">
-		<fileset dir="${hg.mozilla-central.dir}/extensions/inspector/locales/en-US"/>
+		<fileset dir="${hg.mozilla-central.dir}/extensions/inspector/resources/locale/en-US"/>
 	</copy>
 	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/extensions/irc"
 		failonerror="false" preservelastmodified="true">
@@ -361,18 +357,10 @@
 		failonerror="false" preservelastmodified="true">
 		<fileset dir="${hg.comm-central.dir}/editor/ui/locales/en-US"/>
 	</copy><!-- only thunderbird -->
-	<copy todir="${comm-to-l10n.temp.dir}/en-US/extensions/inspector/chrome"
-		failonerror="false" preservelastmodified="true">
-		<fileset dir="${hg.comm-central.dir}/extensions/inspector/resources/locale/en-US"/>
-	</copy><!-- not in L10N CVS -->
 	<copy todir="${comm-to-l10n.temp.dir}/en-US/mail"
 		failonerror="false" preservelastmodified="true">
 		<fileset dir="${hg.comm-central.dir}/mail/locales/en-US"/>
 	</copy><!-- only thunderbird -->
-	<copy todir="${comm-to-l10n.temp.dir}/en-US/minimo"
-		failonerror="false" preservelastmodified="true">
-		<fileset dir="${hg.comm-central.dir}/minimo/locales/en-US"/>
-	</copy><!-- only minimo -->
 	<copy todir="${comm-to-l10n.temp.dir}/en-US/other-licenses/branding/sunbird"
 		failonerror="false" preservelastmodified="true">
 		<fileset dir="${hg.comm-central.dir}/other-licenses/branding/sunbird/locales/en-US"/>
