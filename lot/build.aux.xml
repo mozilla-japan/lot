@@ -144,24 +144,7 @@
 	</copy>
 	<delete dir="${lot.wordcheck.dir}/unescape"/>
 </target>
-<target name="wordcheck" depends="load-mainconf" unless="nowordcheck">
-	<fail message="${cmsg.noprop.wordcheck.src.dir}" unless="wordcheck.src.dir"/>
-	<fail message="${cmsg.noprop.wordcheck.dir}" unless="wordcheck.dir"/>
-	<loadmessage pattern="^vmsg\.wordcheck\."/>
-	<fail message="${vmsg.wordcheck.no.srcdir}">
-		<condition><not><available file="${wordcheck.src.dir}" type="dir"/></not></condition>
-	</fail>
-	
-	<delete dir="${wordcheck.dir}"/>
-	<mkdir dir="${wordcheck.dir}"/>
-	
-	<equals property="wordcheck.deny"	value="@@|${wordcheck.deny.common}|${wordcheck.deny.ja}" arg1="${locale}" arg2="ja"/>
-	<equals property="wordcheck.deny"	value="@@|${wordcheck.deny.common}|${wordcheck.deny.ja-JP-mac}" arg1="${locale}" arg2="ja-JP-mac"/>
-	<property name="wordcheck.deny"		value="${wordcheck.deny.common}"/>
-	<equals property="wordcheck.allow"	value="${wordcheck.allow.common}|${wordcheck.allow.ja}" arg1="${locale}" arg2="ja"/>
-	<equals property="wordcheck.allow"	value="${wordcheck.allow.common}|${wordcheck.allow.ja-JP-mac}" arg1="${locale}" arg2="ja-JP-mac"/>
-	<property name="wordcheck.allow"	value="${wordcheck.allow.common}"/>
-	
+<target name="-wordcheck-">
 	<copy preservelastmodified="true" todir="${wordcheck.dir}" encoding="UTF-8" includeemptydirs="no">
 		<fileset dir="${wordcheck.src.dir}" includes="**/*.dtd, **/*.xml, **/*.html, **/*.xhtml, **/*.rdf"/>
 		<mapper type="package" from="*" to="*"/>
@@ -209,9 +192,39 @@
 			<size value="0" when="equal"/>
 		</fileset>
 	</delete>
+</target>
+<target name="wordcheck" depends="load-mainconf" unless="nowordcheck">
+	<fail message="${cmsg.noprop.wordcheck.src.dir}" unless="wordcheck.src.dir"/>
+	<fail message="${cmsg.noprop.wordcheck.dir}" unless="wordcheck.dir"/>
+	<loadmessage pattern="^vmsg\.wordcheck\."/>
+	<fail message="${vmsg.wordcheck.no.srcdir}">
+		<condition><not><available file="${wordcheck.src.dir}" type="dir"/></not></condition>
+	</fail>
+	
+	<delete dir="${wordcheck.dir}"/>
+	<mkdir dir="${wordcheck.dir}"/>
+	<delete dir="${wordcheck.suspected.dir}"/>
+	<mkdir dir="${wordcheck.suspected.dir}"/>
+	
+	<equals property="wordcheck.deny"	value="@@|${wordcheck.deny.common}|${wordcheck.deny.ja}" arg1="${locale}" arg2="ja"/>
+	<equals property="wordcheck.deny"	value="@@|${wordcheck.deny.common}|${wordcheck.deny.ja-JP-mac}" arg1="${locale}" arg2="ja-JP-mac"/>
+	<property name="wordcheck.deny"		value="${wordcheck.deny.common}"/>
+	<equals property="wordcheck.allow"	value="${wordcheck.allow.common}|${wordcheck.allow.ja}" arg1="${locale}" arg2="ja"/>
+	<equals property="wordcheck.allow"	value="${wordcheck.allow.common}|${wordcheck.allow.ja-JP-mac}" arg1="${locale}" arg2="ja-JP-mac"/>
+	<property name="wordcheck.allow"	value="${wordcheck.allow.common}"/>
+	
+	<equals property="wordcheck.suspected"	value="@@|${wordcheck.suspected.ja}" arg1="${locale}" arg2="ja"/>
+	<equals property="wordcheck.suspected"	value="@@|${wordcheck.suspected.ja-JP-mac}" arg1="${locale}" arg2="ja-JP-mac"/>
+	
+	<antcall target="-wordcheck-"/>
 	<fail message="${vmsg.wordcheck.found}">
 		<condition><available file="${wordcheck.dir}" type="dir"/></condition>
 	</fail>
+	<antcall>
+		<param name="wordcheck.dir" value="${wordcheck.suspected.dir}"/>
+		<param name="wordcheck.deny" value="${wordcheck.suspected}"/>
+		<target name="-wordcheck-"/>
+	</antcall>
 </target>
 
 <target name="errorcheck" depends="syntaxcheck, wordcheck"/>
