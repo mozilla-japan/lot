@@ -38,7 +38,7 @@
 	<available property="convert.dest.dir.exists" file="${convert.dest.dir}" type="dir"/>
 	<loadmessage pattern="^vmsg\.delete\.converted"/>
 	<confirm message="${vmsg.delete.converted.confirm}" failmessage="${cmsg.delete.converted.aborted}" if="convert.dest.dir.exists"/>
-	<delete includeEmptyDirs="true">
+	<delete includeEmptyDirs="true" failonerror="false">
 		<fileset dir="${convert.dest.dir}" excludes=".hg/, .hg*"/>
 	</delete>
 </target>
