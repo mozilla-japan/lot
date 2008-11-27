@@ -235,15 +235,15 @@
 	<update-jar dir="${jar.src.dir}/suite/chrome/browser"					prefix="locale/${locale}/navigator"
 		includes="**" excludes="mac/, unix/, win/, region.properties"/>
 	<update-jar dir="${jar.src.dir}/suite/chrome/browser"					prefix="locale/${locale}/navigator-platform"
-		includes="mac/, unix,/ win/"/>
+		includes="mac/, unix/, win/"/>
 	<update-jar dir="${jar.src.dir}/suite/chrome/browser"					prefix="locale/${locale}/navigator-region"
 		includes="region.properties"/>
 	
 	<update-jar dir="${jar.src.dir}/suite/chrome/common"					prefix="locale/${locale}/communicator"
-		includes="**" excludes="mac/, unix/, win/, pref/mac/, pref/unix/, pref/win/, region.properites,
+		includes="**" excludes="mac/, unix/, win/, pref/mac/, pref/unix/, pref/win/, region.properties,
 			pref/pref-certs.dtd, pref/pref-masterpass.dtd, pref/pref-ssl.dtd, pref/pref-validation.dtd"/>
 	<update-jar dir="${jar.src.dir}/suite/chrome/common"					prefix="locale/${locale}/communicator-platform"
-		includes="mac/, unix,/ win/"/>
+		includes="mac/, unix/, win/"/>
 	<update-jar dir="${jar.src.dir}/suite/chrome/common"					prefix="locale/${locale}/communicator-region"
 		includes="region.properties"/>
 	<update-jar dir="${jar.src.dir}/suite/chrome/common/pref"				prefix="locale/${locale}/pippki"
@@ -256,7 +256,7 @@
 		includes="platformPrefOverlay.dtd"/>
 	
 	<update-jar dir="${jar.src.dir}/suite/chrome/mailnews"					prefix="locale/${locale}/messenger"
-		includes="**" excludes="compose/, mapi/, newsblog/, pref/, smime/, region.properites"/>
+		includes="**" excludes="compose/, mapi/, newsblog/, pref/, smime/, region.properties"/>
 	<update-jar dir="${jar.src.dir}/suite/chrome/mailnews"					prefix="locale/${locale}/messenger-region"
 		includes="region.properties"/>
 	<update-jar dir="${jar.src.dir}/suite/chrome/mailnews/compose"			prefix="locale/${locale}/messenger/messengercompose"/>
@@ -277,10 +277,13 @@
 	<update-jar dir="${jar.src.dir}/editor/ui/chrome/composer"				prefix="locale/${locale}/editor"/>
 	<update-jar dir="${jar.src.dir}/editor/ui/chrome/dialogs"				prefix="locale/${locale}/editor"/>
 	<update-jar dir="${jar.src.dir}/editor/ui/chrome/region"				prefix="locale/${locale}/editor-region"/>
-
+	
+	<update-jar dir="${jar.src.dir}/extensions/reporter/chrome"				prefix="locale/${locale}/reporter"/>
+	
 	<update-jar dir="${jar.src.dir}/toolkit/crashreporter"					prefix="locale/${locale}/global"
 		includes="**" excludes="crashreporter.ini"/>
-	
+	<update-jar dir="${jar.src.dir}/toolkit/chrome/search"					prefix="locale/${locale}/global/search"/>
+
 	<!-- global/brand.dtd では branding/brand.dtd をインポートするだけだから置き換えてしまう。 -->
 	<update-jar dir="${jar.src.dir}/suite/chrome/branding"					prefix="locale/${locale}/global"
 		includes="brand.dtd"/>
