@@ -40,8 +40,9 @@ temp/				temporary directory used with lot
 --------------------------------------------------------------------------------
 Sorry, this section is in Japanese.
 
-Localization Tools を使うにはまず言語リソースファイルを用意する必要があります。
-最初に以下のコマンドを実行して作業環境を用意してください:
+Localization Tools (lot) を使って L10N 作業をするための簡単な流れを紹介します。
+# あくまでも lot 環境下に全てのファイルをおいて作業したい場合の手順です。
+# ant convert による L10N ファイルの変換以外は lot を使わなくても構いません。
 
 # lot の取得 (既に取得済みの場合は不要)
 svn export http://svn.mozilla.l10n.jp/trunk/lot
@@ -55,14 +56,20 @@ svn checkout svn+ssh://svn.mozilla.l10n.jp/usr/local/var/svn/l10n/trunk/ src/l10
 # SVN サーバのアカウントを持っていない場合:
 # svn checkout http://svn.mozilla.l10n.jp/trunk/ src/l10n/
 
+# Mercurial (HG) の環境設定 (HG 関連操作を一切行わない場合は不要)
+# ~/.hgrc に username と
+# https://developer.mozilla.org/en/L10n_on_Mercurial
+
+
+
 # l10n-central リポジトリを clone (L10N HG にコミットしない場合は不要)
 mkdir l10n
 hg clone http://hg.mozilla.org/l10n-central/ja l10n/ja
 hg clone http://hg.mozilla.org/l10n-central/ja-JP-mac l10n/ja-JP-mac
-# 各レポジトリの .hg/hgrc で次のように push 時には ssh を使うように指定
+# 各レポジトリの .hg/hgrc の [path] セクションで push 時には ssh を使うように指定:
 # default-push = ssh://hg.mozilla.org/l10n-central/ja
 
-# comm-central リポジトリを clone (en-US のファイルを見ないで作業する場合は不要)
+# comm-central リポジトリを clone (en-US のファイルを参照せずに作業する場合は不要)
 hg clone http://hg.mozilla.org/comm-central/
 
 # ここまでは初回のみ必要な準備
@@ -72,6 +79,7 @@ hg clone http://hg.mozilla.org/comm-central/
 svn update src/l10n
 
 # 古い en-US ファイルを取得 (en-US の差分を生成しない場合は不要)
+# 対象リビジョンは前回のコミットログや後述の hg log コマンドなどで確認する
 # 差分をとる古いリビジョン(前回作業時のリビジョン)を {MOZILLA_REV_OLD}, {COMM_REV_OLD} とする
 python comm-central/client.py --mozilla-rev={MOZILLA_REV_OLD} --comm-rev={COMM_REV_OLD} checkout
 
@@ -86,6 +94,9 @@ python comm-central/client.py checkout
 # ここで確認した最新リビジョンを {MOZILLA_REV_TIP}, {COMM_REV_TIP} とする
 hg log -r tip comm-central/
 hg log -r tip comm-central/mozilla
+# コミットログなど確認せずにリビジョン番号だけを取得するには:
+# hg log -r tip --template "{rev}\n" comm-central
+# hg log -r tip --template "{rev}\n" comm-central/mozilla
 
 # en-US 言語リソースファイルを l10n HG ディレクトリ構造で l10n/en-US にコピー
 ant en-US-to-l10n
