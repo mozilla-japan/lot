@@ -38,29 +38,51 @@ temp/				temporary directory used with lot
 --------------------------------------------------------------------------------
 			Guide for Japanese Localizers
 --------------------------------------------------------------------------------
-Sorry, this section is in Japanese.
+Sorry, this section is in Japanese only.
+
 
 Localization Tools (lot) を使って L10N 作業をするための簡単な流れを紹介します。
 # あくまでも lot 環境下に全てのファイルをおいて作業したい場合の手順です。
 # ant convert による L10N ファイルの変換以外は lot を使わなくても構いません。
 
+
+# ~/.bash_profile, ~/.bashrc などで環境設定
+# Mac OS 10.4 などで ant の出力が文字化けする場合は UTF8 を指定する
+export ANT_OPTS=-Dfile.encoding=UTF8
+
+# ~/.hgrg で Mercurial (HG) の設定
+# HG を使う場合はユーザ、文字コード、diff オプション、ssl について設定
+# https://developer.mozilla.org/en/L10n_on_Mercurial
+# http://developer.mozilla.org/ja/docs/Mercurial_basics
+[ui]
+username = name <user@example.jp>
+
+[defaults]
+add    =  --encoding=utf-8
+clone  = --encoding=utf-8
+commit = --encoding=utf-8
+init   = --encoding=utf-8
+pull   = --encoding=utf-8
+push   = --encoding=utf-8
+remove = --encoding=utf-8
+revert = --encoding=utf-8
+update = --encoding=utf-8
+diff   = -p -U 8
+
+[web]
+push_ssl = false
+
+
+# ----- ここまでは設定ファイルの編集 ----- ここからは実行するコマンド -----
+
 # lot の取得 (既に取得済みの場合は不要)
 svn export http://svn.mozilla.l10n.jp/trunk/lot
 cd lot
 
-# Mac OS 10.4 などで ant の出力が文字化けする場合は .bash_profile で UTF8 を指定
-# export ANT_OPTS=-Dfile.encoding=UTF8
-
 # ja 言語リソースファイルの取得 (SVN サーバのアカウントを持っている場合)
-svn checkout svn+ssh://svn.mozilla.l10n.jp/usr/local/var/svn/l10n/trunk/ src/l10n/ 
+svn checkout svn+ssh://svn.mozilla.l10n.jp/usr/local/var/svn/l10n/trunk/ src/l10n/
 # SVN サーバのアカウントを持っていない場合:
 # svn checkout http://svn.mozilla.l10n.jp/trunk/ src/l10n/
-
-# Mercurial (HG) の環境設定 (HG 関連操作を一切行わない場合は不要)
-# ~/.hgrc に username と
-# https://developer.mozilla.org/en/L10n_on_Mercurial
-
-
 
 # l10n-central リポジトリを clone (L10N HG にコミットしない場合は不要)
 mkdir l10n
@@ -69,11 +91,13 @@ hg clone http://hg.mozilla.org/l10n-central/ja-JP-mac l10n/ja-JP-mac
 # 各レポジトリの .hg/hgrc の [path] セクションで push 時には ssh を使うように指定:
 # default-push = ssh://hg.mozilla.org/l10n-central/ja
 
-# comm-central リポジトリを clone (en-US のファイルを参照せずに作業する場合は不要)
+# comm-central/mozilla-central リポジトリを clone (en-US のファイルを参照せずに作業する場合は不要)
 hg clone http://hg.mozilla.org/comm-central/
+python comm-central/client.py checkout
 
-# ここまでは初回のみ必要な準備
-# ここからは毎回の更新処理
+
+# ----- ここまでは初回のみ必要な準備 ----- ここからは毎回の更新処理 -----
+
 
 # 最新の ja 言語リソースファイルを取得
 svn update src/l10n
@@ -147,6 +171,5 @@ cd ../..
 # http://tinderbox.mozilla.org/Mozilla-l10n-ja/
 # http://l10n.mozilla.org/dashboard/?locale=ja-JP-mac
 # http://tinderbox.mozilla.org/Mozilla-l10n-ja-JP-mac/
-
 
 

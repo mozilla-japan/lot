@@ -1,0 +1,3 @@
+locale	browser		${locale}	jar:${locale}.jar!/locale/${locale}/browser/
+locale	branding	${locale}	jar:${locale}.jar!/locale/${locale}/branding/
+override chrome://global/locale/netErrorApp.dtd chrome://browser/locale/netError.dtd

@@ -15,62 +15,12 @@
 
 <!-- old aliases... -->
 
-<propertyalias property="version"		alias="firefox.version"/>
-<propertyalias property="version"		alias="thunderbird.version"/>
-
-<propertyalias property="revision"		alias="package.revision"/>
-<propertyalias property="revision.pre"	alias="package.revision.pre"/>
-
-<propertyalias property="minVersion"	alias="firefox.minVersion"/>
-<propertyalias property="minVersion"	alias="thunderbird.minVersion"/>
-<propertyalias property="maxVersion"	alias="firefox.maxVersion"/>
-<propertyalias property="maxVersion"	alias="thunderbird.maxVersion"/>
-
-<propertyalias property="module"		alias="cvs.diff.module"/>
-<propertyalias property="module"		alias="cvs.log.module"/>
-<propertyalias property="module"		alias="cvs.tagdiff.module"/>
-
-<propertyalias property="tag"			alias="cvs.checkout.tag"/>
-<propertyalias property="tag"			alias="cvs.export.tag"/>
-<propertyalias property="tag"			alias="cvs.exportsrc.tag"/>
-
-<propertyalias property="date"			alias="cvs.checkout.date"/>
-<propertyalias property="date"			alias="cvs.export.date"/>
-<propertyalias property="date"			alias="cvs.exportsrc.date"/>
-
-<propertyalias property="starttag"		alias="cvs.diff.starttag"/>
-<propertyalias property="starttag"		alias="cvs.rdiff.starttag"/>
-<propertyalias property="starttag"		alias="cvs.exportdiff.starttag"/>
-<propertyalias property="starttag"		alias="cvs.checkoutdiff.starttag"/>
-
-<propertyalias property="endtag"		alias="cvs.diff.endtag"/>
-<propertyalias property="endtag"		alias="cvs.rdiff.endtag"/>
-<propertyalias property="endtag"		alias="cvs.exportdiff.endtag"/>
-<propertyalias property="endtag"		alias="cvs.checkoutdiff.endtag"/>
-
-<propertyalias property="startdate"		alias="cvs.diff.startdate"/>
-<propertyalias property="startdate"		alias="cvs.rdiff.startdate"/>
-<propertyalias property="startdate"		alias="cvs.exportdiff.startdate"/>
-<propertyalias property="startdate"		alias="cvs.checkoutdiff.startdate"/>
-<propertyalias property="startdate"		alias="cvs.tagdiff.startdate"/>
-
-<propertyalias property="enddate"		alias="cvs.diff.enddate"/>
-<propertyalias property="enddate"		alias="cvs.rdiff.enddate"/>
-<propertyalias property="enddate"		alias="cvs.exportdiff.enddate"/>
-<propertyalias property="enddate"		alias="cvs.checkoutdiff.enddate"/>
-<propertyalias property="enddate"		alias="cvs.tagdiff.enddate"/>
-
-<propertyalias property="option"		alias="cvs.diff.option"/>
-<propertyalias property="option"		alias="cvs.rdiff.option"/>
 <propertyalias property="option"		alias="diff-src.option"/>
 <propertyalias property="option"		alias="diff-loose.option"/>
 <propertyalias property="option"		alias="diff-jar.option"/>
 <propertyalias property="option"		alias="diff-xpi.option"/>
 <propertyalias property="option"		alias="diff-xpi.jar.option"/>
 
-<propertyalias property="file"			alias="backuplot.file"/>
-<propertyalias property="file"			alias="backupsrc.file"/>
-<propertyalias property="file"			alias="restoresrc.file"/>
 <propertyalias property="file"			alias="patch.file"/>
 
 <propertyalias property="fromfile"		alias="diff-jar.fromfile"/>

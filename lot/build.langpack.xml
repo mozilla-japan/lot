@@ -122,7 +122,7 @@
 
 <!-- * jar * -->
 <!-- common part of firefox/thunderbird/sunbird/seamonkey jar packaging -->
-<target name="-jar-common-" depends="prepare"
+<target name="-jar-common-" depends="prepare" unless="targetapp.is.fennec"
 	description="make jar package from converted src files">
 	<mkdir dir="${jar.dest.dir}/chrome"/>
 	<!-- パフォーマンス的には contents.rdf を最初に含めた方が良いが… -->
@@ -289,7 +289,24 @@
 		includes="brand.dtd"/>
 </target>
 
-<target name="jar" depends="-jar-common-, -jar-firefox-, -jar-thunderbird-, -jar-sunbird-, -jar-seamonkey-"/>
+<target name="-jar-fennec-" if="targetapp.is.fennec">
+	<mkdir dir="${jar.dest.dir}/chrome"/>
+	<zip taskname="packaging ${jar.filename}" compress="false" update="false" whenempty="create"
+		destfile="${jar.dest.dir}/chrome/${jar.filename}">
+		<zipfileset dir="${jar.src.dir}/mobile/chrome"				prefix="locale/${locale}/browser"
+			includes="*" excludes=""/>
+	</zip>
+	<zip taskname="packaging ${jar.filename}" compress="false" update="true"
+		destfile="${jar.dest.dir}/chrome/${jar.filename}">
+		<zipfileset dir="${jar.src.dir}/mobile/chrome/overrides"	prefix="locale/${locale}/browser"/>
+	</zip>
+	<zip taskname="packaging ${jar.filename}" compress="false" update="true"
+		destfile="${jar.dest.dir}/chrome/${jar.filename}">
+		<zipfileset dir="${jar.src.dir}/mobile/chrome/brand"		prefix="locale/${locale}/branding"/>
+	</zip>
+</target>
+
+<target name="jar" depends="-jar-common-, -jar-firefox-, -jar-thunderbird-, -jar-sunbird-, -jar-seamonkey-, -jar-fennec-"/>
 
 
 <!-- * xpi * -->

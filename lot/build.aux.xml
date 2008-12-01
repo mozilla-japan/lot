@@ -283,6 +283,7 @@
 	<!-- <property name="hg.mozilla-central.dir" value="mozilla-central"/> -->
 	<property name="hg.mozilla-central.dir" value="comm-central/mozilla"/>
 	<property name="hg.comm-central.dir" value="comm-central"/>
+	<property name="hg.mobile-browser.dir" value="mobile-browser"/>
 </target>
 
 <target name="mozilla-to-l10n" depends="prepare-hg"
@@ -387,7 +388,16 @@
 	</move>
 </target>
 
-<target name="en-US-to-l10n" depends="mozilla-to-l10n, comm-to-l10n"
+<target name="mobile-to-l10n" depends="prepare-hg"
+	description="copy changing directory structure of en-US locale files within mobile-browser">
+	<property name="mobile-to-l10n.dir" value="l10n/en-US"/>
+	<mkdir dir="${mobile-to-l10n.dir}/mobile"/>
+	<copy todir="${mobile-to-l10n.dir}/mobile" failonerror="false" preservelastmodified="true">
+		<fileset dir="${hg.mobile-browser.dir}/locales/en-US"/>
+	</copy>
+</target>
+
+<target name="en-US-to-l10n" depends="mozilla-to-l10n, comm-to-l10n, mobile-to-l10n"
        description="copy changing directory structure of en-US locale files within both mozilla-central and comm-central"/>
 
 
