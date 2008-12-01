@@ -47,6 +47,9 @@ Localization Tools を使うにはまず言語リソースファイルを用意�
 svn export http://svn.mozilla.l10n.jp/trunk/lot
 cd lot
 
+# Mac OS 10.4 などで ant の出力が文字化けする場合は .bash_profile で UTF8 を指定
+# export ANT_OPTS=-Dfile.encoding=UTF8
+
 # ja 言語リソースファイルの取得 (SVN サーバのアカウントを持っている場合)
 svn checkout svn+ssh://svn.mozilla.l10n.jp/usr/local/var/svn/l10n/trunk/ src/l10n/ 
 # SVN サーバのアカウントを持っていない場合:
@@ -56,10 +59,10 @@ svn checkout svn+ssh://svn.mozilla.l10n.jp/usr/local/var/svn/l10n/trunk/ src/l10
 mkdir l10n
 hg clone http://hg.mozilla.org/l10n-central/ja l10n/ja
 hg clone http://hg.mozilla.org/l10n-central/ja-JP-mac l10n/ja-JP-mac
-# .hg/hgrc で次のように push 時には ssh を使うように指定
+# 各レポジトリの .hg/hgrc で次のように push 時には ssh を使うように指定
 # default-push = ssh://hg.mozilla.org/l10n-central/ja
 
-# comm-central リポジトリを clone
+# comm-central リポジトリを clone (en-US のファイルを見ないで作業する場合は不要)
 hg clone http://hg.mozilla.org/comm-central/
 
 # ここまでは初回のみ必要な準備
