@@ -4,6 +4,54 @@
 <property name="buildfile.aux.loaded" value="true"/>
 
 
+<!-- * update and commit lot itself * -->
+<target name="update-src" depends="load-mainconf"
+	description="update src files ">
+	<exec executable="svn">
+		<arg line="update ${lot.src.dir}/l10n"/>
+	</exec>
+</target>
+<target name="update-lot" depends="load-mainconf"
+	description="replace current lot with checkouted lot (src/l10n/lot)">
+	<confirm message="現在使用中の Localization Tools を L10N SVN の最新バージョンで置き換えます。本当に置き換えてよろしいですか？(Y/N)"
+		failmessage="Localization Tools の 置き換えを中止しました"/>
+	<property name="update-lot.dir" value="${lot.src.dir}/l10n/lot"/>
+	<exec executable="svn">
+		<arg line="update ${update-lot.dir}"/>
+	</exec>
+	<copy todir="." preservelastmodified="true" overwrite="true" >
+		<fileset dir="${update-lot.dir}" defaultexcludes="yes"
+			includes="${backuplot.includes}" excludes="${backuplot.excludes}"/>
+	</copy>
+</target>
+<target name="update" depends="update-src, update-lot"
+	description="update src and lot itself from svn server"/>
+
+<target name="pre-commit-lot" depends="load-mainconf"
+	description="copy current lot to svn working directory (src/l10n/lot)">
+	<copy todir="${lot.src.dir}/l10n/lot" preservelastmodified="true">
+		<fileset dir="." defaultexcludes="no"
+			includes="${backuplot.includes}" excludes="${backuplot.excludes}"/>
+	</copy>
+</target>
+<target name="commit-lot" depends="pre-commit-lot"
+	description="commit current lot to l10n svn server">
+	<property name="commit-lot.dir" value="${lot.src.dir}/l10n/lot"/>
+	<input message="コミットログを入力してください:"
+		addproperty="commit-lot.message" defaultvalue=""/>
+	<fail message="コミットログが指定されていません。">
+		<condition><equals arg1="${commit-lot.message}" arg2="" trim="true"/></condition>
+	</fail>
+	<confirm message='${commit-lot.dir} ディレクトリで次の cvs commit コマンドを実行しようとしています:${N}
+		svn commit -m "${commit-lot.message}"${N}本当に実行してもよろしいですか？(Y/N)'
+		failmessage="svn commit を中止しました。"/>
+	<exec executable="svn" dir="${commit-lot.dir}">
+		<arg line='commit -m "${commit-lot.message}"'/>
+	</exec>
+</target>
+
+
+
 <!-- * backup and restore * -->
 <target name="backupsrc" depends="load-mainconf" unless="nobackup"
 	description="backup whole src files">
@@ -399,28 +447,6 @@
 
 <target name="en-US-to-l10n" depends="mozilla-to-l10n, comm-to-l10n, mobile-to-l10n"
        description="copy changing directory structure of en-US locale files within both mozilla-central and comm-central"/>
-
-
-
-<!-- * copy current lot to src/l10n/lot * -->
-<target name="pre-commit-lot" depends="load-mainconf"
-	description="copy current lot to svn working directory (src/l10n/lot)">
-	<copy todir="${lot.src.dir}/l10n/lot" preservelastmodified="true">
-		<fileset dir="." defaultexcludes="no"
-			includes="${backuplot.includes}" excludes="${backuplot.excludes}"/>
-	</copy>
-</target>
-
-<target name="update-lot" depends="load-mainconf"
-	description="replace current lot with checkouted lot (src/l10n/lot)">
-	<confirm message="現在使用中の Localization Tools を SVN からチェックアウトしたバージョンで置き換えます。本当に置き換えてよろしいですか？(Y/N)"
-		failmessage="Localization Tools の 置き換えを中止しました"/>
-	<!-- svn update src/l10n -->
-	<copy todir="." overwrite="true">
-		<fileset dir="${lot.src.dir}/l10n/lot" defaultexcludes="yes"
-			includes="${backuplot.includes}" excludes="${backuplot.excludes}"/>
-	</copy>
-</target>
 
 
 

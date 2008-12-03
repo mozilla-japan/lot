@@ -94,13 +94,17 @@ hg clone http://hg.mozilla.org/l10n-central/ja-JP-mac l10n/ja-JP-mac
 # comm-central/mozilla-central リポジトリを clone (en-US のファイルを参照せずに作業する場合は不要)
 hg clone http://hg.mozilla.org/comm-central/
 python comm-central/client.py checkout
+# mobile-browser リポジトリを clone (Fennec の L10N をしない場合は不要)
+hg clone http://hg.mozilla.org/mobile-browser
+
 
 
 # ----- ここまでは初回のみ必要な準備 ----- ここからは毎回の更新処理 -----
 
-
-# 最新の ja 言語リソースファイルを取得
-svn update src/l10n
+# 最新の ja 言語リソースファイルと lot を取得
+ant update
+# あるいは svn update と src/l10n/lot で現在のディレクトリ上書きを個別に
+# svn update src/l10n
 
 # 古い en-US ファイルを取得 (en-US の差分を生成しない場合は不要)
 # 対象リビジョンは前回のコミットログや後述の hg log コマンドなどで確認する
