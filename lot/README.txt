@@ -105,6 +105,7 @@ hg clone http://hg.mozilla.org/mobile-browser
 ant update
 # あるいは svn update と src/l10n/lot で現在のディレクトリ上書きを個別に
 # svn update src/l10n
+# ant update-lot
 
 # 古い en-US ファイルを取得 (en-US の差分を生成しない場合は不要)
 # 対象リビジョンは前回のコミットログや後述の hg log コマンドなどで確認する

@@ -16,7 +16,7 @@
 	<confirm message="現在使用中の Localization Tools を L10N SVN の最新バージョンで置き換えます。本当に置き換えてよろしいですか？(Y/N)"
 		failmessage="Localization Tools の 置き換えを中止しました"/>
 	<property name="update-lot.dir" value="${lot.src.dir}/l10n/lot"/>
-	<exec executable="svn">
+	<exec executable="svn" taskname="svn">
 		<arg line="update ${update-lot.dir}"/>
 	</exec>
 	<copy todir="." preservelastmodified="true" overwrite="true" >
@@ -45,7 +45,7 @@
 	<confirm message='${commit-lot.dir} ディレクトリで次の cvs commit コマンドを実行しようとしています:${N}
 		svn commit -m "${commit-lot.message}"${N}本当に実行してもよろしいですか？(Y/N)'
 		failmessage="svn commit を中止しました。"/>
-	<exec executable="svn" dir="${commit-lot.dir}">
+	<exec executable="svn" taskname="svn" dir="${commit-lot.dir}">
 		<arg line='commit -m "${commit-lot.message}"'/>
 	</exec>
 </target>
