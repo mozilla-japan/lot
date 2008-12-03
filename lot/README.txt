@@ -103,7 +103,7 @@ hg clone http://hg.mozilla.org/mobile-browser
 
 # 最新の ja 言語リソースファイルと lot を取得
 ant update
-# あるいは svn update と src/l10n/lot で現在のディレクトリ上書きを個別に
+# あるいは svn update と現在の lot を src/l10n/lot で上書きを個別に
 # svn update src/l10n
 # ant update-lot
 
@@ -151,8 +151,10 @@ cd src/l10n
 svn up
 svn status
 svn diff
-# en-US との同期をするときは対象リビジョンをコミットログに明記
-svn commit -m "sync with en-US rev{MOZILLA_REV_TIP}+{COMM_REV_TIP}"
+# en-US との同期をしたときには対象のディレクトリとリビジョンをコミットログに明記
+svn commit -m "sync toolkit with en-US rev{MOZILLA_REV_TIP}+{COMM_REV_TIP}"
+# Trac のチケットを閉じる場合はコミットログに "fixed #id" を含める
+# svn commit -m "done! fixed #12345"
 cd ../..
 
 # 更に L10N HG にもコミット＆プッシュ

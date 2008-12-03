@@ -122,8 +122,7 @@
 
 <!-- * jar * -->
 <!-- common part of firefox/thunderbird/sunbird/seamonkey jar packaging -->
-<target name="-jar-common-" depends="prepare" unless="targetapp.is.fennec"
-	description="make jar package from converted src files">
+<target name="-jar-common-" depends="prepare">
 	<mkdir dir="${jar.dest.dir}/chrome"/>
 	<!-- パフォーマンス的には contents.rdf を最初に含めた方が良いが… -->
 	<zip taskname="packaging ${jar.filename}" compress="false" update="false" whenempty="create"
@@ -193,6 +192,27 @@
 		includes="EdAdvancedEdit.dtd, EdColorPicker.dtd, EdConvertToTable.dtd, EdDialogOverlay.dtd, EditorColorProperties.dtd, EditorHLineProperties.dtd, EditorImageProperties.dtd, EditorInsertChars.dtd, EditorInsertSource.dtd, EditorInsertTable.dtd, EditorInsertTOC.dtd, EditorLinkProperties.dtd, EditorListProperties.dtd, EditorPersonalDictionary.dtd, EditorReplace.dtd, EditorSpellCheck.dtd, EditorTableProperties.dtd, EdNamedAnchorProperties.dtd"/>
 	
 	<update-jar dir="${jar.src.dir}/other-licenses/branding/thunderbird"	prefix="locale/${locale}/branding"/>
+</target>
+
+<target name="-jar-fennec-" if="targetapp.is.fennec">
+	<!-- <mkdir dir="${jar.dest.dir}/chrome"/>
+	<zip taskname="packaging ${jar.filename}" compress="false" update="false" whenempty="create"
+		destfile="${jar.dest.dir}/chrome/${jar.filename}">
+		<zipfileset dir="${jar.src.dir}/mobile/chrome"				prefix="locale/${locale}/browser"
+			includes="*" excludes=""/>
+	</zip>
+	<zip taskname="packaging ${jar.filename}" compress="false" update="true"
+		destfile="${jar.dest.dir}/chrome/${jar.filename}">
+		<zipfileset dir="${jar.src.dir}/mobile/chrome/overrides"	prefix="locale/${locale}/browser"/>
+	</zip>
+	<zip taskname="packaging ${jar.filename}" compress="false" update="true"
+		destfile="${jar.dest.dir}/chrome/${jar.filename}">
+		<zipfileset dir="${jar.src.dir}/mobile/chrome/brand"		prefix="locale/${locale}/branding"/>
+	</zip> -->
+	<update-jar dir="${jar.src.dir}/mobile/chrome"					prefix="locale/${locale}/browser"
+		includes="*" excludes=""/>
+	<update-jar dir="${jar.src.dir}/mobile/chrome/overrides"				prefix="locale/${locale}/browser"/>
+	<update-jar dir="${jar.src.dir}/mobile/chrome/brand"					prefix="locale/${locale}/branding"/>
 </target>
 
 <target name="-jar-sunbird-" if="targetapp.is.sunbird">
@@ -289,24 +309,8 @@
 		includes="brand.dtd"/>
 </target>
 
-<target name="-jar-fennec-" if="targetapp.is.fennec">
-	<mkdir dir="${jar.dest.dir}/chrome"/>
-	<zip taskname="packaging ${jar.filename}" compress="false" update="false" whenempty="create"
-		destfile="${jar.dest.dir}/chrome/${jar.filename}">
-		<zipfileset dir="${jar.src.dir}/mobile/chrome"				prefix="locale/${locale}/browser"
-			includes="*" excludes=""/>
-	</zip>
-	<zip taskname="packaging ${jar.filename}" compress="false" update="true"
-		destfile="${jar.dest.dir}/chrome/${jar.filename}">
-		<zipfileset dir="${jar.src.dir}/mobile/chrome/overrides"	prefix="locale/${locale}/browser"/>
-	</zip>
-	<zip taskname="packaging ${jar.filename}" compress="false" update="true"
-		destfile="${jar.dest.dir}/chrome/${jar.filename}">
-		<zipfileset dir="${jar.src.dir}/mobile/chrome/brand"		prefix="locale/${locale}/branding"/>
-	</zip>
-</target>
-
-<target name="jar" depends="-jar-common-, -jar-firefox-, -jar-thunderbird-, -jar-sunbird-, -jar-seamonkey-, -jar-fennec-"/>
+<target name="jar" depends="-jar-common-, -jar-firefox-, -jar-thunderbird-, -jar-sunbird-, -jar-seamonkey-, -jar-fennec-"
+	description="make jar package from converted src files"/>
 
 
 <!-- * xpi * -->

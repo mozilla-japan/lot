@@ -5,9 +5,16 @@
 
 
 <!-- * update and commit lot itself * -->
+<target name="checkout-src" depends="load-mainconf"
+	description="checkout src files from l10n svn server">
+	<exec executable="svn" taskname="svn">
+		<!-- svn+ssh://svn.mozilla.l10n.jp/usr/local/var/svn/l10n/trunk/ -->
+		<arg line="checkout http://svn.mozilla.l10n.jp/trunk/ ${lot.src.dir}/l10n"/>
+	</exec>
+</target>
 <target name="update-src" depends="load-mainconf"
-	description="update src files ">
-	<exec executable="svn">
+	description="update src files in the working directory">
+	<exec executable="svn" taskname="svn">
 		<arg line="update ${lot.src.dir}/l10n"/>
 	</exec>
 </target>
@@ -19,7 +26,7 @@
 	<exec executable="svn" taskname="svn">
 		<arg line="update ${update-lot.dir}"/>
 	</exec>
-	<copy todir="." preservelastmodified="true" overwrite="true" >
+	<copy todir="." preservelastmodified="true" overwrite="true">
 		<fileset dir="${update-lot.dir}" defaultexcludes="yes"
 			includes="${backuplot.includes}" excludes="${backuplot.excludes}"/>
 	</copy>

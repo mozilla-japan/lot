@@ -1,3 +1,18 @@
-locale	browser		${locale}	jar:${locale}.jar!/locale/${locale}/browser/
-locale	branding	${locale}	jar:${locale}.jar!/locale/${locale}/branding/
+# fennec part
+locale	browser		${locale}	jar:chrome/${locale}.jar!/locale/${locale}/browser/
+locale	branding	${locale}	jar:chrome/${locale}.jar!/locale/${locale}/branding/
 override chrome://global/locale/netErrorApp.dtd chrome://browser/locale/netError.dtd
+
+# xulrunner part
+locale	alerts		${locale}	jar:chrome/${locale}.jar!/locale/${locale}/alerts/
+locale	autoconfig	${locale}	jar:chrome/${locale}.jar!/locale/${locale}/autoconfig/
+locale	cookie		${locale}	jar:chrome/${locale}.jar!/locale/${locale}/cookie/
+locale	global		${locale}	jar:chrome/${locale}.jar!/locale/${locale}/global/
+locale	global-region	${locale}	jar:chrome/${locale}.jar!/locale/${locale}/global-region/
+locale	global-platform	${locale}	jar:chrome/${locale}.jar!/locale/${locale}/global-platform/
+locale	mozapps		${locale}	jar:chrome/${locale}.jar!/locale/${locale}/mozapps/
+locale	necko		${locale}	jar:chrome/${locale}.jar!/locale/${locale}/necko/
+locale	passwordmgr	${locale}	jar:chrome/${locale}.jar!/locale/${locale}/passwordmgr/
+locale	places		${locale}	jar:chrome/${locale}.jar!/locale/${locale}/places/
+locale	pipnss		${locale}	jar:chrome/${locale}.jar!/locale/${locale}/pipnss/
+locale	pippki		${locale}	jar:chrome/${locale}.jar!/locale/${locale}/pippki/
