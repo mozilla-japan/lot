@@ -241,7 +241,7 @@
 
 	<!-- sunbird-l10n.js は @AB_CD@ を置き換える必要あり -->
 	<copy file="${jar.src.dir}/calendar/sunbird-l10n.js"
-		tofile="${xpi.dir}/defaults/preferences/sunbird-l10n.js" encoding="${encoding.js}">
+		tofile="${xpi.src.dir}/defaults/preferences/sunbird-l10n.js" encoding="${encoding.js}">
 		<filterchain>
 			<replaceregex pattern="@AB_CD@" replace="${locale}"/>
 		</filterchain>
