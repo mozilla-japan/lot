@@ -335,14 +335,13 @@
 	<!-- prepare properties to make this script possible to use stand alone -->
 	<property name="temp.root" value="temp"/>
 	<property name="locale" value="ja"/>
-	<!-- <property name="hg.mozilla-central.dir" value="mozilla-central"/> -->
-	<property name="hg.mozilla-central.dir" value="comm-central/mozilla"/>
-	<property name="hg.comm-central.dir" value="comm-central"/>
-	<property name="hg.mobile-browser.dir" value="mobile-browser"/>
+	<property name="hg.mozilla.dir" value="comm-central/mozilla"/>
+	<property name="hg.comm.dir" value="comm-central"/>
+	<property name="hg.mobile.dir" value="mobile-browser"/>
 </target>
 
 <target name="mozilla-to-l10n" depends="prepare-hg"
-	description="copy changing directory structure of en-US locale files within mozilla-central">
+	description="copy changing directory structure of en-US locale files within mozilla repository">
 	<!-- prepare properties to make this script possible to use stand alone -->
 	<property name="mozilla-to-l10n.temp.dir" value="${temp.root}/mozilla-to-l10n"/>
 	<property name="mozilla-to-l10n.dir" value="l10n/en-US"/>
@@ -353,47 +352,47 @@
 	<!-- now, copy changing directory structure -->
 	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/browser"
 		failonerror="false" preservelastmodified="true">
-		<fileset dir="${hg.mozilla-central.dir}/browser/locales/en-US"/>
+		<fileset dir="${hg.mozilla.dir}/browser/locales/en-US"/>
 	</copy><!-- only firefox -->
 	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/dom"
 		failonerror="false" preservelastmodified="true">
-		<fileset dir="${hg.mozilla-central.dir}/dom/locales/en-US"/>
+		<fileset dir="${hg.mozilla.dir}/dom/locales/en-US"/>
 	</copy>
 	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/extensions/inspector/chrome"
 		failonerror="false" preservelastmodified="true">
-		<fileset dir="${hg.mozilla-central.dir}/extensions/inspector/resources/locale/en-US"/>
+		<fileset dir="${hg.mozilla.dir}/extensions/inspector/resources/locale/en-US"/>
 	</copy>
 	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/extensions/irc"
 		failonerror="false" preservelastmodified="true">
-		<fileset dir="${hg.mozilla-central.dir}/extensions/irc/locales/en-US"/>
+		<fileset dir="${hg.mozilla.dir}/extensions/irc/locales/en-US"/>
 	</copy>
 	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/extensions/spellcheck"
 		failonerror="false" preservelastmodified="true">
-		<fileset dir="${hg.mozilla-central.dir}/extensions/spellcheck/locales/en-US"/>
+		<fileset dir="${hg.mozilla.dir}/extensions/spellcheck/locales/en-US"/>
 	</copy>
 	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/extensions/reporter"
 		failonerror="false" preservelastmodified="true">
-		<fileset dir="${hg.mozilla-central.dir}/extensions/reporter/locales/en-US"/>
+		<fileset dir="${hg.mozilla.dir}/extensions/reporter/locales/en-US"/>
 	</copy>
 	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/extensions/venkman"
 		failonerror="false" preservelastmodified="true">
-		<fileset dir="${hg.mozilla-central.dir}/extensions/venkman/locales/en-US"/>
+		<fileset dir="${hg.mozilla.dir}/extensions/venkman/locales/en-US"/>
 	</copy>
 	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/netwerk"
 		failonerror="false" preservelastmodified="true">
-		<fileset dir="${hg.mozilla-central.dir}/netwerk/locales/en-US"/>
+		<fileset dir="${hg.mozilla.dir}/netwerk/locales/en-US"/>
 	</copy>
 	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/other-licenses/branding/firefox"
 		failonerror="false" preservelastmodified="true">
-		<fileset dir="${hg.mozilla-central.dir}/other-licenses/branding/firefox/locales/en-US"/>
+		<fileset dir="${hg.mozilla.dir}/other-licenses/branding/firefox/locales/en-US"/>
 	</copy><!-- only firefox -->
 	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/security/manager"
 		failonerror="false" preservelastmodified="true">
-		<fileset dir="${hg.mozilla-central.dir}/security/manager/locales/en-US"/>
+		<fileset dir="${hg.mozilla.dir}/security/manager/locales/en-US"/>
 	</copy>
 	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/toolkit"
 		failonerror="false" preservelastmodified="true">
-		<fileset dir="${hg.mozilla-central.dir}/toolkit/locales/en-US"/>
+		<fileset dir="${hg.mozilla.dir}/toolkit/locales/en-US"/>
 	</copy>
 	
 	<mkdir dir="${mozilla-to-l10n.dir}"/>
@@ -403,7 +402,7 @@
 </target>
 
 <target name="comm-to-l10n" depends="prepare-hg"
-	description="copy changing directory structure of en-US locale files within comm-central">
+	description="copy changing directory structure of en-US locale files within comm repository">
 	<!-- prepare properties to make this script possible to use stand alone -->
 	<property name="comm-to-l10n.temp.dir" value="${temp.root}/comm-to-l10n"/>
 	<property name="comm-to-l10n.dir" value="l10n/en-US"/>
@@ -414,27 +413,27 @@
 	<!-- now, copy changing directory structure -->
 	<copy todir="${comm-to-l10n.temp.dir}/en-US/calendar"
 		failonerror="false" preservelastmodified="true">
-		<fileset dir="${hg.comm-central.dir}/calendar/locales/en-US"/>
+		<fileset dir="${hg.comm.dir}/calendar/locales/en-US"/>
 	</copy><!-- only sunbird -->
 	<copy todir="${comm-to-l10n.temp.dir}/en-US/editor/ui"
 		failonerror="false" preservelastmodified="true">
-		<fileset dir="${hg.comm-central.dir}/editor/ui/locales/en-US"/>
+		<fileset dir="${hg.comm.dir}/editor/ui/locales/en-US"/>
 	</copy><!-- only thunderbird -->
 	<copy todir="${comm-to-l10n.temp.dir}/en-US/mail"
 		failonerror="false" preservelastmodified="true">
-		<fileset dir="${hg.comm-central.dir}/mail/locales/en-US"/>
+		<fileset dir="${hg.comm.dir}/mail/locales/en-US"/>
 	</copy><!-- only thunderbird -->
 	<copy todir="${comm-to-l10n.temp.dir}/en-US/other-licenses/branding/sunbird"
 		failonerror="false" preservelastmodified="true">
-		<fileset dir="${hg.comm-central.dir}/other-licenses/branding/sunbird/locales/en-US"/>
+		<fileset dir="${hg.comm.dir}/other-licenses/branding/sunbird/locales/en-US"/>
 	</copy><!-- only sunbird -->
 	<copy todir="${comm-to-l10n.temp.dir}/en-US/other-licenses/branding/thunderbird"
 		failonerror="false" preservelastmodified="true">
-		<fileset dir="${hg.comm-central.dir}/other-licenses/branding/thunderbird/locales/en-US"/>
+		<fileset dir="${hg.comm.dir}/other-licenses/branding/thunderbird/locales/en-US"/>
 	</copy><!-- only thunderbird -->
 	<copy todir="${comm-to-l10n.temp.dir}/en-US/suite"
 		failonerror="false" preservelastmodified="true">
-		<fileset dir="${hg.comm-central.dir}/suite/locales/en-US"/>
+		<fileset dir="${hg.comm.dir}/suite/locales/en-US"/>
 	</copy><!-- only seamonkey -->
 	
 	<mkdir dir="${comm-to-l10n.dir}"/>
@@ -448,12 +447,12 @@
 	<property name="mobile-to-l10n.dir" value="l10n/en-US"/>
 	<mkdir dir="${mobile-to-l10n.dir}/mobile"/>
 	<copy todir="${mobile-to-l10n.dir}/mobile" failonerror="false" preservelastmodified="true">
-		<fileset dir="${hg.mobile-browser.dir}/locales/en-US"/>
+		<fileset dir="${hg.mobile.dir}/locales/en-US"/>
 	</copy>
 </target>
 
 <target name="en-US-to-l10n" depends="mozilla-to-l10n, comm-to-l10n, mobile-to-l10n"
-       description="copy changing directory structure of en-US locale files within both mozilla-central and comm-central"/>
+       description="copy changing directory structure of en-US locale files within both mozilla and comm repository"/>
 
 
 
