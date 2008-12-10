@@ -344,7 +344,7 @@
 	description="copy changing directory structure of en-US locale files within mozilla repository">
 	<!-- prepare properties to make this script possible to use stand alone -->
 	<property name="mozilla-to-l10n.temp.dir" value="${temp.root}/mozilla-to-l10n"/>
-	<property name="mozilla-to-l10n.dir" value="l10n/en-US"/>
+	<property name="mozilla-to-l10n.dir" value="${lot.l10n.dir}/en-US"/>
 	
 	<!-- cleaning -->
 	<delete dir="${mozilla-to-l10n.temp.dir}"/>
@@ -405,7 +405,7 @@
 	description="copy changing directory structure of en-US locale files within comm repository">
 	<!-- prepare properties to make this script possible to use stand alone -->
 	<property name="comm-to-l10n.temp.dir" value="${temp.root}/comm-to-l10n"/>
-	<property name="comm-to-l10n.dir" value="l10n/en-US"/>
+	<property name="comm-to-l10n.dir" value="${lot.l10n.dir}/en-US"/>
 	
 	<!-- cleaning -->
 	<delete dir="${comm-to-l10n.temp.dir}"/>
@@ -444,7 +444,7 @@
 
 <target name="mobile-to-l10n" depends="prepare-hg"
 	description="copy changing directory structure of en-US locale files within mobile-browser">
-	<property name="mobile-to-l10n.dir" value="l10n/en-US"/>
+	<property name="mobile-to-l10n.dir" value="${lot.l10n.dir}/en-US"/>
 	<mkdir dir="${mobile-to-l10n.dir}/mobile"/>
 	<copy todir="${mobile-to-l10n.dir}/mobile" failonerror="false" preservelastmodified="true">
 		<fileset dir="${hg.mobile.dir}/locales/en-US"/>
