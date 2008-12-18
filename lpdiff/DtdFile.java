@@ -28,6 +28,7 @@ public class DtdFile extends UnknownFile {
 			e1.printStackTrace() ;
 		}
 		
+		String str = null;
 		while(true) {
 			String line = null ;
 			try {
@@ -40,36 +41,68 @@ public class DtdFile extends UnknownFile {
 				break ;
 			}
 			
-			String[] eStrs = parseEntity( line ) ;
-			if( eStrs != null ) {
-				String eName = eStrs[0] ;
-				String eValue = eStrs[1] ;
-				
-				Object o = hashtable.get( eName ) ;
-				if( o == null ) {
-					Entity e = new Entity( eName, eValue, fileNumber ) ;
-					hashtable.put( eName, e ) ;
+			// to avoid trim from multiline difinition...
+			String trimedline = line.trim() ;
+			if ( trimedline.startsWith( new String("<!ENTITY") ) ) {
+				str = line ;
+			}
+			else if ( str != null ) {
+				str += line ;
+			}
+			
+			if ( str != null && trimedline.endsWith( new String(">") ) ) {
+				String[] eStrs = parseEntity( str ) ;
+				if( eStrs != null ) {
+					String eName = eStrs[0] ;
+					String eValue = eStrs[1] ;
+					
+					Object o = hashtable.get( eName ) ;
+					if( o == null ) {
+						Entity e = new Entity( eName, eValue, fileNumber ) ;
+						hashtable.put( eName, e ) ;
+					}
+					else {
+						((Entity)o).setValue( eValue, fileNumber ) ;
+					}
 				}
-				else {
-					((Entity)o).setValue( eValue, fileNumber ) ;
-				}
+				str = null ;
 			}
 		}
 	}
 
-	private String[] parseEntity( String line ) {
+	private String[] parseEntity( String str ) {
 		
-		line = line.trim() ;
+		str = str.trim() ;
 		
-		if( line.startsWith( new String("<!ENTITY") ) &&
-			line.endsWith( new String(">") ) ) {
+		if( str.startsWith( new String("<!ENTITY") ) &&
+			str.endsWith( new String(">") ) ) {
 			
-			int v2 = line.lastIndexOf('"') ;
-			int v1 = line.indexOf('"') ;
+			int v1, v2 ;
+			int v2d = str.lastIndexOf('"') ;
+			int v1d = str.indexOf('"') ;
+			int v2s = str.lastIndexOf("'") ;
+			int v1s = str.indexOf("'") ;
 			
-			String eName = line.substring( 8, v1 ) ;
+			if ( v1d != -1 ) {
+				if ( v1s != -1 ) {
+					if ( v1d < v1s ) {
+						v1 = v1d ;  v2 = v2d ;
+					}
+					else {
+						v1 = v1s ;  v2 = v2s ;
+					}
+				}
+				else {
+					v1 = v1d ;  v2 = v2d ;
+				}
+			}
+			else {
+				v1 = v1s ;  v2 = v2s ;
+			}
+			
+			String eName = str.substring( 8, v1 ) ;
 			eName = eName.trim() ;
-			String eValue = line.substring( v1+1, v2 ) ;
+			String eValue = str.substring( v1+1, v2 ) ;
 			eValue = eValue.trim() ;
 			
 			String[] rtnStrs = new String[2] ;
