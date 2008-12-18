@@ -4,30 +4,22 @@ import javax.swing.tree.* ;
 
 public class TreeWriter extends HtmlWriter {
 
-	public void writeTree( LpTree lpTree, String baseDir, String cssFile ) {
+	public void writeTree( LpTree lpTree, String baseDir, String cssFile ) throws java.io.IOException {
 
-		try {
+		FileOutputStream fos = new FileOutputStream( new File( baseDir, "mlpfiles.html").toString() ) ;
+		OutputStreamWriter writer = new OutputStreamWriter( fos, "UTF-8" ) ;
 			
-			FileOutputStream fos = new FileOutputStream( new File( baseDir, "mlpfiles.html").toString() ) ;
-			OutputStreamWriter writer = new OutputStreamWriter( fos, "UTF-8" ) ;
+		writeHtmlHeader(writer, cssFile) ;
 			
-			writeHtmlHeader(writer, cssFile) ;
+		DefaultMutableTreeNode rootNode =
+			(DefaultMutableTreeNode)lpTree.getModel().getRoot() ;
 			
-			DefaultMutableTreeNode rootNode =
-				(DefaultMutableTreeNode)lpTree.getModel().getRoot() ;
+		writeFilename( writer, (ChromeFile)rootNode.getUserObject() ) ;
 			
-			writeFilename( writer, (ChromeFile)rootNode.getUserObject() ) ;
-			
-			writeTreeDir( writer, rootNode ) ;
+		writeTreeDir( writer, rootNode ) ;
 
-			writeHtmlFooter(writer) ;
-			writer.close() ;
-
-		}
-		catch( IOException ioe ) {
-			ioe.printStackTrace() ;
-			System.exit(2) ;
-		}
+		writeHtmlFooter(writer) ;
+		writer.close() ;
 
 	}
 

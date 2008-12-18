@@ -2,10 +2,12 @@ import java.io.* ;
 
 public class CliDiff {
 
+	private final String strArgHelp = "Usage:\njava -jar LpDiff.jar -diff [compare dir 1] [compare dir2] [output file]\n or\njava -jar LpDiff.jar -all [compare dir 1] [compare dir2] [output dir]";
+
 	public void run( String argv[] ) {
 
 		try {
-			if( argv[0].equals("-diff") ) {
+			if( argv[0].equals("-diff") && argv.length == 4) {
 				
 				System.out.println("Write Diff" ) ;
 				String dir1 = argv[1] ;
@@ -41,7 +43,7 @@ public class CliDiff {
 				headers[2] = "NEW VALUE" ;
 				dWriter.printDiff(lpTree, outFile.toString(), headers, "mlpdiff.css" ) ;
 			}
-			else if( argv[0].equals("-all") ) {
+			else if( argv[0].equals("-all") && argv.length == 4) {
 				
 				System.out.println("Write All" ) ;
 				
@@ -82,7 +84,8 @@ public class CliDiff {
 				hWriter.printAll( lpTree, outDir.toString(), headers, "mlpdiffall.css" ) ;
 			}
 			else {
-				System.out.println("parameter invalid" ) ;
+				System.out.println("Parameter invalid.") ;
+				System.out.println(strArgHelp);
 			}
 		}
 		catch( IOException ioe ) {

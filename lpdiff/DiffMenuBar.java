@@ -93,16 +93,27 @@ public class DiffMenuBar extends JMenuBar {
 				int rtn = JOptionPane.showConfirmDialog(diffFrame, obj,
 										"Print difference to HTML file",
 										 JOptionPane.OK_CANCEL_OPTION) ;
-				if( rtn == 0 ) {
-					diffFrame.PrintAll( allPanel.fileText.getText(), "lpfiles.css" ) ;
+				try {
+					if( rtn == 0 ) {
+						try {
+							diffFrame.PrintAll( allPanel.fileText.getText(), "lpfiles.css" ) ;
+						} catch (java.io.FileNotFoundException fle) {
+							System.out.println(fle.toString());
+							throw new LpException("Check outputDir is present");
+						} catch (java.IOException ioe) {
+							System.out.println(ioe.toString());
+							throw new LpException("Error");
+						}
+					}
 					if( cssPanelAll.cssCB.isSelected() ) {
 						writeCSSFile( allPanel.fileText.getText(), "lpfiles.css" ) ;
 					}
+				} catch (LpException lpE) {
+					JOptionPane.showMessageDialog(diffFrame, lpE.toString());
 				}
 			}
 		} );
 		fileMenu.add( writAllMenuItem ); 
-
 
 		fileMenu.addSeparator() ;
 
@@ -117,7 +128,6 @@ public class DiffMenuBar extends JMenuBar {
 		fileMenu.add( exitMenuItem ); 
 		
 		add( fileMenu ) ;
-		
 	}
 
 	private void writeCSSFile( String dirName, String cssFileName ) {

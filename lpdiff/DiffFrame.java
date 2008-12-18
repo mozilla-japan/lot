@@ -98,7 +98,7 @@ public class DiffFrame extends JFrame {
 		dWriter.printDiff(chromeTree, filename, headers, cssFileName ) ;
 	}
 
-	public void PrintAll( String baseDir, String cssFileName ) {
+	public void PrintAll( String baseDir, String cssFileName ) throws java.io.IOException {
 		TreeWriter tWriter = new TreeWriter() ;
 		tWriter.writeTree( chromeTree, baseDir, cssFileName ) ;
 
