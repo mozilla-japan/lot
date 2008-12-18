@@ -96,10 +96,10 @@ public class LpTree extends JTree {
 			if( isExist == false ) {
 				ChromeFile newFile =
 					ChromeFile.createInstance( new File(cmpDir, files[i] ), 1 ) ;
-				//newFile.setFile( new File(cmpDir, files[i]), 1 ) ;
 				DefaultMutableTreeNode aNode = new DefaultMutableTreeNode( newFile );
 				originalNode.add( aNode ) ;
-				newFile.setTreeNode( originalNode ) ;
+				newFile.setTreeNode( aNode ) ;
+				//newFile.setTreeNode( originalNode ) ;
 				
 				if( newFile.getFile(1).isDirectory() == true ) {
 					SecondScanLoop( aNode, compareDir + "\\" + files[i] ) ;
