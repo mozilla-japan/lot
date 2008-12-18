@@ -43,10 +43,14 @@ public class DiffMenuBar extends JMenuBar {
 				int rtn = JOptionPane.showConfirmDialog(diffFrame, obj,
 									"Load Directories", JOptionPane.OK_CANCEL_OPTION) ;
 				if( rtn == 0 ) {
-					diffFrame.LoadDirTree( panel1.getDir(),
-										   panel2.getDir(),
-										   panel1.getLabel(),
-										   panel2.getLabel() ) ;
+					try {
+						diffFrame.LoadDirTree( panel1.getDir(),
+											   panel2.getDir(),
+											   panel1.getLabel(),
+											   panel2.getLabel() ) ;
+					} catch (LpException lpE) {
+						JOptionPane.showMessageDialog(diffFrame, lpE.toString());
+					}
 				}
 			}
 		} );

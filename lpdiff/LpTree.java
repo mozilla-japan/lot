@@ -14,12 +14,12 @@ public class LpTree extends JTree {
 	}
 
 	// ディレクトリツリーの読み直し
-	public void LoadLp( String dir1, String dir2 ) {
+	public void LoadLp( String dir1, String dir2 ) throws LpException {
 		FirstScan(dir1) ;
 		SecondScan(dir2) ;
 	}
 
-	public void FirstScan( String topDir1 ) {
+	public void FirstScan( String topDir1 ) throws LpException {
 		ChromeFile topDir = ChromeFile.createInstance( new File(topDir1), 0 ) ;
 		rootNode.setUserObject( topDir ) ;
 		topDir.setTreeNode( rootNode ) ;
@@ -27,13 +27,13 @@ public class LpTree extends JTree {
 		FirstScanLoop( rootNode ) ;
 	}
 
-	public void FirstScanLoop( DefaultMutableTreeNode parentNode ) {
+	public void FirstScanLoop( DefaultMutableTreeNode parentNode ) throws LpException {
 		
 		ChromeFile currentDir = (ChromeFile)parentNode.getUserObject() ;
 		String[] files = currentDir.getFile(0).list() ;
 		
 		if( files == null ) {
-			System.exit(1) ;
+			throw new LpException("FirstDir not found");
 		}
 		
 		for( int i = 0 ; i < files.length ; i++ ) {
@@ -59,7 +59,7 @@ public class LpTree extends JTree {
 
 
 
-	public void SecondScan( String topDir2 ) {
+	public void SecondScan( String topDir2 ) throws LpException {
 		//System.out.println("SecondScan called:"+topDir2) ;
 		ChromeFile rootFile = (ChromeFile)rootNode.getUserObject() ;
 		rootFile.setFile( new File(topDir2), 1 ) ;
@@ -67,15 +67,14 @@ public class LpTree extends JTree {
 		SecondScanLoop( rootNode, topDir2 ) ;
 	}
 
-	public void SecondScanLoop(DefaultMutableTreeNode originalNode, String compareDir ) {
+	public void SecondScanLoop(DefaultMutableTreeNode originalNode, String compareDir ) throws LpException {
 
 		File cmpDir = new File( compareDir ) ;
 
 		String[] files = cmpDir.list() ;
 
 		if( files == null ) {
-			System.out.println( compareDir + " is empty") ;
-			System.exit( 1 ) ;
+			throw new LpException( compareDir + " is empty");
 		}
 		
 		

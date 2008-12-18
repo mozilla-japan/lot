@@ -49,7 +49,7 @@ public class DiffFrame extends JFrame {
 		
 	}
 
-	public void LoadDirTree(String dir1, String dir2, String label1, String label2) {
+	public void LoadDirTree(String dir1, String dir2, String label1, String label2) throws LpException {
 		chromeTree = new LpTree() ;
 		header1 = label1 ;
 		header2 = label2 ;
@@ -124,8 +124,6 @@ public class DiffFrame extends JFrame {
 		
 		LoadDtdTable( cf, headers ) ;
 	}
-
-
 
 }
 

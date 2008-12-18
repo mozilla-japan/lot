@@ -29,7 +29,11 @@ public class CliDiff {
 					System.exit(1) ;
 				}
 				LpTree lpTree = new LpTree() ;
-				lpTree.LoadLp( dir1File.toString(), dir2File.toString() ) ;
+				try {
+					lpTree.LoadLp( dir1File.toString(), dir2File.toString() ) ;
+				} catch (LpException e) {
+					System.out.println(e.toString());
+				}
 				DiffWriter dWriter = new DiffWriter() ;
 				String[] headers = new String[3] ;
 				headers[0] = "ENTITY" ;
@@ -63,7 +67,11 @@ public class CliDiff {
 				}
 				
 				LpTree lpTree = new LpTree() ;
-				lpTree.LoadLp( dir1File.toString(), dir2File.toString() ) ;
+				try {
+					lpTree.LoadLp( dir1File.toString(), dir2File.toString() ) ;
+				} catch (LpException e) {
+					System.out.println(e.toString());
+				}
 				TreeWriter tWriter = new TreeWriter() ;
 				tWriter.writeTree( lpTree, outDir.toString(), "mlpdiffall.css" ) ;
 				String[] headers = new String[3] ;
