@@ -35,6 +35,14 @@ public class DiffFrame extends JFrame {
 		};
 		chromeTree.addMouseListener(ml);
 		
+		WindowListener wl = new WindowAdapter() {
+			public void windowClosing(WindowEvent e) {
+				System.exit(0);
+			}
+		};
+		
+		addWindowListener(wl);
+		
 		dtdTable = new LpTable(this) ;
 		jmb = new DiffMenuBar(this) ;
 		setJMenuBar( jmb ) ;
