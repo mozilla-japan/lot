@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Main-Class: LpDiff
+Created-By: JDK 1.3.0_01
+
