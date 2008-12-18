@@ -36,11 +36,11 @@ public class PropFile extends UnknownFile {
 
 			Object o = hashtable.get( eName ) ;
 			if( o == null ) {
-				Entity e = new Entity( eName, eValue, 0) ;
+				Entity e = new Entity( eName, eValue, fileNo) ;
 				hashtable.put( eName, e ) ;
 			}
 			else {
-				((Entity)o).setValue( eValue, 1 ) ;
+				((Entity)o).setValue( eValue, fileNo ) ;
 			}
 		}
 	}
