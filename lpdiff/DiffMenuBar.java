@@ -100,7 +100,7 @@ public class DiffMenuBar extends JMenuBar {
 						} catch (java.io.FileNotFoundException fle) {
 							System.out.println(fle.toString());
 							throw new LpException("Check outputDir is present");
-						} catch (java.IOException ioe) {
+						} catch ( IOException ioe) {
 							System.out.println(ioe.toString());
 							throw new LpException("Error");
 						}

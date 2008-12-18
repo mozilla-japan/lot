@@ -101,11 +101,15 @@ public class LpTree extends JTree {
 				originalNode.add( aNode ) ;
 				newFile.setTreeNode( originalNode ) ;
 				
+				if( newFile.getFile(1).isDirectory() == true ) {
+					SecondScanLoop( aNode, compareDir + "\\" + files[i] ) ;
+				}
 			}
-			
-			File nFile = new File( cmpDir, files[i] ) ;
-			if( nFile.isDirectory() ) {
-				SecondScanLoop( childNode, compareDir + "\\" + files[i] ) ;
+			else {
+				File nFile = new File( cmpDir, files[i] ) ;
+				if( nFile.isDirectory() ) {
+					SecondScanLoop( childNode, compareDir + "\\" + files[i] ) ;
+				}
 			}
 		
 		}
