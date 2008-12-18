@@ -11,7 +11,12 @@ public class DtdFile extends UnknownFile {
 		
 		for( int i = 0 ; i < files.length ; i++ ) {
 			if( files[i] != null ) {
-				LoadFile( files[i].toString(), i, hashtable ) ;
+				try {
+					LoadFile( files[i].toString(), i, hashtable ) ;
+				} catch( Exception e ) {
+					System.out.println(files[i].toString() + " Load failed");
+					System.out.println(e.toString());
+				}
 			}
 		}
 		
@@ -29,6 +34,8 @@ public class DtdFile extends UnknownFile {
 		}
 		
 		String str = null;
+		int lcnt = 0;
+		int scnt = 0;
 		while(true) {
 			String line = null ;
 			try {
@@ -45,12 +52,16 @@ public class DtdFile extends UnknownFile {
 			String trimedline = line.trim() ;
 			if ( trimedline.startsWith( new String("<!ENTITY") ) ) {
 				str = line ;
+				lcnt = countText(line, "<");
+				scnt = countText(line, ">");
 			}
 			else if ( str != null ) {
 				str += line ;
+				lcnt += countText(line, "<");
+				scnt += countText(line, ">");
 			}
 			
-			if ( str != null && trimedline.endsWith( new String(">") ) ) {
+			if ( str != null && trimedline.endsWith( new String(">") ) && lcnt == scnt ) {
 				String[] eStrs = parseEntity( str ) ;
 				if( eStrs != null ) {
 					String eName = eStrs[0] ;
@@ -68,6 +79,17 @@ public class DtdFile extends UnknownFile {
 				str = null ;
 			}
 		}
+	}
+	
+	private int countText( String strOrg, String strMatch ) {
+		int count = 0;
+		String buf = strOrg;
+		
+		while (buf.indexOf(strMatch) != -1) {
+			count++;
+			buf = buf.substring(buf.indexOf(strMatch) + 1);
+		}
+		return count;
 	}
 
 	private String[] parseEntity( String str ) {
