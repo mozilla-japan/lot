@@ -1,6 +1,9 @@
 # fennec part
 locale	browser		${locale}	jar:chrome/${locale}.jar!/locale/${locale}/browser/
 locale	branding	${locale}	jar:chrome/${locale}.jar!/locale/${locale}/branding/
+locale	firstrun	${locale}	jar:chrome/${locale}.jar!/locale/${locale}/firstrun/
+content	firstrun	jar:chrome/${locale}.jar!/content/firstrun/ contentaccessible=yes
+
 override chrome://global/locale/netErrorApp.dtd chrome://browser/locale/netError.dtd
 
 # xulrunner part
