@@ -215,6 +215,11 @@
 	<update-jar dir="${jar.src.dir}/mobile/chrome/brand"					prefix="locale/${locale}/branding"/>
 	<update-jar dir="${jar.src.dir}/mobile/chrome/firstrun"					prefix="locale/${locale}/firstrun"/>
 	<update-jar dir="${jar.src.dir}/mobile/content/firstrun"				prefix="content/firstrun"/>
+	
+	<!-- not for jar but exec here just for simplicity
+	<copy todir="${xpi.src.dir}/searchplugins" preservelastmodified="true" overwrite="true">
+		<fileset dir="${jar.src.dir}/mobile/searchplugins" excludes="list.txt"/>
+	</copy> -->
 </target>
 
 <target name="-jar-sunbird-" if="targetapp.is.sunbird">

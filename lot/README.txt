@@ -3,6 +3,17 @@
 			Localization Tools by dynamis
 --------------------------------------------------------------------------------
 
+Localization Tools (aka. lot) is an ant script for Mozilla application L10n.
+
+
+Requirements:
+ Apache Ant	required always
+ Subversion	required to work with l10n svn
+ Mercurial	required to work with mozilla.com repositories
+ Python		required to work with mozilla.com repositories
+ Perl		required to use compare-locales.pl
+
+
 If you cannot read japanese, try following commands:
  lot> ant
  lot> ant -p
@@ -26,6 +37,9 @@ l10n/en-US			to be generated with en-US-to-l10n target (from mozilla-central/com
 l10n/ja				directory to which hg clone http://hg.mozilla.org/l10n-central/ja
 l10n/ja-JP-mac			directory to which hg clone http://hg.mozilla.org/l10n-central/ja-JP-mac
 LpDiff.jar			diff tool for local files
+mobile-browser			to be generated with: hg clone http://hg.mozilla.org/mobile-browser
+mozilla-1.9.1			to be generated with: hg clone http://hg.mozilla.org/releases/mozilla-1.9.1/
+mozilla1.9			to be generated with: cvs -d :pserver:anonymous@cvs-mirror.mozilla.org:/l10n co l10n/ja l10n/ja-JP-mac
 README.txt			this file
 res/				directory containing resource files for lot (need not edit)
 src/				directory containing l10n src files
@@ -118,14 +132,17 @@ mv l10n/en-US l10n/en-US-rev{MOZILLA_REV_OLD}+{COMM_REV_OLD}
 
 # 最新の en-US ファイルを取得
 python comm-central/client.py checkout
+(cd mobile-browser; hg pull -u)
 
 # 最新の en-US リビジョン確認
-# ここで確認した最新リビジョンを {MOZILLA_REV_TIP}, {COMM_REV_TIP} とする
+# ここで確認した最新リビジョンを {MOZILLA_REV_TIP}, {COMM_REV_TIP} {MOBILE_REV_TIP} とする
 hg log -r tip comm-central/
 hg log -r tip comm-central/mozilla
+hg log -r tip mobile-browser
 # コミットログなど確認せずにリビジョン番号だけを取得するには:
 # hg log -r tip --template "{rev}\n" comm-central
 # hg log -r tip --template "{rev}\n" comm-central/mozilla
+# hg log -r tip --template "{rev}\n" mobile-browser
 
 # en-US 言語リソースファイルを l10n HG ディレクトリ構造で l10n/en-US にコピー
 ant en-US-to-l10n
@@ -159,15 +176,13 @@ cd ../..
 
 # 更に L10N HG にもコミット＆プッシュ
 cd l10n/ja
-hg pull
-hg up
+hg pull -u
 hg status
 hg diff
 hg commit -m "sync with en-US rev{MOZILLA_REV_TIP}+{COMM_REV_TIP}"
 hg push
 cd ../ja-JP-mac
-hg pull
-hg up
+hg pull -u
 hg status
 hg diff
 hg commit -m "sync with en-US rev{MOZILLA_REV_TIP}+{COMM_REV_TIP}"
