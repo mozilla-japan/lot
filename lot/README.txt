@@ -100,8 +100,11 @@ svn checkout svn+ssh://svn.mozilla.l10n.jp/usr/local/var/svn/l10n/trunk/ src/l10
 
 # l10n-central リポジトリを clone (L10N HG にコミットしない場合は不要)
 mkdir l10n
-hg clone http://hg.mozilla.org/l10n-central/ja l10n/ja
-hg clone http://hg.mozilla.org/l10n-central/ja-JP-mac l10n/ja-JP-mac
+hg clone http://hg.mozilla.org/releases/l10n-mozilla-1.9.1/ja l10n/ja
+hg clone http://hg.mozilla.org/releases/l10n-mozilla-1.9.1/ja-JP-mac l10n/ja-JP-mac
+# central の場合は次の URL で clone
+#hg clone http://hg.mozilla.org/l10n-central/ja l10n/ja
+#hg clone http://hg.mozilla.org/l10n-central/ja-JP-mac l10n/ja-JP-mac
 # 各レポジトリの .hg/hgrc の [path] セクションで push 時には ssh を使うように指定:
 # default-push = ssh://hg.mozilla.org/l10n-central/ja
 
