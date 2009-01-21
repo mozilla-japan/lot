@@ -23,6 +23,17 @@
 	<!-- <echoproperties prefix="prefix"/> -->
 	<echoproperties/>
 </target>
+<target name="jstest">
+	<script language="javascript">
+		<classpath><fileset dir="antlib" includes="*.jar"/></classpath>
+		<![CDATA[
+			echo = project.createTask("echo");
+			echo.setMessage("JavaScript is Running Correctly!");
+			echo.perform();
+		]]>
+	</script>
+</target>
+
 
 
 <!-- * common * -->
