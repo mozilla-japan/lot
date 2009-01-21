@@ -112,11 +112,22 @@
 <target name="get-compare-locales" depends="load-mainconf">
 	<get src="${compare-locales.get.url}" dest="${compare-locales.file}"/>
 </target>
-<target name="compare-locales" depends="load-mainconf">
-	<fail unless="locale"/>
-	<exec taskname="perl" executable="perl" failonerror="true">
-		<arg line="${compare-locales.file} ${lot.l10n.dir}/en-US ${lot.l10n.dir}/${locale}"/>
-	</exec>
+<macrodef name="compare-locales">
+	<attribute name="fromlocale" default="en-US"/>
+	<attribute name="tolocale" default="ja"/>
+	<attribute name="failonerror" default="false"/>
+	<sequential>
+		<exec taskname="perl" executable="perl" failonerror="@{failonerror}">
+			<arg line="${compare-locales.file} ${lot.l10n.dir}/@{fromlocale} ${lot.l10n.dir}/@{tolocale}"/>
+		</exec>
+	</sequential>
+</macrodef>
+<target name="compare-locales-ja" depends="load-mainconf" unless="locale">
+	<compare-locales tolocale="ja"/>
+	<compare-locales tolocale="ja-JP-mac"/>
+</target>
+<target name="compare-locales" depends="load-mainconf, compare-locales-ja" if="locale">
+	<compare-locales tolocale="${locale}" failonerror="true"/>
 </target>
 
 

@@ -389,33 +389,6 @@
 </presetdef> -->
 
 
-<!-- * cvs * -->
-<macrodef name="altcvs">
-	<attribute name="cvsroot"		default="${cvs.cvsroot.main}"/>
-	<attribute name="passfile"		default="${cvs.cvspass.file}"/>
-	<attribute name="globaloption"	default="-r"/><!-- -r: read only (default) -w: writable -->
-	<attribute name="command"		default="checkout"/><!-- checkout|export... -->
-	<attribute name="option"		default=""/><!-- command specific options -->
-	<attribute name="tag"			default=""/><!-- HEAD|BASE... -->
-	<attribute name="date"			default=""/><!-- tomorrow|yesterday|last week|YYYY-MM-DD|MM/DD/YYYY... -->
-	<attribute name="module"		default=""/>
-	<attribute name="dest"			default=""/>
-	<attribute name="output"		default="${lot.cvs.dir}/cvs.log"/>
-	<attribute name="quiet"			default="false"/>
-	<attribute name="failonerror"	default="false"/>
-	<sequential>
-		<property name="altcvs.passfile" value="@{passfile}"/>
-		<loadmessage pattern="^vmsg\.cvs\.cvspass\."/>
-		<fail message="${vmsg.cvs.cvspass.notfound}">
-			<condition><not><available file="@{passfile}" type="file"/></not></condition>
-		</fail>
-		<cvs cvsroot="@{cvsroot}" passfile="@{passfile}" dest="@{dest}" output="@{output}" quiet="@{quiet}"
-			command="@{globaloption} @{command} @{option}" tag="@{tag}" date="@{date}" package="@{module}"
-			failonerror="@{failonerror}"/>
-	</sequential>
-</macrodef>
-
-
 <!-- * diff/lpdiff * -->
 <macrodef name="diff">
 	<attribute name="dir" default="."/>
