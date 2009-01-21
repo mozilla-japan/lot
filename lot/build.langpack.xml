@@ -47,12 +47,12 @@
 <!-- * main targets for convert * -->
 <target name="apply-filters" depends="prepare"
 	description="replace tokens in src files with filters">
-	<!-- first, utf-8 files (dtd, html...) -->
+	<!-- first, copy utf-8 files (dtd, html...) with filters -->
 	<filtering-copy taskname="convert utf-8" todir="${convert.dest.dir}" overwrite="true">
 		<fileset dir="${convert.src.dir}" includes="${convert.utf8.includes}" excludes="${convert.utf8.excludes}"/>
 	</filtering-copy>
 	
-	<!-- second, properties files -->
+	<!-- second, copy properties files with filters -->
 	<!-- Since copy task will filterchain and filterset respectively this cannot be done by the single copy task.
 		 We must use filterset and escapeunicode respectively. -->
 	<mkdir dir="${lot.temp.dir}/${convert.dest.dir}"/><!-- avoid error even if no *.properties in the src dir -->
@@ -64,13 +64,13 @@
 		<fileset dir="${lot.temp.dir}/${convert.dest.dir}" includes="${convert.prop.includes}" excludes="${convert.prop.excludes}"/>
 	</escapeunicoding-copy>
 	
-	<!-- next, binary files -->
+	<!-- next, copy binary files without filters -->
 	<copy taskname="copy binary files" preservelastmodified="true" overwrite="true"
 		todir="${convert.dest.dir}">
 		<fileset dir="${convert.src.dir}" includes="${convert.bin.includes}" excludes="${convert.bin.excludes}"/>
 	</copy>
 	
-	<!-- at last, non-chrome files -->
+	<!-- at last, copy non utf-8 and some other files without filters -->
 	<copy taskname="copy non-chrome files" preservelastmodified="true" overwrite="true"
 		todir="${convert.dest.dir}">
 		<fileset dir="${convert.src.dir}" includes="${convert.other.includes}" excludes="${convert.other.excludes}"/>
