@@ -178,6 +178,7 @@ svn commit -m "sync toolkit with en-US rev{MOZILLA_REV_TIP}+{COMM_REV_TIP}"
 cd ../..
 
 # 更に L10N HG にもコミット＆プッシュ
+# 必ずコミット前に pull しておくこと
 cd l10n/ja
 hg pull -u
 hg status
