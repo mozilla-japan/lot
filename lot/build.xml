@@ -131,7 +131,9 @@
 			firefox.l10n.contributor.em		= ${firefox.l10n.contributor.em}
 			thunderbird.l10n.contributor.em	= ${thunderbird.l10n.contributor.em}
 			sunbird.l10n.contributor.em		= ${sunbird.l10n.contributor.em}
-			seamonkey.l10n.contributor.em		= ${seamonkey.l10n.contributor.em}
+			seamonkey.l10n.contributor.em	= ${seamonkey.l10n.contributor.em}
+			venkman.l10n.contributor.em		= ${venkman.l10n.contributor.em}
+			chatzilla.l10n.contributor.em	= ${chatzilla.l10n.contributor.em}
 			alwaysappendaccesskeys			= ${filters.alwaysappendaccesskeys}
 		</footer>
 	</concat>
