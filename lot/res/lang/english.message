@@ -69,7 +69,12 @@ vmsg.syntaxcheck.found		= Syntax error was found in the files included in "${syn
 cmsg.noprop.wordcheck.src.dir	= 'wordcheck.src.dir' property must be set
 cmsg.noprop.wordcheck.dir	= 'wordcheck.dir' property must be set
 vmsg.wordcheck.no.srcdir	= The directory including files to be checked forbidden words was not found: ${wordcheck.src.dir}
-vmsg.wordcheck.found		= Forbidden words was found in the files included in "${wordcheck.src.dir}" directory. See the files in "${wordcheck.dir}" directory.
+vmsg.wordcheck.found		= Forbidden words are found in the files included in "${wordcheck.src.dir}" directory. See the files in "${wordcheck.dir}" directory.
+
+cmsg.noprop.charcheck.src.dir	= 'charcheck.src.dir' property must be set
+cmsg.noprop.charcheck.dir	= 'charcheck.dir' property must be set
+vmsg.charcheck.no.srcdir	= The directory including files to be checked forbidden characters was not found: ${charcheck.src.dir}
+vmsg.charcheck.found		= Forbidden characters are found in the files included in "${charcheck.src.dir}" directory. See the files in "${charcheck.dir}" directory.
 
 vmsg.escape.no.fromdir		= Please store files to be converted from unicode escape to ${escape.encoding} in "${escape.fromdir}" directory.
 vmsg.unescape.no.fromdir	= Please store files to be converted from ${unescape.encoding} to unicode escape in "${unescape.fromdir}" directory.

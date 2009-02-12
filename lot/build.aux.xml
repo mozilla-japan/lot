@@ -282,7 +282,32 @@
 		<param name="wordcheck.deny"	value="${wordcheck.suspected}"/>
 	</antcall>
 </target>
-<target name="errorcheck" depends="syntaxcheck, wordcheck, suspectedwordcheck"/>
+
+<!-- currently off by default (change someday to unless="nocharcheck") -->
+<target name="charcheck" depends="load-mainconf" if="docharcheck">
+	<delete dir="${charcheck.dir}"/>
+	<mkdir dir="${charcheck.dir}"/>
+	
+	<fail message="${cmsg.noprop.charcheck.src.dir}" unless="charcheck.src.dir"/>
+	<fail message="${cmsg.noprop.charcheck.dir}" unless="charcheck.dir"/>
+	<loadmessage pattern="^vmsg\.charcheck\."/>
+	<fail message="${vmsg.charcheck.no.srcdir}">
+		<condition><not><available file="${charcheck.src.dir}" type="dir"/></not></condition>
+	</fail>
+	
+	<antcall target="-wordcheck-"><!-- reuse wordcheck for charcheck too -->
+		<param name="wordcheck.src.dir"			value="${charcheck.src.dir}"/>
+		<param name="wordcheck.dir"				value="${charcheck.dir}"/>
+		<param name="wordcheck.allow"			value="${charcheck.allow}"/>
+		<param name="wordcheck.allow.replace"	value="${charcheck.allow.replace}"/>
+		<param name="wordcheck.deny"			value="${charcheck.deny}"/>
+	</antcall>
+	<fail message="${vmsg.charcheck.found}">
+		<condition><available file="${charcheck.dir}" type="dir"/></condition>
+	</fail>
+</target>
+
+<target name="errorcheck" depends="syntaxcheck, wordcheck, suspectedwordcheck, charcheck"/>
 
 
 
