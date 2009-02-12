@@ -196,9 +196,9 @@
 <target name="-wordcheck-prop-unescape-" depends="load-mainconf" if="wordcheck.prop.unescape">
 	<!-- native2ascii task require JDK installed and JAVA_HOME env set, or you'll see the error "error starting Sun's native2ascii" -->
 	<native2ascii src="${wordcheck.src.dir}" includes="**/*.properties"
-		dest="${lot.wordcheck.dir}/unescape" reverse="true" encoding="UTF-8"/>
+		dest="${wordcheck.dir}-unescape" reverse="true" encoding="UTF-8"/>
 	<copy preservelastmodified="true" todir="${wordcheck.dir}" encoding="UTF-8" includeemptydirs="no" failonerror="false">
-		<fileset dir="${lot.wordcheck.dir}/unescape" includes="**/*.properties"/>
+		<fileset dir="${wordcheck.dir}-unescape" includes="**/*.properties"/>
 		<mapper type="package" from="*" to="*"/>
 		<filterchain>
 			<replaceregex pattern="^#.*$" replace="" flags="mg"/><!-- allow any words in comments -->
@@ -296,13 +296,11 @@
 	<equals property="wordcheck.suspected"	value="@@|${wordcheck.suspected.ja}" arg1="${locale}" arg2="ja"/>
 	<equals property="wordcheck.suspected"	value="@@|${wordcheck.suspected.ja-JP-mac}" arg1="${locale}" arg2="ja-JP-mac"/>
 	
-	<antcall>
-		<target name="-wordcheck-"/>
+	<antcall target="-wordcheck-">
 		<param name="wordcheck.dir" value="${wordcheck.suspected.dir}"/>
 		<param name="wordcheck.deny" value="${wordcheck.suspected}"/>
 	</antcall>
 </target>
-
 <target name="errorcheck" depends="syntaxcheck, wordcheck, suspectedwordcheck"/>
 
 
