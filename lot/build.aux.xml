@@ -179,9 +179,71 @@
 	</fail>
 </target>
 
+<target name="placeholdercheck" depends="load-mainconf" unless="noplaceholdercheck"
+	description="placeholder usage error check of converted properties files">
+	<fail message="${cmsg.noprop.placeholdercheck.src.dir}" unless="placeholdercheck.src.dir"/>
+	<fail message="${cmsg.noprop.placeholdercheck.dir}" unless="placeholdercheck.dir"/>
+	<loadmessage pattern="^vmsg\.placeholdercheck\."/>
+	<fail message="${vmsg.placeholdercheck.no.srcdir}">
+		<condition><not><available file="${placeholdercheck.src.dir}" type="dir"/></not></condition>
+	</fail>
+	<delete	dir="${placeholdercheck.dir}"/>
+	<mkdir	dir="${placeholdercheck.dir}"/>
+	
+	<!-- find plural form error in properties files -->
+	<copy preservelastmodified="true" todir="${placeholdercheck.dir}" encoding="UTF-8" includeemptydirs="no">
+		<fileset dir="${placeholdercheck.src.dir}" includes="**/*.properties"/>
+		<mapper type="package" from="*" to="2no1.*"/>
+		<filterchain>
+			<linecontainsregexp><regexp pattern="^[^#].+=.+%2\$S"/></linecontainsregexp>
+			<linecontains negate="true"><contains value="%1$S"/></linecontains>
+			<linecontains negate="true"><contains value="%1$0.S"/></linecontains>
+		</filterchain>
+	</copy>
+	<copy preservelastmodified="true" todir="${placeholdercheck.dir}" encoding="UTF-8" includeemptydirs="no">
+		<fileset dir="${placeholdercheck.src.dir}" includes="**/*.properties"/>
+		<mapper type="package" from="*" to="3no12.*"/>
+		<filterchain>
+			<linecontainsregexp><regexp pattern="^[^#].+=.+%3\$S"/></linecontainsregexp>
+			<linecontains negate="true">
+				<contains value="%1$S"/><contains value="%2$S"/>
+			</linecontains>
+			<linecontains negate="true">
+				<contains value="%1$0.S"/><contains value="%2$S"/>
+			</linecontains>
+			<linecontains negate="true">
+				<contains value="%1$S"/><contains value="%2$0.S"/>
+			</linecontains>
+			<linecontains negate="true">
+				<contains value="%1$0.S"/><contains value="%2$0.S"/>
+			</linecontains>
+		</filterchain>
+	</copy>
+	<!-- will generalize if needed but just a simple detection so far -->
+	<copy preservelastmodified="true" todir="${placeholdercheck.dir}" encoding="UTF-8" includeemptydirs="no">
+		<fileset dir="${placeholdercheck.src.dir}" includes="**/*.properties"/>
+		<mapper type="package" from="*" to="4no123.*"/>
+		<filterchain>
+			<linecontainsregexp><regexp pattern="^[^#].+=.+%4\$S"/></linecontainsregexp>
+			<linecontains negate="true">
+				<contains value="%1$S"/><contains value="%2$S"/><contains value="%3$S"/>
+			</linecontains>
+		</filterchain>
+	</copy>
+	
+	<!-- delete all empty files, which means no error found in each correcponding src file -->
+	<delete includeemptydirs="true">
+		<fileset dir="${placeholdercheck.dir}" includes="**">
+			<size value="0" when="equal"/>
+		</fileset>
+	</delete>
+	<fail message="${vmsg.placeholdercheck.found}">
+		<condition><available file="${placeholdercheck.dir}" type="dir"/></condition>
+	</fail>
+</target>
 
 <target name="pluralcheck" depends="load-mainconf" unless="nopluralcheck"
-	description="plural form error check of converted files">
+	description="plural form error check of converted properties files">
 	<delete	dir="${pluralcheck.dir}"/>
 	<mkdir	dir="${pluralcheck.dir}"/>
 	
@@ -336,7 +398,7 @@
 	</fail>
 </target>
 
-<target name="errorcheck" depends="syntaxcheck, pluralcheck, wordcheck, suspectedwordcheck, charcheck"/>
+<target name="errorcheck" depends="syntaxcheck, placeholdercheck, pluralcheck, wordcheck, suspectedwordcheck, charcheck"/>
 
 
 

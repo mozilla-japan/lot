@@ -66,6 +66,16 @@ cmsg.noprop.syntaxcheck.dir	= 'syntaxcheck.dir' property must be set
 vmsg.syntaxcheck.no.srcdir	= The directory including files to be checked syntax error was not found: ${syntaxcheck.src.dir}
 vmsg.syntaxcheck.found		= Syntax error was found in the files included in "${syntaxcheck.src.dir}" directory. See the files in "${syntaxcheck.dir}" directory.
 
+cmsg.noprop.placeholdercheck.src.dir	= 'placeholdercheck.src.dir' property must be set
+cmsg.noprop.placeholdercheck.dir	= 'placeholdercheck.dir' property must be set
+vmsg.placeholdercheck.no.srcdir		= The directory including files to be checked placeholder error was not found: ${placeholdercheck.src.dir}
+vmsg.placeholdercheck.found		= Placeholder error was found in the files included in "${placeholdercheck.src.dir}" directory. See the files in "${placeholdercheck.dir}" directory.
+
+cmsg.noprop.pluralcheck.src.dir	= 'pluralcheck.src.dir' property must be set
+cmsg.noprop.pluralcheck.dir	= 'pluralcheck.dir' property must be set
+vmsg.pluralcheck.no.srcdir	= The directory including files to be checked pluralform error was not found: ${pluralcheck.src.dir}
+vmsg.pluralcheck.found		= Pluralform error was found in the files included in "${pluralcheck.src.dir}" directory. See the files in "${pluralcheck.dir}" directory.
+
 cmsg.noprop.wordcheck.src.dir	= 'wordcheck.src.dir' property must be set
 cmsg.noprop.wordcheck.dir	= 'wordcheck.dir' property must be set
 vmsg.wordcheck.no.srcdir	= The directory including files to be checked forbidden words was not found: ${wordcheck.src.dir}
