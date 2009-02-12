@@ -198,7 +198,7 @@
 			<linecontainsregexp>
 				<regexp pattern="${wordcheck.deny}"/>
 			</linecontainsregexp>
-			<replaceregex pattern="(${wordcheck.deny})" replace="[WORDERROR[\0]WORDERROR]" flags="msg"/>
+			<replaceregex pattern="(${wordcheck.deny})" replace="${wordcheck.deny.replace}" flags="msg"/>
 		</filterchain>
 	</copy>
 	
@@ -225,7 +225,7 @@
 			<linecontainsregexp>
 				<regexp pattern="${wordcheck.deny}"/>
 			</linecontainsregexp>
-			<replaceregex pattern="(${wordcheck.deny})" replace="[WORDERROR[\0]WORDERROR]" flags="msg"/>
+			<replaceregex pattern="(${wordcheck.deny})" replace="${wordcheck.deny.replace}" flags="msg"/>
 		</filterchain>
 	</copy>
 	<copy preservelastmodified="true" todir="${wordcheck.dir}" encoding="Shift_JIS" includeemptydirs="no">
@@ -236,7 +236,7 @@
 			<linecontainsregexp>
 				<regexp pattern="${wordcheck.deny}"/>
 			</linecontainsregexp>
-			<replaceregex pattern="(${wordcheck.deny})" replace="[WORDERROR[\0]WORDERROR]" flags="msg"/>
+			<replaceregex pattern="(${wordcheck.deny})" replace="${wordcheck.deny.replace}" flags="msg"/>
 		</filterchain>
 	</copy>
 

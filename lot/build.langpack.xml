@@ -90,6 +90,10 @@
 	<presetdef name="replacing-copy">
 		<copy taskname="replacing-copy" encoding="${lot.encoding.filters}" preservelastmodified="true" overwrite="true">
 			<filterchain>
+				<!-- js filter is toooooooooo slow! <scriptfilter language="javascript">
+					<classpath><fileset dir="antlib" includes="*.jar"/></classpath>
+						self.setToken(self.getToken().replace("Firefox", "Shiretoko"));
+				</scriptfilter> -->
 				<replacestring from="Firefox" to="Shiretoko"/>
 			</filterchain>
 		</copy>
