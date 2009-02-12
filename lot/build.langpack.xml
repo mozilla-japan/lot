@@ -77,7 +77,35 @@
 	</copy>
 </target>
 
-<target name="modify" depends="prepare"
+<target name="replace" depends="prepare" if="doreplace">
+	<!-- filterset don't support null begin/end token and cannot reuse apply-filters like this:
+	<antcall target="apply-filters">
+		<param name="convert.src.dir"			value="${replace.src.dir}"/>
+		<param name="convert.dest.dir"			value="${replace.dest.dir}"/>
+		<param name="lib.filters.begintoken"	value=""/>
+		<param name="lib.filters.endtoken"		value=""/>
+		<param name="filters.file"				value="l10n/ja.replace"/>
+	</antcall> -->
+	
+	<presetdef name="replacing-copy">
+		<copy taskname="replacing-copy" encoding="${lot.encoding.filters}" preservelastmodified="true" overwrite="true">
+			<filterchain>
+				<replacestring from="Firefox" to="Shiretoko"/>
+			</filterchain>
+		</copy>
+	</presetdef>
+	<!-- replace strings within utf-8 files (non-support for escaped-unicode) -->
+	<replacing-copy taskname="replace utf-8" todir="${replace.dest.dir}" overwrite="true">
+		<fileset dir="${replace.src.dir}" includes="${replace.utf8.includes}" excludes="${replace.utf8.excludes}"/>
+	</replacing-copy>
+	<!-- just copy other files -->
+	<copy taskname="copy other files" preservelastmodified="true" overwrite="true"
+		todir="${replace.dest.dir}">
+		<fileset dir="${replace.src.dir}" includes="${replace.other.includes}" excludes="${replace.other.excludes}"/>
+	</copy>
+</target>
+
+<target name="modify" depends="prepare, replace"
 	description="edit converted files not only applying filters">
 	<!-- nothing to do for langpack -->
 </target>
