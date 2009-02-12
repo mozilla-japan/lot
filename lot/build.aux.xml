@@ -180,6 +180,35 @@
 </target>
 
 
+<target name="pluralcheck" depends="load-mainconf" unless="nopluralcheck"
+	description="plural form error check of converted files">
+	<delete	dir="${pluralcheck.dir}"/>
+	<mkdir	dir="${pluralcheck.dir}"/>
+	
+	<!-- find plural form error in properties files -->
+	<copy preservelastmodified="true" todir="${pluralcheck.dir}" encoding="UTF-8" includeemptydirs="no">
+		<fileset dir="${pluralcheck.src.dir}" includes="**/*.properties"/>
+		<mapper type="package" from="*" to="*"/>
+		<filterchain>
+			<replaceregex pattern="${pluralcheck.allow}" replace="${pluralcheck.allow.replace}" flags="msg"/>
+			<linecontainsregexp>
+				<regexp pattern="^[^#].+=.+;.+"/>
+			</linecontainsregexp>
+		</filterchain>
+	</copy>
+	
+	<!-- delete all empty files, which means no error found in each correcponding src file -->
+	<delete includeemptydirs="true">
+		<fileset dir="${pluralcheck.dir}" includes="**">
+			<size value="0" when="equal"/>
+		</fileset>
+	</delete>
+	<!-- <fail message="${vmsg.pluralcheck.found}">
+		<condition><available file="${pluralcheck.dir}" type="dir"/></condition>
+	</fail> -->
+</target>
+
+
 <target name="-wordcheck-unescape-properties-" depends="load-mainconf" if="wordcheck.unescape.properites">
 	<!-- native2ascii task require JDK installed and JAVA_HOME env set, or you'll see the error "error starting Sun's native2ascii" -->
 	<native2ascii src="${wordcheck.src.dir}" includes="**/*.properties"
@@ -307,7 +336,7 @@
 	</fail>
 </target>
 
-<target name="errorcheck" depends="syntaxcheck, wordcheck, suspectedwordcheck, charcheck"/>
+<target name="errorcheck" depends="syntaxcheck, pluralcheck, wordcheck, suspectedwordcheck, charcheck"/>
 
 
 
