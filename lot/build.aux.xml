@@ -208,7 +208,7 @@
 			</linecontainsregexp>
 		</filterchain>
 	</copy>
-	<delete dir="${lot.wordcheck.dir}/unescape"/>
+	<delete dir="${wordcheck.dir}-unescape"/>
 </target>
 <target name="-wordcheck-">
 	<copy preservelastmodified="true" todir="${wordcheck.dir}" encoding="UTF-8" includeemptydirs="no">
