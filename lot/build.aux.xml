@@ -264,9 +264,6 @@
 	<equals property="wordcheck.allow"	value="${wordcheck.allow.common}|${wordcheck.allow.ja-JP-mac}" arg1="${locale}" arg2="ja-JP-mac"/>
 	<property name="wordcheck.allow"	value="${wordcheck.allow.common}"/>
 	
-	<equals property="wordcheck.suspected"	value="@@|${wordcheck.suspected.ja}" arg1="${locale}" arg2="ja"/>
-	<equals property="wordcheck.suspected"	value="@@|${wordcheck.suspected.ja-JP-mac}" arg1="${locale}" arg2="ja-JP-mac"/>
-	
 	<antcall target="-wordcheck-"/>
 	<fail message="${vmsg.wordcheck.found}">
 		<condition><available file="${wordcheck.dir}" type="dir"/></condition>
@@ -276,13 +273,13 @@
 	<delete dir="${wordcheck.suspected.dir}"/>
 	<mkdir dir="${wordcheck.suspected.dir}"/>
 	
-	<property name="wordcheck.allow"		value="##NOTHING##"/>
 	<equals property="wordcheck.suspected"	value="@@|${wordcheck.suspected.ja}" arg1="${locale}" arg2="ja"/>
 	<equals property="wordcheck.suspected"	value="@@|${wordcheck.suspected.ja-JP-mac}" arg1="${locale}" arg2="ja-JP-mac"/>
 	
 	<antcall target="-wordcheck-">
-		<param name="wordcheck.dir" value="${wordcheck.suspected.dir}"/>
-		<param name="wordcheck.deny" value="${wordcheck.suspected}"/>
+		<param name="wordcheck.dir"		value="${wordcheck.suspected.dir}"/>
+		<param name="wordcheck.allow"	value="##NOTHING##"/>
+		<param name="wordcheck.deny"	value="${wordcheck.suspected}"/>
 	</antcall>
 </target>
 <target name="errorcheck" depends="syntaxcheck, wordcheck, suspectedwordcheck"/>
