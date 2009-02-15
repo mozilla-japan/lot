@@ -294,7 +294,7 @@
 	</copy>
 	
 	<istrue arg="${wordcheck.unescape.properites}" property="wordcheck.unescaped.src.dir"
-		value="${wordcheck.src.dir}-unescaped" else="${wordcheck.dir}"/>
+		value="${wordcheck.src.dir}-unescaped" else="${wordcheck.src.dir}"/>
 	<copy preservelastmodified="true" todir="${wordcheck.dir}" encoding="UTF-8" includeemptydirs="no" failonerror="false">
 		<fileset dir="${wordcheck.unescaped.src.dir}" includes="**/*.properties"/><!-- check unescaped files -->
 		<mapper type="package" from="*" to="*"/>
