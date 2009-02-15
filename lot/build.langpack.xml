@@ -77,7 +77,7 @@
 	</copy>
 </target>
 
-<target name="replace" depends="prepare" if="doreplace">
+<target name="replace" depends="prepare" unless="noreplace" if="doreplace">
 	<!-- filterset don't support null begin/end token and cannot reuse apply-filters like this:
 	<antcall target="apply-filters">
 		<param name="convert.src.dir"			value="${replace.src.dir}"/>

@@ -131,7 +131,7 @@
 </target>
 
 
-<target name="syntaxcheck" depends="load-mainconf" unless="nosyntaxcheck"
+<target name="syntaxcheck" depends="load-conf" unless="nosyntaxcheck"
 	description="syntax error check of converted files">
 	<fail message="${cmsg.noprop.syntaxcheck.src.dir}" unless="syntaxcheck.src.dir"/>
 	<fail message="${cmsg.noprop.syntaxcheck.dir}" unless="syntaxcheck.dir"/>
@@ -179,7 +179,7 @@
 	</fail>
 </target>
 
-<target name="placeholdercheck" depends="load-mainconf" unless="noplaceholdercheck"
+<target name="placeholdercheck" depends="load-conf" unless="noplaceholdercheck"
 	description="placeholder usage error check of converted properties files">
 	<fail message="${cmsg.noprop.placeholdercheck.src.dir}" unless="placeholdercheck.src.dir"/>
 	<fail message="${cmsg.noprop.placeholdercheck.dir}" unless="placeholdercheck.dir"/>
@@ -242,7 +242,7 @@
 	</fail>
 </target>
 
-<target name="pluralcheck" depends="load-mainconf" unless="nopluralcheck"
+<target name="pluralcheck" depends="load-conf" unless="nopluralcheck"
 	description="plural form error check of converted properties files">
 	<delete	dir="${pluralcheck.dir}"/>
 	<mkdir	dir="${pluralcheck.dir}"/>
@@ -271,12 +271,12 @@
 </target>
 
 
-<target name="-wordcheck-unescape-properties-" depends="load-mainconf" if="wordcheck.unescape.properites">
+<target name="-wordcheck-unescape-properties-" depends="load-conf" if="wordcheck.unescape.properites">
 	<!-- native2ascii task require JDK installed and JAVA_HOME env set, or you'll see the error "error starting Sun's native2ascii" -->
 	<native2ascii src="${wordcheck.src.dir}" includes="**/*.properties"
 		dest="${wordcheck.dir}-unescaped" reverse="true" encoding="UTF-8"/>
 </target>
-<target name="-wordcheck-" depends="load-mainconf, -wordcheck-unescape-properties-">
+<target name="-wordcheck-" depends="load-conf, -wordcheck-unescape-properties-">
 	<copy preservelastmodified="true" todir="${wordcheck.dir}" encoding="UTF-8" includeemptydirs="no">
 		<fileset dir="${wordcheck.src.dir}" includes="**/*.dtd, **/*.xml, **/*.html, **/*.xhtml, **/*.rdf"/>
 		<mapper type="package" from="*" to="*"/>
@@ -337,7 +337,7 @@
 		</fileset>
 	</delete>
 </target>
-<target name="wordcheck" depends="load-mainconf" unless="nowordcheck">
+<target name="wordcheck" depends="load-conf" unless="nowordcheck">
 	<fail message="${cmsg.noprop.wordcheck.src.dir}" unless="wordcheck.src.dir"/>
 	<fail message="${cmsg.noprop.wordcheck.dir}" unless="wordcheck.dir"/>
 	<loadmessage pattern="^vmsg\.wordcheck\."/>
@@ -360,7 +360,7 @@
 		<condition><available file="${wordcheck.dir}" type="dir"/></condition>
 	</fail>
 </target>
-<target name="suspectedwordcheck" depends="load-mainconf" if="dosuspectedwordcheck">
+<target name="suspectedwordcheck" depends="load-conf" if="dosuspectedwordcheck">
 	<delete dir="${wordcheck.suspected.dir}"/>
 	<mkdir dir="${wordcheck.suspected.dir}"/>
 	
@@ -374,8 +374,8 @@
 	</antcall>
 </target>
 
-<!-- currently off by default (change someday to unless="nocharcheck") -->
-<target name="charcheck" depends="load-mainconf" if="docharcheck">
+<!-- currently off by default -->
+<target name="charcheck" depends="load-conf" unless="nocharcheck" if="docharcheck">
 	<delete dir="${charcheck.dir}"/>
 	<mkdir dir="${charcheck.dir}"/>
 	
