@@ -304,6 +304,7 @@
 			<linecontainsregexp>
   				<regexp pattern="${wordcheck.deny}"/>
 			</linecontainsregexp>
+			<replaceregex pattern="(${wordcheck.deny})" replace="${wordcheck.deny.replace}" flags="msg"/>
 		</filterchain>
 	</copy>
 	<delete dir="${wordcheck.dir}-unescaped" failonerror="false"/>
@@ -392,6 +393,7 @@
 		<param name="wordcheck.allow"			value="${charcheck.allow}"/>
 		<param name="wordcheck.allow.replace"	value="${charcheck.allow.replace}"/>
 		<param name="wordcheck.deny"			value="${charcheck.deny}"/>
+		<param name="wordcheck.deny.replace"	value="${charcheck.deny.replace}"/>
 	</antcall>
 	<fail message="${vmsg.charcheck.found}">
 		<condition><available file="${charcheck.dir}" type="dir"/></condition>
