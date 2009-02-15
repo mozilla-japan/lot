@@ -275,7 +275,10 @@
 
 <target name="noerrorcheck" description="exec following targets without any errorcheck">
 	<property name="nosyntaxcheck" value="YES"/>
+	<property name="noplaceholdercheck" value="YES"/>
+	<property name="nopluralcheck" value="YES"/>
 	<property name="nowordcheck" value="YES"/>
+	<property name="nocharcheck" value="YES"/>
 </target>
 
 <target name="version" description="display lot version">
@@ -303,11 +306,15 @@ ant help
 ant auto noerrorcheck build
 </echo><echo/>
 <echo taskname=" ">ant auto convert
+ant compare-locales
+ant auto pack
+ant auto pack -Dtargetapp=fennec
 </echo><echo/>
 <echo taskname=" ">ant auto buildfx
 ant auto buildtb
 ant auto buildfxtb
 ant auto buildsb
+ant auto buildfe
 ant auto buildall
 </echo><echo/>
 <echo taskname=" ">ant escape -Dfromdir=native -Dtodir=escaped
@@ -319,7 +326,7 @@ ant restoresrc
 ant restoresrc -Dfile=backup/src-mozilla1.8-2005081813.zip
 </echo><echo/>
 
-<echo taskname="*">ant diff
+<!-- <echo taskname="*">ant diff
 ant diff -Dfromdir=src/l10n/ja~ -Dtodir=src/l10n/ja
 ant patch -Dfile=lot-2.0-20080925.patch
 ant patch-dry -Dfile=patch/lot-2.0-20080925.patch
@@ -335,7 +342,7 @@ ant lpdiff-loose
 ant lpdiff-loose -Dfromlocale=en-US -Dtolocale=ja-JP-mac
 ant lpdiff-jar -Dlocale=ja
 ant lpdiff-xpi -Dlocale=ja-JP-mac
-</echo><echo/>
+</echo><echo/> -->
 </target>
 
 
