@@ -254,7 +254,7 @@
 		<filterchain>
 			<replaceregex pattern="${pluralcheck.allow}" replace="${pluralcheck.allow.replace}" flags="msg"/>
 			<linecontainsregexp>
-				<regexp pattern="^[^#].+=.+;.+"/>
+				<regexp pattern="^\s*[-0-9a-zA-Z_.?{@}]+\s*=.+;.+"/>
 			</linecontainsregexp>
 		</filterchain>
 	</copy>
@@ -277,9 +277,13 @@
 		dest="${wordcheck.dir}-unescaped" reverse="true" encoding="UTF-8"/>
 </target>
 <target name="-wordcheck-" depends="load-conf, -wordcheck-unescape-properties-">
+	<property name="wordcheck.fileset.excludes"	value=""/>
+	<property name="wordcheck.mapper.type"		value="package"/>
+	<property name="wordcheck.mapper.from"		value="*"/>
+	<property name="wordcheck.mapper.to"		value="*"/>
 	<copy preservelastmodified="true" todir="${wordcheck.dir}" encoding="UTF-8" includeemptydirs="no">
-		<fileset dir="${wordcheck.src.dir}" includes="**/*.dtd, **/*.xml, **/*.html, **/*.xhtml, **/*.rdf"/>
-		<mapper type="package" from="*" to="*"/>
+		<fileset dir="${wordcheck.src.dir}" includes="**/*.dtd, ${xmlfiles}" excludes="${wordcheck.fileset.excludes}"/>
+		<mapper type="${wordcheck.mapper.type}" from="${wordcheck.mapper.from}" to="${wordcheck.mapper.to}"/>
 		<filterchain>
 			<tokenfilter><!-- allow any words in comments -->
 				<filetokenizer/>
@@ -296,8 +300,8 @@
 	<istrue arg="${wordcheck.unescape.properites}" property="wordcheck.unescaped.src.dir"
 		value="${wordcheck.src.dir}-unescaped" else="${wordcheck.src.dir}"/>
 	<copy preservelastmodified="true" todir="${wordcheck.dir}" encoding="UTF-8" includeemptydirs="no" failonerror="false">
-		<fileset dir="${wordcheck.unescaped.src.dir}" includes="**/*.properties"/><!-- check unescaped files -->
-		<mapper type="package" from="*" to="*"/>
+		<fileset dir="${wordcheck.unescaped.src.dir}" includes="**/*.properties" excludes="${wordcheck.fileset.excludes}"/><!-- check unescaped files -->
+		<mapper type="${wordcheck.mapper.type}" from="${wordcheck.mapper.from}" to="${wordcheck.mapper.to}"/>
 		<filterchain>
 			<replaceregex pattern="^#.*$" replace="" flags="mg"/><!-- allow any words in comments -->
 			<replaceregex pattern="${wordcheck.allow}" replace="${wordcheck.allow.replace}" flags="msg"/>
@@ -310,8 +314,8 @@
 	<delete dir="${wordcheck.dir}-unescaped" failonerror="false"/>
 	
 	<copy preservelastmodified="true" todir="${wordcheck.dir}" encoding="UTF-8" includeemptydirs="no">
-		<fileset dir="${wordcheck.src.dir}" includes="**/*.inc, **/unix/*.it"/>
-		<mapper type="package" from="*" to="*"/>
+		<fileset dir="${wordcheck.src.dir}" includes="**/*.inc, **/unix/*.it" excludes="${wordcheck.fileset.excludes}"/>
+		<mapper type="${wordcheck.mapper.type}" from="${wordcheck.mapper.from}" to="${wordcheck.mapper.to}"/>
 		<filterchain>
 			<replaceregex pattern="${wordcheck.allow}" replace="${wordcheck.allow.replace}" flags="msg"/>
 			<linecontainsregexp>
@@ -321,8 +325,8 @@
 		</filterchain>
 	</copy>
 	<copy preservelastmodified="true" todir="${wordcheck.dir}" encoding="Shift_JIS" includeemptydirs="no">
-		<fileset dir="${wordcheck.src.dir}" includes="windows/*.it"/>
-		<mapper type="package" from="*" to="*"/>
+		<fileset dir="${wordcheck.src.dir}" includes="${sjisfiles}" excludes="${wordcheck.fileset.excludes}"/>
+		<mapper type="${wordcheck.mapper.type}" from="${wordcheck.mapper.from}" to="${wordcheck.mapper.to}"/>
 		<filterchain>
 			<replaceregex pattern="${wordcheck.allow}" replace="${wordcheck.allow.replace}" flags="msg"/>
 			<linecontainsregexp>
@@ -356,7 +360,40 @@
 	<equals property="wordcheck.allow"	value="${wordcheck.allow.common}|${wordcheck.allow.ja-JP-mac}" arg1="${locale}" arg2="ja-JP-mac"/>
 	<property name="wordcheck.allow"	value="${wordcheck.allow.common}"/>
 	
-	<antcall target="-wordcheck-"/>
+	<!-- <antcall target="-wordcheck-"/> -->
+	<antcall target="-wordcheck-">
+		<param name="wordcheck.fileset.excludes"	value="browser/, calendar/, editor/, mail/, mobile/, suite/"/>
+	</antcall>
+	<antcall target="-wordcheck-">
+		<param name="wordcheck.src.dir"				value="${wordcheck.src.dir}/browser"/>
+		<param name="wordcheck.deny"				value="${wordcheck.deny}|${wordcheck.deny.firefox}"/>
+		<param name="wordcheck.mapper.to"			value="browser.*"/>
+	</antcall>
+	<antcall target="-wordcheck-">
+		<param name="wordcheck.src.dir"				value="${wordcheck.src.dir}/calendar"/>
+		<param name="wordcheck.deny"				value="${wordcheck.deny}|${wordcheck.deny.sunbird}"/>
+		<param name="wordcheck.mapper.to"			value="calendar.*"/>
+	</antcall>
+	<antcall target="-wordcheck-">
+		<param name="wordcheck.src.dir"				value="${wordcheck.src.dir}/editor"/>
+		<param name="wordcheck.deny"				value="${wordcheck.deny}|${wordcheck.deny.thunderbird}|${wordcheck.deny.seamonkey}"/>
+		<param name="wordcheck.mapper.to"			value="editor.*"/>
+	</antcall>
+	<antcall target="-wordcheck-">
+		<param name="wordcheck.src.dir"				value="${wordcheck.src.dir}/mail"/>
+		<param name="wordcheck.deny"				value="${wordcheck.deny}|${wordcheck.deny.thunderbird}|${wordcheck.deny.seamonkey}"/>
+		<param name="wordcheck.mapper.to"			value="mail.*"/>
+	</antcall>
+	<antcall target="-wordcheck-">
+		<param name="wordcheck.src.dir"				value="${wordcheck.src.dir}/mobile"/>
+		<param name="wordcheck.deny"				value="${wordcheck.deny}|${wordcheck.deny.fennec}"/>
+		<param name="wordcheck.mapper.to"			value="mobile.*"/>
+	</antcall>
+	<antcall target="-wordcheck-">
+		<param name="wordcheck.src.dir"				value="${wordcheck.src.dir}/suite"/>
+		<param name="wordcheck.deny"				value="${wordcheck.deny}|${wordcheck.deny.seamonkey}"/>
+		<param name="wordcheck.mapper.to"			value="suite.*"/>
+	</antcall>
 	<fail message="${vmsg.wordcheck.found}">
 		<condition><available file="${wordcheck.dir}" type="dir"/></condition>
 	</fail>
