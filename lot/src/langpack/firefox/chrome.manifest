@@ -1,20 +1,20 @@
-locale	alerts		${locale}	jar:chrome/${locale}.jar!/locale/${locale}/alerts/
-locale	autoconfig	${locale}	jar:chrome/${locale}.jar!/locale/${locale}/autoconfig/
-locale	cookie		${locale}	jar:chrome/${locale}.jar!/locale/${locale}/cookie/
-locale	global		${locale}	jar:chrome/${locale}.jar!/locale/${locale}/global/
-locale	global-platform	${locale}	jar:chrome/${locale}.jar!/locale/${locale}/global-platform/
-locale	global-region	${locale}	jar:chrome/${locale}.jar!/locale/${locale}/global-region/
-locale	help		${locale}	jar:chrome/${locale}.jar!/locale/${locale}/help/
-locale	mozapps		${locale}	jar:chrome/${locale}.jar!/locale/${locale}/mozapps/
-locale	necko		${locale}	jar:chrome/${locale}.jar!/locale/${locale}/necko/
-locale	passwordmgr	${locale}	jar:chrome/${locale}.jar!/locale/${locale}/passwordmgr/
-locale	pippki		${locale}	jar:chrome/${locale}.jar!/locale/${locale}/pippki/
-locale	pipnss		${locale}	jar:chrome/${locale}.jar!/locale/${locale}/pipnss/
-locale	places		${locale}	jar:chrome/${locale}.jar!/locale/${locale}/places/
-locale	reporter	${locale}	jar:chrome/${locale}.jar!/locale/${locale}/reporter/
-locale	branding	${locale}	jar:chrome/${locale}.jar!/locale/branding/
-locale	browser		${locale}	jar:chrome/${locale}.jar!/locale/browser/
-locale	browser-region	${locale}	jar:chrome/${locale}.jar!/locale/browser-region/
+locale	alerts		${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/alerts/
+locale	autoconfig	${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/autoconfig/
+locale	cookie		${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/cookie/
+locale	global		${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/global/
+locale	global-platform	${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/global-platform/
+locale	global-region	${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/global-region/
+locale	help		${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/help/
+locale	mozapps		${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/mozapps/
+locale	necko		${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/necko/
+locale	passwordmgr	${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/passwordmgr/
+locale	pippki		${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/pippki/
+locale	pipnss		${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/pipnss/
+locale	places		${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/places/
+locale	reporter	${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/reporter/
+locale	branding	${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/branding/
+locale	browser		${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/browser/
+locale	browser-region	${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/browser-region/
 
 override	chrome://mozapps/locale/downloads/settingsChange.dtd	chrome://browser/locale/downloads/settingsChange.dtd
 override	chrome://global/locale/appstrings.properties			chrome://browser/locale/appstrings.properties
