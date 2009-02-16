@@ -82,9 +82,14 @@
 	<loadfile srcfile="${lot.src.dir}/${replace.file}" property="replace.replacestring.list">
 		<filterchain>
 			<linecontainsregexp>
-				<regexp pattern="^[^#,][^,]*,[^,]+$"/>
+				<regexp pattern="^\s*[^#]"/>
 			</linecontainsregexp>
+			<replacestring from="&gt;" to="&amp;gt;"/>
+			<replacestring from="&lt;" to="&amp;lt;"/>
+			<replacestring from="&quot;" to="&amp;quot;"/>
 			<!-- <replaceregex pattern="^([^,]+),([^,]+)$" replace="s/\1/\2/g"/> --><!-- sed script -->
+			<replaceregex pattern="^/((?:[^/]+)(?:\\/[^/]*)*)/((?:[^/]+)(?:\\/[^/]*)*)/$"
+				replace='&lt;replaceregex pattern="\1" replace="\2"/&gt;'/>
 			<replaceregex pattern="^([^,]+),([^,]+)$" replace='&lt;replacestring from="\1" to="\2"/&gt;'/>
 		</filterchain>
 	</loadfile>

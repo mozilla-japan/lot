@@ -19,8 +19,8 @@
 		todir="${lot.temp.dir}/replace/${replace.src.dir}">
 		<fileset dir="${replace.src.dir}" includes="${replace.other.includes}" excludes="${replace.other.excludes}"/>
 	</copy> -->
-	<copy todir="${replace.src.dir}" preservelastmodified="true" overwrite="true">
+	<move todir="${replace.src.dir}" preservelastmodified="true" overwrite="true">
 		<fileset dir="${lot.temp.dir}/replace/${replace.src.dir}"/>
-	</copy>
+	</move>
 </target>
 </project>
