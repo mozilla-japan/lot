@@ -78,35 +78,25 @@
 </target>
 
 <target name="replace" depends="prepare" unless="noreplace" if="doreplace">
-	<!-- filterset don't support null begin/end token and cannot reuse apply-filters like this:
-	<antcall target="apply-filters">
-		<param name="convert.src.dir"			value="${replace.src.dir}"/>
-		<param name="convert.dest.dir"			value="${replace.dest.dir}"/>
-		<param name="lib.filters.begintoken"	value=""/>
-		<param name="lib.filters.endtoken"		value=""/>
-		<param name="filters.file"				value="l10n/ja.replace"/>
-	</antcall> -->
-	
-	<presetdef name="replacing-copy">
-		<copy taskname="replacing-copy" encoding="${lot.encoding.filters}" preservelastmodified="true" overwrite="true">
-			<filterchain>
-				<!-- js filter is toooooooooo slow! <scriptfilter language="javascript">
-					<classpath><fileset dir="antlib" includes="*.jar"/></classpath>
-						self.setToken(self.getToken().replace("Firefox", "Shiretoko"));
-				</scriptfilter> -->
-				<replacestring from="Firefox" to="Shiretoko"/>
-			</filterchain>
-		</copy>
-	</presetdef>
-	<!-- replace strings within utf-8 files (non-support for escaped-unicode) -->
-	<replacing-copy taskname="replace utf-8" todir="${replace.dest.dir}" overwrite="true">
-		<fileset dir="${replace.src.dir}" includes="${replace.utf8.includes}" excludes="${replace.utf8.excludes}"/>
-	</replacing-copy>
-	<!-- just copy other files -->
-	<copy taskname="copy other files" preservelastmodified="true" overwrite="true"
-		todir="${replace.dest.dir}">
-		<fileset dir="${replace.src.dir}" includes="${replace.other.includes}" excludes="${replace.other.excludes}"/>
+	<!-- want to define filterchain at runtime but cannot and make/load build script for repale -->
+	<loadfile srcfile="${lot.src.dir}/${replace.file}" property="replace.replacestring.list">
+		<filterchain>
+			<linecontainsregexp>
+				<regexp pattern="^[^#,][^,]*,[^,]+$"/>
+			</linecontainsregexp>
+			<!-- <replaceregex pattern="^([^,]+),([^,]+)$" replace="s/\1/\2/g"/> --><!-- sed script -->
+			<replaceregex pattern="^([^,]+),([^,]+)$" replace='&lt;replacestring from="\1" to="\2"/&gt;'/>
+		</filterchain>
+	</loadfile>
+	<copy overwrite="true" file="${replace.build.template}" tofile="${replace.build.file}">
+		<filterchain>
+			<tokenfilter>
+				<filetokenizer/>
+				<replacestring from="&lt;!-- FILTERCHAIN_LIST --&gt;" to="${replace.replacestring.list}"/>
+			</tokenfilter>
+		</filterchain>
 	</copy>
+	<ant antfile="${replace.build.file}" target="replace"/>
 </target>
 
 <target name="modify" depends="prepare, replace"
@@ -267,13 +257,13 @@
 
 	<!-- sunbird/brand.properties は %S を置き換える必要あり -->
 	<copy file="${jar.src.dir}/other-licenses/branding/sunbird/brand.properties"
-		tofile="${temp.root}/${jar.src.dir}/other-licenses/branding/sunbird/brand.properties">
+		tofile="${lot.temp.dir}/${jar.src.dir}/other-licenses/branding/sunbird/brand.properties">
 		<filterchain>
 			<replaceregex pattern="(releaseNotesURL *= *.+)%S(.+)" replace="\1${sunbird.version}\2"/>
 			<!-- <replaceregex pattern="%S" replace="${sunbird.version}"/> -->
 		</filterchain>
 	</copy>
-	<update-jar dir="${temp.root}/${jar.src.dir}/other-licenses/branding/sunbird/"	prefix="locale/branding"
+	<update-jar dir="${lot.temp.dir}/${jar.src.dir}/other-licenses/branding/sunbird/"	prefix="locale/branding"
 		includes="brand.properties"/>
 
 	<!-- global/brand.dtd では branding/brand.dtd をインポートするだけだから置き換えてしまう。 -->

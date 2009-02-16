@@ -365,34 +365,34 @@
 		<param name="wordcheck.fileset.excludes"	value="browser/, calendar/, editor/, mail/, mobile/, suite/"/>
 	</antcall>
 	<antcall target="-wordcheck-">
-		<param name="wordcheck.src.dir"				value="${wordcheck.src.dir}/browser"/>
-		<param name="wordcheck.deny"				value="${wordcheck.deny}|${wordcheck.deny.firefox}"/>
-		<param name="wordcheck.mapper.to"			value="browser.*"/>
+		<param name="wordcheck.src.dir"		value="${wordcheck.src.dir}/browser"/>
+		<param name="wordcheck.deny"		value="${wordcheck.deny}|${wordcheck.deny.firefox}"/>
+		<param name="wordcheck.mapper.to"	value="browser.*"/>
 	</antcall>
 	<antcall target="-wordcheck-">
-		<param name="wordcheck.src.dir"				value="${wordcheck.src.dir}/calendar"/>
-		<param name="wordcheck.deny"				value="${wordcheck.deny}|${wordcheck.deny.sunbird}"/>
-		<param name="wordcheck.mapper.to"			value="calendar.*"/>
+		<param name="wordcheck.src.dir"		value="${wordcheck.src.dir}/calendar"/>
+		<param name="wordcheck.deny"		value="${wordcheck.deny}|${wordcheck.deny.sunbird}"/>
+		<param name="wordcheck.mapper.to"	value="calendar.*"/>
 	</antcall>
 	<antcall target="-wordcheck-">
-		<param name="wordcheck.src.dir"				value="${wordcheck.src.dir}/editor"/>
-		<param name="wordcheck.deny"				value="${wordcheck.deny}|${wordcheck.deny.thunderbird}|${wordcheck.deny.seamonkey}"/>
-		<param name="wordcheck.mapper.to"			value="editor.*"/>
+		<param name="wordcheck.src.dir"		value="${wordcheck.src.dir}/editor"/>
+		<param name="wordcheck.deny"		value="${wordcheck.deny}|${wordcheck.deny.thunderbird}|${wordcheck.deny.seamonkey}"/>
+		<param name="wordcheck.mapper.to"	value="editor.*"/>
 	</antcall>
 	<antcall target="-wordcheck-">
-		<param name="wordcheck.src.dir"				value="${wordcheck.src.dir}/mail"/>
-		<param name="wordcheck.deny"				value="${wordcheck.deny}|${wordcheck.deny.thunderbird}|${wordcheck.deny.seamonkey}"/>
-		<param name="wordcheck.mapper.to"			value="mail.*"/>
+		<param name="wordcheck.src.dir"		value="${wordcheck.src.dir}/mail"/>
+		<param name="wordcheck.deny"		value="${wordcheck.deny}|${wordcheck.deny.thunderbird}|${wordcheck.deny.seamonkey}"/>
+		<param name="wordcheck.mapper.to"	value="mail.*"/>
 	</antcall>
 	<antcall target="-wordcheck-">
-		<param name="wordcheck.src.dir"				value="${wordcheck.src.dir}/mobile"/>
-		<param name="wordcheck.deny"				value="${wordcheck.deny}|${wordcheck.deny.fennec}"/>
-		<param name="wordcheck.mapper.to"			value="mobile.*"/>
+		<param name="wordcheck.src.dir"		value="${wordcheck.src.dir}/mobile"/>
+		<param name="wordcheck.deny"		value="${wordcheck.deny}|${wordcheck.deny.fennec}"/>
+		<param name="wordcheck.mapper.to"	value="mobile.*"/>
 	</antcall>
 	<antcall target="-wordcheck-">
-		<param name="wordcheck.src.dir"				value="${wordcheck.src.dir}/suite"/>
-		<param name="wordcheck.deny"				value="${wordcheck.deny}|${wordcheck.deny.seamonkey}"/>
-		<param name="wordcheck.mapper.to"			value="suite.*"/>
+		<param name="wordcheck.src.dir"		value="${wordcheck.src.dir}/suite"/>
+		<param name="wordcheck.deny"		value="${wordcheck.deny}|${wordcheck.deny.seamonkey}"/>
+		<param name="wordcheck.mapper.to"	value="suite.*"/>
 	</antcall>
 	<fail message="${vmsg.wordcheck.found}">
 		<condition><available file="${wordcheck.dir}" type="dir"/></condition>
@@ -481,7 +481,7 @@
 <!-- * en-US to l10n * -->
 <target name="prepare-hg">
 	<!-- prepare properties to make this script possible to use stand alone -->
-	<property name="temp.root" value="temp"/>
+	<property name="lot.temp.dir" value="temp"/>
 	<property name="locale" value="ja"/>
 	<property name="hg.mozilla.dir" value="comm-central/mozilla"/>
 	<property name="hg.comm.dir" value="comm-central"/>
@@ -491,7 +491,7 @@
 <target name="mozilla-to-l10n" depends="prepare-hg"
 	description="copy changing directory structure of en-US locale files within mozilla repository">
 	<!-- prepare properties to make this script possible to use stand alone -->
-	<property name="mozilla-to-l10n.temp.dir" value="${temp.root}/mozilla-to-l10n"/>
+	<property name="mozilla-to-l10n.temp.dir" value="${lot.temp.dir}/mozilla-to-l10n"/>
 	<property name="mozilla-to-l10n.dir" value="${lot.l10n.dir}/en-US"/>
 	
 	<!-- cleaning -->
@@ -552,7 +552,7 @@
 <target name="comm-to-l10n" depends="prepare-hg"
 	description="copy changing directory structure of en-US locale files within comm repository">
 	<!-- prepare properties to make this script possible to use stand alone -->
-	<property name="comm-to-l10n.temp.dir" value="${temp.root}/comm-to-l10n"/>
+	<property name="comm-to-l10n.temp.dir" value="${lot.temp.dir}/comm-to-l10n"/>
 	<property name="comm-to-l10n.dir" value="${lot.l10n.dir}/en-US"/>
 	
 	<!-- cleaning -->
