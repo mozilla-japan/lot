@@ -79,7 +79,7 @@
 
 <target name="replace" depends="prepare" unless="noreplace" if="doreplace">
 	<!-- want to define filterchain at runtime but cannot and make/load build script for repale -->
-	<loadfile srcfile="${lot.src.dir}/${replace.file}" property="replace.replacestring.list">
+	<loadfile srcfile="${lot.src.dir}/${replace.file}" property="replace.replacestring.list" encoding="UTF-8">
 		<filterchain>
 			<linecontainsregexp>
 				<regexp pattern="^\s*[^#]"/>
