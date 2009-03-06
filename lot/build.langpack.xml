@@ -93,7 +93,7 @@
 			<replaceregex pattern="^([^,]+),([^,]+)$" replace='&lt;replacestring from="\1" to="\2"/&gt;'/>
 		</filterchain>
 	</loadfile>
-	<copy overwrite="true" file="${replace.build.template}" tofile="${replace.build.file}">
+	<copy overwrite="true" file="${replace.build.template}" tofile="${replace.build.file}" encoding="UTF-8">
 		<filterchain>
 			<tokenfilter>
 				<filetokenizer/>
