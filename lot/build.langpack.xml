@@ -242,13 +242,21 @@
 	<update-jar dir="${jar.src.dir}/mobile/chrome/brand"					prefix="locale/${langpack.locale}/branding"/>
 	<update-jar dir="${jar.src.dir}/mobile/chrome/firstrun"					prefix="locale/${langpack.locale}/firstrun"/>
 	
+	<!-- mobile-l10n.js は @AB_CD@ を置き換えて defaults ディレクトリにコピーする必要あり -->
+	<copy file="${jar.src.dir}/mobile/mobile-l10n.js"
+		tofile="${xpi.src.dir}/defaults/preferences/mobile-l10n.js" encoding="UTF-8">
+		<filterchain>
+			<replaceregex pattern="@AB_CD@" replace="${langpack.locale}"/>
+		</filterchain>
+	</copy>
+	
 	<!-- not for jar but exec here just for simplicity
 	<copy todir="${xpi.src.dir}/searchplugins" preservelastmodified="true" overwrite="true">
 		<fileset dir="${jar.src.dir}/mobile/searchplugins" excludes="list.txt"/>
 	</copy> -->
 </target>
 <target name="-jar-fennec-content-" if="targetapp.is.fennec" unless="nocontent">
-	<update-jar dir="${jar.src.dir}/mobile/content/firstrun"				prefix="content/firstrun"/>
+	<!-- <update-jar dir="${jar.src.dir}/mobile/content/firstrun"				prefix="content/firstrun"/> -->
 </target>
 
 <target name="-jar-sunbird-" if="targetapp.is.sunbird">
@@ -275,9 +283,9 @@
 	<update-jar dir="${jar.src.dir}/other-licenses/branding/sunbird/"		prefix="locale/${langpack.locale}/global"
 		includes="brand.dtd"/>
 
-	<!-- sunbird-l10n.js は @AB_CD@ を置き換える必要あり -->
+	<!-- sunbird-l10n.js は @AB_CD@ を置き換えて defaults ディレクトリにコピーする必要あり -->
 	<copy file="${jar.src.dir}/calendar/sunbird-l10n.js"
-		tofile="${xpi.src.dir}/defaults/preferences/sunbird-l10n.js" encoding="${encoding.js}">
+		tofile="${xpi.src.dir}/defaults/preferences/sunbird-l10n.js" encoding="UTF-8">
 		<filterchain>
 			<replaceregex pattern="@AB_CD@" replace="${langpack.locale}"/>
 		</filterchain>
