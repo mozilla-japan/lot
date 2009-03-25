@@ -3,7 +3,7 @@
 <description>Localization Tools for Mozilla Products</description>
 
 
-		<!-- *** Common Init Phase *** -->
+		<!-- *** Phase 1: Initialization *** -->
 
 <!-- * import common library and set property aliases * -->
 <import file="build.library.xml"	optional="false"/>
@@ -38,21 +38,13 @@
 <condition property="package.is.valid" value="yes">
 	<or>
 		<equals arg1="${package}" arg2="langpack"/>
+		<equals arg1="${package}" arg2="repackage"/>
 		<equals arg1="${package}" arg2="venkman"/>
 		<equals arg1="${package}" arg2="chatzilla"/>
 	</or>
 </condition>
 <fail unless="package.is.valid" message="${cmsg.invalidprop.package}"/>
 
-<fail unless="package"		message="${cmsg.noprop.package}"/>
-<condition property="package.is.valid" value="yes">
-	<or>
-		<equals arg1="${package}" arg2="langpack"/>
-		<!-- <equals arg1="${package}" arg2="venkman"/>
-		<equals arg1="${package}" arg2="chatzilla"/> -->
-	</or>
-</condition>
-<fail unless="package.is.valid" message="${cmsg.invalidprop.package}"/>
 
 
 <!-- * import targets * -->
@@ -67,7 +59,8 @@
 <propertyalias property="todir"			alias="escape.todir"/>
 
 
-		<!-- *** Prepare Phase *** -->
+
+		<!-- *** Phase 2: Prepare to Build *** -->
 
 <!-- * load configuration files * -->
 <target name="load-userconf" if="config.user.file.exists" unless="userconf.loaded">
@@ -164,7 +157,7 @@
 
 
 
-		<!-- *** Build Phase *** -->
+		<!-- *** Phase 3: Build *** -->
 
 <!-- * Build Interface * -->
 <!-- general packaging process according to properties -->

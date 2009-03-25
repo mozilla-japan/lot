@@ -151,7 +151,6 @@
 <!-- common part of firefox/thunderbird/sunbird/seamonkey jar packaging -->
 <target name="-jar-common-" depends="prepare">
 	<mkdir dir="${jar.dest.dir}/chrome"/>
-	<!-- パフォーマンス的には contents.rdf を最初に含めた方が良いが… -->
 	<zip taskname="packaging ${jar.filename}" compress="false" update="false" whenempty="create"
 		destfile="${jar.dest.dir}/chrome/${jar.filename}">
 		<zipfileset dir="${jar.src.dir}" includes="${jar.includes}" excludes="${jar.excludes}"/>
@@ -371,10 +370,6 @@
 			includes="${xpi.includes}" excludes="${xpi.excludes}"/>
 	</zip>
 </target>
-
-
-<!-- * make langpack * -->
-
 
 
 

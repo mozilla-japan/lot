@@ -24,8 +24,7 @@
 	<echoproperties/>
 </target>
 <target name="jstest">
-	<script language="javascript">
-		<classpath><fileset dir="antlib" includes="*.jar"/></classpath>
+	<script language="javascript" classpathref="path.antlib">
 		<![CDATA[
 			echo = project.createTask("echo");
 			echo.setMessage("JavaScript is Running Correctly!");
@@ -33,10 +32,16 @@
 		]]>
 	</script>
 </target>
+<target name="groovytest">
+	<groovy>
+		<![CDATA[
+			ant.echo "Groovy is Running Correctly!"
+		]]>
+	</groovy>
+</target>
 
 
-
-<!-- * common * -->
+<!-- * common settings * -->
 <defaultexcludes add="**/*~/**"/>
 <tstamp><format property="tstamp.yyyyMMdd"		pattern="yyyyMMdd"/></tstamp>
 <tstamp><format property="tstamp.yyyyMMddHH"	pattern="yyyyMMddHH"/></tstamp>
@@ -49,6 +54,11 @@
 <tstamp><format property="tstamp.2weekago.yyyy-MM-dd"	pattern="yyyy-MM-dd" offset="-2" unit="week"/></tstamp>
 <tstamp><format property="tstamp.lastmonth.yyyy-MM-dd"	pattern="yyyy-MM-dd" offset="-1" unit="month"/></tstamp>
 
+<path id="path.antlib"><fileset dir="antlib" includes="*.jar"/></path>
+<taskdef name="groovy" classname="org.codehaus.groovy.ant.Groovy" classpathref="path.antlib"/>
+
+
+<!-- * general macrodef * -->
 <macrodef name="istrue">
 	<attribute name="arg"/>
 	<attribute name="property"/>
