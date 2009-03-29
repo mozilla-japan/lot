@@ -33,11 +33,19 @@
 	</script>
 </target>
 <target name="groovytest">
+	<property name="groovytest" value="Before"/>
+	<echo message="${groovytest}"/><!-- Before -->
+	<updateproperty name="groovytest" value="After"/>
+	<echo message="${groovytest}"/><!-- After -->
 	<groovy>
 		<![CDATA[
-			ant.echo "Groovy is Running Correctly!"
+			ant.echo 'Groovy is Running Correctly!'
+			//for (p in properties) ant.echo p // echo all properites list
+			//ant.antcall(target:'jstest')
+			properties.groovytest = 'Groovy!'
 		]]>
 	</groovy>
+	<echo message="${groovytest}"/><!-- Groovy! -->
 </target>
 
 
@@ -55,7 +63,11 @@
 <tstamp><format property="tstamp.lastmonth.yyyy-MM-dd"	pattern="yyyy-MM-dd" offset="-1" unit="month"/></tstamp>
 
 <path id="path.antlib"><fileset dir="antlib" includes="*.jar"/></path>
-<taskdef name="groovy" classname="org.codehaus.groovy.ant.Groovy" classpathref="path.antlib"/>
+<taskdef resource="net/sf/antcontrib/antlib.xml" classpathref="path.antlib"/>
+
+<path id="path.groovy"><fileset dir="antlib" includes="groovy-all-*.jar"/></path>
+<taskdef name="groovy" classname="org.codehaus.groovy.ant.Groovy" classpathref="path.groovy"/>
+<taskdef name="groovyc" classname="org.codehaus.groovy.ant.Groovyc" classpathref="path.groovy"/>
 
 
 <!-- * general macrodef * -->
@@ -149,8 +161,8 @@
 </macrodef>
 
 <macrodef name="propertyalias">
-	<!-- this macro depends on the order to expand properties and attribules
-		 we can use ${@{foo}} but cannot use @{${foo}} so far (expansion order is not documented) -->
+	<!-- this macro depends on the order to expand @{attribute} and ${property}
+		 we can use ${@{foo}} but cannot use @{${foo}} (undocumented implementation) -->
 	<attribute name="property"/>
 	<attribute name="alias"/>
 	<sequential>
@@ -160,6 +172,33 @@
 	</sequential>
 </macrodef>
 
+<!-- memo: <macrodef> で <attribute> に渡される値は MacroInstance オブジェクトの private 変数 localAttributes に格納され、外部からアクセスする方法は用意されていない。従って <sequential> 中からマクロ実行時の属性値を取得することはできず、<macrodef> では updateproperties は実装できない。 -->
+<groovy><!-- define <updateproperties name="property name" value="new value"/> task -->
+<![CDATA[
+	// need to specify explicit type etc to be used from Java world
+	import org.apache.tools.ant.Task
+	import org.apache.tools.ant.BuildException
+	class UpdatePropertyTask extends Task {
+		String name
+		String value
+		public void setName(String n) { name = n }
+		public void setValue(String v) { value = v }
+		public void execute() throws BuildException {
+			if (name == null) {
+				throw new BuildException("You must specify name attribute", getLocation());
+			}
+			if (value == null) {
+				throw new BuildException("You must specify value attribute", getLocation());
+			}
+			// in the class definition we cannot access to 'properties' introduced by groovy and cannot to like:
+			// properties.name = value
+			project.setProperty(name, value)
+		}
+	}
+	
+	project.addTaskDefinition('updateproperty', UpdatePropertyTask)
+]]>
+</groovy>
 
 
 <!-- * load config/message * -->
