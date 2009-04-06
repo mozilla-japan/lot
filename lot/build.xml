@@ -5,6 +5,7 @@
 
 		<!-- *** Phase 1: Initialization *** -->
 
+
 <!-- * import common library and set property aliases * -->
 <import file="build.library.xml"	optional="false"/>
 <import file="build.shorthand.xml"	optional="true"/>
@@ -51,12 +52,6 @@
 <!-- import package specific targets, which imports other targets -->
 <property name="package.buildfile" value="build.${package}.xml"/>
 <import file="${package.buildfile}" optional="false"/>
-
-
-<!-- * property alias * -->
-<!-- make easy to specify properties from commandline -->
-<propertyalias property="fromdir"		alias="escape.fromdir"/>
-<propertyalias property="todir"			alias="escape.todir"/>
 
 
 
