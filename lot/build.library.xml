@@ -41,9 +41,10 @@
 	<groovy>
 		<![CDATA[
 			ant.echo 'Groovy is Running Correctly!'
-			//for (p in properties) ant.echo p // echo all properites list
-			//ant.antcall(target:'jstest')
 			properties.groovytest = 'Groovy!'
+			
+			//for (p in properties) ant.echo p // echo all properites list
+			//properties.each { ant.echo it }
 		]]>
 	</groovy>
 	<echo message="${groovytest}"/><!-- Groovy! -->
@@ -191,11 +192,20 @@
 	</sequential>
 </macrodef>
 
-<!-- memo: <macrodef> で <attribute> に渡される値は MacroInstance オブジェクトの private 変数 localAttributes に格納され、外部からアクセスする方法は用意されていない。従って <sequential> 中からマクロ実行時の属性値を取得することはできず、<macrodef> では updateproperties は実装できない。 -->
-<if><!-- antcall を実行する毎に groovy タスクが実行されるとメモリ消費が積み重なって(デフォルトメモリサイズでは16回目くらいで) java.lang.OutOfMemoryError: PermGen space エラーが発生するので、初回のみ実行させるようにする -->
+<macrodef name="updateproperty">
+	<attribute name="name"/>
+	<attribute name="value"/>
+	<sequential>
+		<groovy><![CDATA[
+			properties.'@{name}' = '@{value}'
+		]]></groovy>
+	</sequential>
+</macrodef>
+<!-- updateproperty 実行毎に groovy タスクを実行したくない場合はこちらを利用する:
+<if><!- - antcall を実行する毎に groovy タスクが実行されるとメモリ消費が積み重なって(デフォルトメモリサイズでは16回目くらいで) java.lang.OutOfMemoryError: PermGen space エラーが発生するので、初回のみ実行させるようにする - ->
 	<not><isset property="lib.updateproperty.defined"/></not>
 	<then>
-		<groovy><!-- define <updateproperties name="property name" value="new value"/> task -->
+		<groovy>
 		<![CDATA[
 			// need to specify explicit type etc to be used from Java world
 			import org.apache.tools.ant.Task
@@ -223,7 +233,7 @@
 		]]>
 		</groovy>
 	</then>
-</if>
+</if> -->
 
 
 <!-- * load config/message * -->
@@ -464,7 +474,7 @@
 
 
 <!-- * filtering * -->
-<!-- In some context, ant 1.7.0 will not resolve ${filters.file} when this presetdef is used... (bug of Ant 1.7.0 or spec changed?)
+<!-- Properties within presetdef should be resolved when the presetdef is used but actually, in some context, ant 1.7.0 will not resolve ${filters.file} when this presetdef is used... (bug of Ant 1.7.0 or spec changed or just miss usage?)
 <presetdef name="filtering-copy">
 	<copy taskname="filtering-copy" encoding="UTF-8" preservelastmodified="true" overwrite="true">
 		<filterset begintoken="${lib.filters.begintoken}" endtoken="${lib.filters.endtoken}">
@@ -472,7 +482,6 @@
 		</filterset>
 	</copy>
 </presetdef> -->
-
 
 <!-- * diff/lpdiff * -->
 <macrodef name="diff">

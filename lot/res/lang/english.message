@@ -77,9 +77,8 @@ vmsg.pluralcheck.no.srcdir	= The directory including files to be checked pluralf
 vmsg.pluralcheck.found		= Pluralform error was found in the files included in "${pluralcheck.src.dir}" directory. See the files in "${pluralcheck.dir}" directory.
 
 cmsg.noprop.wordcheck.src.dir	= 'wordcheck.src.dir' property must be set
-cmsg.noprop.wordcheck.dir	= 'wordcheck.dir' property must be set
 vmsg.wordcheck.no.srcdir	= The directory including files to be checked forbidden words was not found: ${wordcheck.src.dir}
-vmsg.wordcheck.found		= Forbidden words are found in the files included in "${wordcheck.src.dir}" directory. See the files in "${wordcheck.dir}" directory.
+vmsg.wordcheck.found		= Forbidden words are found in the files included in "${wordcheck.src.dir}" directory. See "${wordcheck.output}" file.
 
 cmsg.noprop.charcheck.src.dir	= 'charcheck.src.dir' property must be set
 cmsg.noprop.charcheck.dir	= 'charcheck.dir' property must be set

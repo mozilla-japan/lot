@@ -127,7 +127,7 @@
 		</footer>
 	</concat>
 	
-	<!-- As workaround of Ant 1.7.0 bug(spec change?), define here...  -->
+	<!-- As workaround of Ant 1.7.0 bug (spec change?), define after ${filters.file} property set...  -->
 	<presetdef name="filtering-copy">
 		<copy taskname="filtering-copy" encoding="${lot.encoding.filters}" preservelastmodified="true" overwrite="true">
 			<filterset begintoken="${lib.filters.begintoken}" endtoken="${lib.filters.endtoken}">
