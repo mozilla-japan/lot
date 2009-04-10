@@ -86,9 +86,8 @@ vmsg.wordcheck.no.srcdir	= 使用語句チェック対象ファイルを含む�
 vmsg.wordcheck.found		= "${wordcheck.src.dir}" ディレクトリ中のファイルに使用禁止語句が見つかりました。"${wordcheck.output}" ファイルを確認してください。
 
 cmsg.noprop.charcheck.src.dir	= charcheck.src.dir プロパティが設定されていません
-cmsg.noprop.charcheck.dir	= charcheck.dir プロパティが設定されていません
 vmsg.charcheck.no.srcdir	= 使用文字チェック対象ファイルを含むディレクトリが見つかりませんでした: ${charcheck.src.dir}
-vmsg.charcheck.found		= "${charcheck.src.dir}" ディレクトリ中のファイルに使用禁止文字が見つかりました。"${charcheck.dir}" ディレクトリのファイルを確認してください。
+vmsg.charcheck.found		= "${charcheck.src.dir}" ディレクトリ中のファイルに使用禁止文字が見つかりました。"${charcheck.output}" ファイルを確認してください。
 
 vmsg.escape.no.fromdir		= ${escape.encoding} から Unicode エスケープに変換するファイルを "${escape.fromdir}" ディレクトリに入れてください。
 vmsg.unescape.no.fromdir	= Unicode エスケープから ${unescape.encoding} に変換するファイルを "${unescape.fromdir}" ディレクトリに入れてください。

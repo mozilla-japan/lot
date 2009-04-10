@@ -40,6 +40,9 @@
 	<echo message="${groovytest}"/><!-- After -->
 	<groovy>
 		<![CDATA[
+			ant.echo new File('l10n/ja/browser/chrome/browser/browser.dtd').getText('UTF-8').replaceAll(properties.'pattern.xmlcomment','').replaceAll(properties.'pattern.entity',{all,a,b,c,d->"$a"}).replaceAll(/\s+/,'\n')
+			
+			
 			ant.echo 'Groovy is Running Correctly!'
 			properties.groovytest = 'Groovy!'
 			
@@ -48,24 +51,6 @@
 		]]>
 	</groovy>
 	<echo message="${groovytest}"/><!-- Groovy! -->
-</target>
-<target name="groovytest-memory">
-	<antcall target="groovytest"/><echo message="1"/>
-	<antcall target="groovytest"/><echo message="2"/>
-	<antcall target="groovytest"/><echo message="3"/>
-	<antcall target="groovytest"/><echo message="4"/>
-	<antcall target="groovytest"/><echo message="5"/>
-	<antcall target="groovytest"/><echo message="6"/>
-	<antcall target="groovytest"/><echo message="7"/>
-	<antcall target="groovytest"/><echo message="8"/>
-	<antcall target="groovytest"/><echo message="9"/>
-	<antcall target="groovytest"/><echo message="10"/>
-	<antcall target="groovytest"/><echo message="11"/>
-	<antcall target="groovytest"/><echo message="12"/>
-	<antcall target="groovytest"/><echo message="13"/>
-	<antcall target="groovytest"/><echo message="14"/>
-	<antcall target="groovytest"/><echo message="15"/>
-	<antcall target="groovytest"/><echo message="16"/>
 </target>
 
 
@@ -192,17 +177,17 @@
 	</sequential>
 </macrodef>
 
+<!-- 一見これで問題なさそうだが、@{attribute} 展開後の文字列が groovy のコードとして解釈されるため、どの文字列リテラルに入れても $ や / が特殊な記号として解釈されてしまう場合があり、完全にそのまま保持することができない。
 <macrodef name="updateproperty">
 	<attribute name="name"/>
 	<attribute name="value"/>
 	<sequential>
 		<groovy><![CDATA[
-			properties.'@{name}' = '@{value}'
+			properties.'@{name}' = '@{value}' // backslash will be treated as escape prefix...
 		]]></groovy>
 	</sequential>
-</macrodef>
-<!-- updateproperty 実行毎に groovy タスクを実行したくない場合はこちらを利用する:
-<if><!- - antcall を実行する毎に groovy タスクが実行されるとメモリ消費が積み重なって(デフォルトメモリサイズでは16回目くらいで) java.lang.OutOfMemoryError: PermGen space エラーが発生するので、初回のみ実行させるようにする - ->
+</macrodef> -->
+<if><!-- antcall を実行する毎に groovy タスクが実行されるとメモリ消費が積み重なって(デフォルトメモリサイズでは16回目くらいで) java.lang.OutOfMemoryError: PermGen space エラーが発生するので、初回のみ実行させるようにする -->
 	<not><isset property="lib.updateproperty.defined"/></not>
 	<then>
 		<groovy>
@@ -233,7 +218,7 @@
 		]]>
 		</groovy>
 	</then>
-</if> -->
+</if>
 
 
 <!-- * load config/message * -->

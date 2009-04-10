@@ -81,9 +81,8 @@ vmsg.wordcheck.no.srcdir	= The directory including files to be checked forbidden
 vmsg.wordcheck.found		= Forbidden words are found in the files included in "${wordcheck.src.dir}" directory. See "${wordcheck.output}" file.
 
 cmsg.noprop.charcheck.src.dir	= 'charcheck.src.dir' property must be set
-cmsg.noprop.charcheck.dir	= 'charcheck.dir' property must be set
 vmsg.charcheck.no.srcdir	= The directory including files to be checked forbidden characters was not found: ${charcheck.src.dir}
-vmsg.charcheck.found		= Forbidden characters are found in the files included in "${charcheck.src.dir}" directory. See the files in "${charcheck.dir}" directory.
+vmsg.charcheck.found		= Forbidden characters are found in the files included in "${charcheck.src.dir}" directory. See "${charcheck.output}" file.
 
 vmsg.escape.no.fromdir		= Please store files to be converted from unicode escape to ${escape.encoding} in "${escape.fromdir}" directory.
 vmsg.unescape.no.fromdir	= Please store files to be converted from ${unescape.encoding} to unicode escape in "${unescape.fromdir}" directory.

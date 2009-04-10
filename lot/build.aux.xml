@@ -271,131 +271,67 @@
 </target>
 
 
-<macrodef name="wordcheck">
-	<attribute name="file"/>
-	<attribute name="output"/>
-	<attribute name="append"		default="true"/>
-	<attribute name="allowpattern"	default="${wordcheck.allow}"/>
-	<attribute name="denypattern"	default="${wordcheck.deny}"/>
-	<attribute name="encoding"		default="UTF-8"/>
-	<element name="commentfilter" optional="true" implicit="true"/>
-	<sequential>
-		<!-- 同一ファイルを複数回処理するとプロパティ名が重複する。これも groovy で処理すべきか -->
-		<loadfile property="worderror.@{file}" srcfile="@{file}" encoding="@{encoding}">
-			<filterchain>
-				<commentfilter/>
-				<replaceregex pattern="@{allowpattern}" replace="${wordcheck.allow.replace}" flags="msg"/>
-				<linecontainsregexp>
-					<regexp pattern="@{denypattern}"/>
-				</linecontainsregexp>
-				<replaceregex pattern="(@{denypattern})" replace="${wordcheck.deny.replace}" flags="msg"/>
-			</filterchain>
-		</loadfile>
-		<if>
-			<isset property="worderror.@{file}"/>
-			<then>
-				<echo message="Word Error in @{file}:${N}" file="@{output}" append="@{append}"/>
-				<echo message="${worderror.@{file}}${N}${N}" file="@{output}" append="true"/>
-			</then>
-		</if>
-	</sequential>
-</macrodef>
 <macrodef name="wordchecksuite">
 	<!-- macrodef 配下の groovy タスクでは @{attribute} を展開したものが groovy のソースとして解釈実行される。但し、属性のデフォルト値に Ant のプロパティ展開式を記述した場合、macrodef 定義時に設定済みのプロパティは展開済みの値が groovy のソースに挿入されるが、macrodef 定義時に未設定のプロパティは展開式のまま groovy のソースに挿入される。文字列リテラル中に @{attribute} を含める場合、GString として解釈されて構文エラーを引き起こさないように注意が必要。 -->
-	<!-- allow, deny 属性では(スラッシュ以外には)バックスラッシュのエスケープが必要とならないようにスラッシュ文字列リテラルに含めるが、GString が有効になるので Ant のプロパティをデフォルト値には定義できない。default="${properties.'wordcheck.allow'}" などと指定することもできるが、この場合属性値を受け取った場合にはスラッシュのエスケープが必要だがデフォルト値ではエスケープしてはならないというフォーマットが不統一になる。 -->
+	<!-- allowpattern, denypattern 属性では(スラッシュ以外には)バックスラッシュのエスケープが必要とならないようにスラッシュ文字列リテラルに含めるが、GString が有効になるので Ant のプロパティをデフォルト値には定義できない。default="${properties.'wordcheck.allow'}" などと指定することもできるが、この場合属性値を受け取った場合にはスラッシュのエスケープが必要だがデフォルト値ではエスケープしてはならないというフォーマットが不統一になる。 -->
 	<attribute name="allowpattern"/><!-- Java Regexp (exception: slash have to be escaped and ${} will be replaced) -->
 	<attribute name="denypattern"/><!-- Java Regexp (exception: slash have to be escaped and ${} will be replaced) -->
+	<attribute name="replacement" default="${properties.'wordcheck.deny.replace'}"/>
 	<attribute name="dir"/>
 	<attribute name="output"/>
-	<attribute name="excludes"	default=""/>
+	<attribute name="excludes" default=""/>
 	<sequential><!-- 並列処理にすれば高速化可能... -->
 		<!-- groovy を使うと allowpattern をスラッシュ文字列リテラルに代入するためスラッシュのエスケープが必要 -->
-		<!-- <groovy><![CDATA[
-			allowpattern = /@{allowpattern}/
-			denypattern  = /@{denypattern}/
-			ant.fileset(dir: '@{dir}', includes:'**/*.dtd, ${xmlfiles}', excludes:'@{excludes}').each {
-				ant.wordcheck(file:it, output:'@{output}' ,allowpattern:allowpattern, denypattern:denypattern) {
-					tokenfilter {
-						filetokenizer()
-						replaceregex(pattern:'${pattern.xmlcomment}', replace:'', flags:'msg')
+		<groovy><![CDATA[
+			allowpattern       = /(?ms)@{allowpattern}/
+			denypattern        = /(?ms)@{denypattern}/
+			replacement        = /@{replacement}/
+			xmlcommentpattern  = /(?ms)${properties.'pattern.xmlcomment'}/
+			linecommentpattern = /(?m)^#.*$/
+			def wordchecker(file, encoding, allowpattern, denypattern, commentpattern) {
+				errorlines = ''
+				content = file.getFile().getText(encoding)
+				if (commentpattern) {
+					content = content.replaceAll(commentpattern, '')
+				}
+				if (allowpattern) {
+					content = content.replaceAll(allowpattern, properties.'wordcheck.allow.replace')
+				}
+				// エラー行番号出力は要検討。出力する場合は複数行コメントで行番号がずれないよう最初に付記する必要あり。
+				content.eachLine { line, n ->
+					if (line =~ denypattern) {
+						errorlines += /* "@line $n: " + */ line.replaceAll("($denypattern)", replacement) + "\n"
 					}
 				}
+				if (errorlines) errormsg += "Error Found in $file:\n$errorlines\n\n"
+			}
+			errormsg     = ''
+			
+			ant.fileset(dir: '@{dir}', includes:'**/*.dtd, ${xmlfiles}', excludes:'@{excludes}').each {
+				wordchecker(it, 'UTF-8', allowpattern, denypattern, xmlcommentpattern)
 			}
 			if (properties.'wordcheck.unescape.properites') {
 				// note: native2ascii task require JDK installed and JAVA_HOME env set properly, or you'll see the error "error starting Sun's native2ascii"
 				ant.native2ascii(src:'@{dir}', includes:'**/*.properties',
 					dest:'${lot.temp.dir}/wordcheck', reverse:true, encoding:'UTF-8')
 				ant.fileset(dir: '${lot.temp.dir}/wordcheck', includes:'**/*.properties', excludes:'@{excludes}').each {
-					ant.wordcheck(file:it, output:'@{output}' ,allowpattern:allowpattern, denypattern:denypattern) {
-						replaceregex(pattern:'^#.*$', replace:'', flags:'mg')
-					}
+					wordchecker(it, 'UTF-8', allowpattern, denypattern, linecommentpattern)
 				}
 				ant.delete(dir:'${lot.temp.dir}/wordcheck', failonerror:false)
 			}
 			else {
 				ant.fileset(dir: '@{dir}', includes:'**/*.properties', excludes:'@{excludes}').each {
-					ant.wordcheck(file:it, output:'@{output}' ,allowpattern:allowpattern, denypattern:denypattern) {
-						replaceregex(pattern:'^#.*$', replace:'', flags:'mg')
-					}
+					wordchecker(it, 'UTF-8', allowpattern, denypattern, linecommentpattern)
 				}
 			}
 			ant.fileset(dir: '@{dir}', includes:'**/*.inc, **/unix/*.it', excludes:'@{excludes}').each {
-				ant.wordcheck(file:it, output:'@{output}' ,allowpattern:allowpattern, denypattern:denypattern) {}
+				wordchecker(it, 'UTF-8', allowpattern, denypattern, null)
 			}
 			ant.fileset(dir: '@{dir}', includes:'${sjisfiles}', excludes:'@{excludes}').each {
-				ant.wordcheck(file:it, output:'@{output}' ,allowpattern:allowpattern, denypattern:denypattern) {}
+				wordchecker(it, 'Shift_JIS', allowpattern, denypattern, null)
 			}
-		]]></groovy> -->
-		<!-- ant contrib 使うと allowpattern が二度 @{attribute} 展開されるため @@ が @ になる -->
-		<for param="file">
-			<fileset dir="@{dir}" includes="**/*.dtd, ${xmlfiles}" excludes="@{excludes}"/>
-			<sequential>
-				<wordcheck file="@{file}" output="@{output}" allowpattern="@{allowpattern}" denypattern="@{denypattern}">
-					<tokenfilter>
-						<filetokenizer/>
-						<replaceregex pattern="${pattern.xmlcomment}" replace="" flags="msg"/>
-					</tokenfilter>
-				</wordcheck>
-			</sequential>
-		</for>
-		<if>
-			<isset property="wordcheck.unescape.properites"/>
-			<then>
-				<native2ascii src="@{dir}" includes="**/*.properties"
-					dest="${lot.temp.dir}/wordcheck" reverse="true" encoding="UTF-8"/>
-				<for param="file">
-					<fileset dir="${lot.temp.dir}/wordcheck" includes="**/*.properties" excludes="@{excludes}"/>
-					<sequential>
-						<wordcheck file="@{file}" output="@{output}" allowpattern="@{allowpattern}" denypattern="@{denypattern}">
-							<replaceregex pattern="^#.*$" replace="" flags="mg"/>
-						</wordcheck>
-					</sequential>
-				</for>
-				<delete dir="@{todir}-unescaped" failonerror="false"/>
-			</then>
-			<else>
-				<for param="file">
-					<fileset dir="@{dir}" includes="**/*.properties" excludes="@{excludes}"/>
-					<sequential>
-						<wordcheck file="@{file}" output="@{output}" allowpattern="@{allowpattern}" denypattern="@{denypattern}">
-							<replaceregex pattern="^#.*$" replace="" flags="mg"/>
-						</wordcheck>
-					</sequential>
-				</for>
-			</else>
-		</if>
-		<for param="file">
-			<fileset dir="@{dir}" includes="**/*.inc, **/unix/*.it" excludes="@{excludes}"/>
-			<sequential>
-				<wordcheck file="@{file}" output="@{output}" allowpattern="@{allowpattern}" denypattern="@{denypattern}"/>
-			</sequential>
-		</for>
-		<for param="file">
-			<fileset dir="@{dir}" includes="${sjisfiles}" excludes="@{excludes}"/>
-			<sequential>
-				<wordcheck file="@{file}" output="@{output}" allowpattern="@{allowpattern}" denypattern="@{denypattern}" encoding="Shift_JIS"/>
-			</sequential>
-		</for>
+			if (errormsg) new File('@{output}').append(errormsg)
+		]]></groovy>
 	</sequential>
 </macrodef>
 <target name="wordcheck" depends="load-conf" unless="nowordcheck">
@@ -405,6 +341,7 @@
 		<condition><not><available file="${wordcheck.src.dir}" type="dir"/></not></condition>
 	</fail>
 	<property name="wordcheck.output"	value="temp/worderror.txt"/>
+	<delete file="${wordcheck.output}" failonerror="false"/>
 	
 	<equals property="wordcheck.deny"	value="@{2}|${wordcheck.deny.common}|${wordcheck.deny.ja}" arg1="${locale}" arg2="ja"/>
 	<equals property="wordcheck.deny"	value="@{2}|${wordcheck.deny.common}|${wordcheck.deny.ja-JP-mac}" arg1="${locale}" arg2="ja-JP-mac"/>
@@ -430,46 +367,33 @@
 		allowpattern="${wordcheck.allow}" denypattern="${wordcheck.deny}|${wordcheck.deny.seamonkey}"/>
 	
 	<fail message="${vmsg.wordcheck.found}">
-		<!-- <condition><available file="${wordcheck.dir}" type="dir"/></condition> -->
 		<condition><available file="${wordcheck.output}" type="file"/></condition>
 	</fail>
 </target>
 <target name="suspectedwordcheck" depends="load-conf" if="dosuspectedwordcheck">
-	<delete dir="${wordcheck.suspected.dir}"/>
-	<mkdir dir="${wordcheck.suspected.dir}"/>
+	<delete file="${wordcheck.suspected.output}" failonerror="false"/>
 	
-	<equals property="wordcheck.suspected"	value="@@|${wordcheck.suspected.ja}" arg1="${locale}" arg2="ja"/>
-	<equals property="wordcheck.suspected"	value="@@|${wordcheck.suspected.ja-JP-mac}" arg1="${locale}" arg2="ja-JP-mac"/>
+	<equals property="wordcheck.suspected"	value="@{2}|${wordcheck.suspected.ja}" arg1="${locale}" arg2="ja"/>
+	<equals property="wordcheck.suspected"	value="@{2}|${wordcheck.suspected.ja-JP-mac}" arg1="${locale}" arg2="ja-JP-mac"/>
 	
-	<antcall target="-wordcheck-">
-		<param name="wordcheck.dir"		value="${wordcheck.suspected.dir}"/>
-		<param name="wordcheck.allow"	value="##NOTHING##"/>
-		<param name="wordcheck.deny"	value="${wordcheck.suspected}"/>
-	</antcall>
+	<wordchecksuite dir="${wordcheck.src.dir}" output="${wordcheck.suspected.output}"
+		allowpattern="##NOTHING##" denypattern="${wordcheck.suspected}"/>
 </target>
 
 <!-- currently off by default -->
 <target name="charcheck" depends="load-conf" unless="nocharcheck" if="docharcheck">
-	<delete dir="${charcheck.dir}"/>
-	<mkdir dir="${charcheck.dir}"/>
+	<delete file="${charcheck.output}" failonerror="false"/>
 	
 	<fail message="${cmsg.noprop.charcheck.src.dir}" unless="charcheck.src.dir"/>
-	<fail message="${cmsg.noprop.charcheck.dir}" unless="charcheck.dir"/>
 	<loadmessage pattern="^vmsg\.charcheck\."/>
 	<fail message="${vmsg.charcheck.no.srcdir}">
 		<condition><not><available file="${charcheck.src.dir}" type="dir"/></not></condition>
 	</fail>
 	
-	<antcall target="-wordcheck-"><!-- reuse wordcheck for charcheck too -->
-		<param name="wordcheck.src.dir"			value="${charcheck.src.dir}"/>
-		<param name="wordcheck.dir"				value="${charcheck.dir}"/>
-		<param name="wordcheck.allow"			value="${charcheck.allow}"/>
-		<param name="wordcheck.allow.replace"	value="${charcheck.allow.replace}"/>
-		<param name="wordcheck.deny"			value="${charcheck.deny}"/>
-		<param name="wordcheck.deny.replace"	value="${charcheck.deny.replace}"/>
-	</antcall>
+	<wordchecksuite dir="${charcheck.src.dir}" output="${charcheck.output}"
+		allowpattern="${charcheck.allow}" denypattern="${charcheck.deny}" replacement="${charcheck.deny.replace}"/>
 	<fail message="${vmsg.charcheck.found}">
-		<condition><available file="${charcheck.dir}" type="dir"/></condition>
+		<condition><available file="${charcheck.output}" type="file"/></condition>
 	</fail>
 </target>
 
