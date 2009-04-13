@@ -146,15 +146,17 @@
 		errormsg = ''
 		// find error in properties files
 		ant.fileset(dir: properties.'syntaxcheck.src.dir', includes:'**/*.properties').each {
-			content = ''
-			it.getFile().getText('UTF-8').eachLine{ line,n -> content += "@line ${n+1}: $line\n" }
+			content = []
+			it.getFile().getText('UTF-8').eachLine{ line,n -> content.push("@line ${n+1}: $line") }
+			content = content.join("\n") + "\n"
 			content = content.replaceAll(/(?m)${properties.'RE.properties.validline'}\n/, '')
 			if (content) errormsg += "Syntax Error Found in $it:\n$content\n\n"
 		}
 		// find error in dtd files
 		ant.fileset(dir: properties.'syntaxcheck.src.dir', includes:'**/*.dtd').each {
-			content = ''
-			it.getFile().getText('UTF-8').eachLine{ line,n -> content += "@line ${n+1}: $line\n" }
+			content = []
+			it.getFile().getText('UTF-8').eachLine{ line,n -> content.push("@line ${n+1}: $line") }
+			content = content.join("\n") + "\n"
 			content = content.replaceAll(/(?ms)${properties.'RE.dtd.validblock'}\n/, '')
 			if (content) errormsg += "Syntax Error Found in $it:\n$content\n\n"
 		}
