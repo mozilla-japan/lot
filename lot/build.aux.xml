@@ -134,140 +134,95 @@
 <target name="syntaxcheck" depends="load-conf" unless="nosyntaxcheck"
 	description="syntax error check of converted files">
 	<fail message="${cmsg.noprop.syntaxcheck.src.dir}" unless="syntaxcheck.src.dir"/>
-	<fail message="${cmsg.noprop.syntaxcheck.dir}" unless="syntaxcheck.dir"/>
 	<loadmessage pattern="^vmsg\.syntaxcheck\."/>
 	<fail message="${vmsg.syntaxcheck.no.srcdir}">
 		<condition><not><available file="${syntaxcheck.src.dir}" type="dir"/></not></condition>
 	</fail>
 	
-	<delete	dir="${syntaxcheck.dir}"/>
-	<mkdir	dir="${syntaxcheck.dir}"/>
+	<property name="syntaxcheck.output"  value="temp/syntaxerror.txt"/>
+	<delete file="${syntaxcheck.output}" failonerror="false"/>
 	
-	<!-- find syntax error in properties files -->
-	<copy preservelastmodified="true" todir="${syntaxcheck.dir}" encoding="UTF-8" includeemptydirs="no">
-		<fileset dir="${syntaxcheck.src.dir}" includes="**/*.properties"/>
-		<mapper type="package" from="*" to="*"/>
-		<filterchain>
-			<tokenfilter>
-				<filetokenizer/>
-				<replaceregex pattern="${pattern.properties}" replace="" flags="mg"/>
-			</tokenfilter>
-		</filterchain>
-	</copy>
-	
-	<!-- find syntax error in dtd files -->
-	<copy preservelastmodified="true" todir="${syntaxcheck.dir}" encoding="UTF-8" includeemptydirs="no">
-		<fileset dir="${syntaxcheck.src.dir}" includes="**/*.dtd"/>
-		<mapper type="package" from="*" to="*"/>
-		<filterchain>
-			<tokenfilter>
-				<filetokenizer/>
-				<replaceregex pattern="${pattern.dtd}" replace="" flags="msg"/>
-				<!-- <replaceregex pattern="^#expand$" replace="" flags=""/>exception: #expand ... in brand.dtd -->
-			</tokenfilter>
-		</filterchain>
-	</copy>
-	
-	<!-- delete all empty files, which means no error found in each correcponding src file -->
-	<delete includeemptydirs="true">
-		<fileset dir="${syntaxcheck.dir}" includes="**">
-			<size value="0" when="equal"/>
-		</fileset>
-	</delete>
-	<fail message="${vmsg.syntaxcheck.found}">
-		<condition><available file="${syntaxcheck.dir}" type="dir"/></condition>
-	</fail>
+	<groovy><![CDATA[
+		errormsg = ''
+		// find error in properties files
+		ant.fileset(dir: properties.'syntaxcheck.src.dir', includes:'**/*.properties').each {
+			content = ''
+			it.getFile().getText('UTF-8').eachLine{ line,n -> content += "@line ${n+1}: $line\n" }
+			content = content.replaceAll(/(?m)${properties.'RE.properties.validline'}\n/, '')
+			if (content) errormsg += "Syntax Error Found in $it:\n$content\n\n"
+		}
+		// find error in dtd files
+		ant.fileset(dir: properties.'syntaxcheck.src.dir', includes:'**/*.dtd').each {
+			content = ''
+			it.getFile().getText('UTF-8').eachLine{ line,n -> content += "@line ${n+1}: $line\n" }
+			content = content.replaceAll(/(?ms)${properties.'RE.dtd.validblock'}\n/, '')
+			if (content) errormsg += "Syntax Error Found in $it:\n$content\n\n"
+		}
+		if (errormsg) {
+			new File(properties.'syntaxcheck.output').append(errormsg)
+			ant.fail(message:"$errormsg${properties.'vmsg.syntaxcheck.found'}")
+		}
+	]]></groovy>
 </target>
 
 <target name="placeholdercheck" depends="load-conf" unless="noplaceholdercheck"
 	description="placeholder usage error check of converted properties files">
 	<fail message="${cmsg.noprop.placeholdercheck.src.dir}" unless="placeholdercheck.src.dir"/>
-	<fail message="${cmsg.noprop.placeholdercheck.dir}" unless="placeholdercheck.dir"/>
 	<loadmessage pattern="^vmsg\.placeholdercheck\."/>
 	<fail message="${vmsg.placeholdercheck.no.srcdir}">
 		<condition><not><available file="${placeholdercheck.src.dir}" type="dir"/></not></condition>
 	</fail>
-	<delete	dir="${placeholdercheck.dir}"/>
-	<mkdir	dir="${placeholdercheck.dir}"/>
 	
-	<!-- find plural form error in properties files -->
-	<copy preservelastmodified="true" todir="${placeholdercheck.dir}" encoding="UTF-8" includeemptydirs="no">
-		<fileset dir="${placeholdercheck.src.dir}" includes="**/*.properties"/>
-		<mapper type="package" from="*" to="2no1.*"/>
-		<filterchain>
-			<linecontainsregexp><regexp pattern="^[^#].+=.+%2\$S"/></linecontainsregexp>
-			<linecontains negate="true"><contains value="%1$S"/></linecontains>
-			<linecontains negate="true"><contains value="%1$0.S"/></linecontains>
-		</filterchain>
-	</copy>
-	<copy preservelastmodified="true" todir="${placeholdercheck.dir}" encoding="UTF-8" includeemptydirs="no">
-		<fileset dir="${placeholdercheck.src.dir}" includes="**/*.properties"/>
-		<mapper type="package" from="*" to="3no12.*"/>
-		<filterchain>
-			<linecontainsregexp><regexp pattern="^[^#].+=.+%3\$S"/></linecontainsregexp>
-			<linecontains negate="true">
-				<contains value="%1$S"/><contains value="%2$S"/>
-			</linecontains>
-			<linecontains negate="true">
-				<contains value="%1$0.S"/><contains value="%2$S"/>
-			</linecontains>
-			<linecontains negate="true">
-				<contains value="%1$S"/><contains value="%2$0.S"/>
-			</linecontains>
-			<linecontains negate="true">
-				<contains value="%1$0.S"/><contains value="%2$0.S"/>
-			</linecontains>
-		</filterchain>
-	</copy>
-	<!-- will generalize if needed but just a simple detection so far -->
-	<copy preservelastmodified="true" todir="${placeholdercheck.dir}" encoding="UTF-8" includeemptydirs="no">
-		<fileset dir="${placeholdercheck.src.dir}" includes="**/*.properties"/>
-		<mapper type="package" from="*" to="4no123.*"/>
-		<filterchain>
-			<linecontainsregexp><regexp pattern="^[^#].+=.+%4\$S"/></linecontainsregexp>
-			<linecontains negate="true">
-				<contains value="%1$S"/><contains value="%2$S"/><contains value="%3$S"/>
-			</linecontains>
-		</filterchain>
-	</copy>
+	<property name="placeholdercheck.output"  value="temp/placeholdererror.txt"/>
+	<delete file="${placeholdercheck.output}" failonerror="false"/>
 	
-	<!-- delete all empty files, which means no error found in each correcponding src file -->
-	<delete includeemptydirs="true">
-		<fileset dir="${placeholdercheck.dir}" includes="**">
-			<size value="0" when="equal"/>
-		</fileset>
-	</delete>
-	<fail message="${vmsg.placeholdercheck.found}">
-		<condition><available file="${placeholdercheck.dir}" type="dir"/></condition>
-	</fail>
+	<groovy><![CDATA[
+		max = 5
+		errormsg = ''
+		ant.fileset(dir: properties.'placeholdercheck.src.dir', includes:'**/*.properties').each {
+			errorlines = ''
+			it.getFile().getText('UTF-8').eachLine { line, n ->
+				err = false
+				(2..max).each { i ->
+					if (!err && line =~ "^[^#].+=.+%$i\\\$S") {
+						(1..<i).each { j ->
+							err = err || (!line.contains("%$j\$S") && !line.contains("%$j\$0.S"))
+						}
+					}
+				}
+				if (err) errorlines += "@line ${n+1}: $line\n"
+			}
+			if (errorlines) errormsg += "Placeholder Error Found in $it:\n$errorlines\n\n"
+		}
+		if (errormsg) {
+			new File(properties.'placeholdercheck.output').append(errormsg)
+			ant.fail(message:"$errormsg${properties.'vmsg.placeholdercheck.found'}")
+		}
+	]]></groovy>
 </target>
 
 <target name="pluralcheck" depends="load-conf" unless="nopluralcheck"
 	description="plural form error check of converted properties files">
-	<delete	dir="${pluralcheck.dir}"/>
-	<mkdir	dir="${pluralcheck.dir}"/>
+	<loadmessage pattern="^vmsg\.pluralcheck\."/>
+	<property name="pluralcheck.output"	value="temp/pluralcheck.txt"/>
+	<delete file="${pluralcheck.output}" failonerror="false"/>
 	
-	<!-- find plural form error in properties files -->
-	<copy preservelastmodified="true" todir="${pluralcheck.dir}" encoding="UTF-8" includeemptydirs="no">
-		<fileset dir="${pluralcheck.src.dir}" includes="**/*.properties"/>
-		<mapper type="package" from="*" to="*"/>
-		<filterchain>
-			<replaceregex pattern="${pluralcheck.allow}" replace="${pluralcheck.allow.replace}" flags="msg"/>
-			<linecontainsregexp>
-				<regexp pattern="^\s*[-0-9a-zA-Z_.?{@}]+\s*=.+;.+"/>
-			</linecontainsregexp>
-		</filterchain>
-	</copy>
-	
-	<!-- delete all empty files, which means no error found in each correcponding src file -->
-	<delete includeemptydirs="true">
-		<fileset dir="${pluralcheck.dir}" includes="**">
-			<size value="0" when="equal"/>
-		</fileset>
-	</delete>
-	<!-- <fail message="${vmsg.pluralcheck.found}">
-		<condition><available file="${pluralcheck.dir}" type="dir"/></condition>
-	</fail> -->
+	<groovy><![CDATA[
+		errormsg = ''
+		ant.fileset(dir: properties.'pluralcheck.src.dir', includes:'**/*.properties').each {
+			errorlines = ''
+			it.getFile().getText('UTF-8').replaceAll(/(?ms)${properties.'pluralcheck.allow'}/, properties.'pluralcheck.allow.replace').eachLine { line, n ->
+				if (line =~ /^\s*[-0-9a-zA-Z_.?{@}]+\s*=.+;.+/) {
+					errorlines += "@line ${n+1}: $line\n"
+				}
+			}
+			if (errorlines) errormsg += "Syntax Error Found in $it:\n$errorlines\n\n"
+		}
+		if (errormsg) {
+			new File(properties.'pluralcheck.output').append(errormsg)
+			//ant.fail(message:"$errormsg${properties.'vmsg.pluralcheck.found'}")
+		}
+	]]></groovy>
 </target>
 
 
@@ -283,24 +238,27 @@
 	<sequential><!-- 並列処理にすれば高速化可能... -->
 		<!-- groovy を使うと allowpattern をスラッシュ文字列リテラルに代入するためスラッシュのエスケープが必要 -->
 		<groovy><![CDATA[
-			allowpattern       = /(?ms)@{allowpattern}/
-			denypattern        = /(?ms)@{denypattern}/
+			allowpattern       = /(?m)@{allowpattern}/
+			denypattern        = /(?m)@{denypattern}/
 			replacement        = /@{replacement}/
-			xmlcommentpattern  = /(?ms)${properties.'pattern.xmlcomment'}/
-			linecommentpattern = /(?m)^#.*$/
+			xmlcommentpattern  = /(?ms)${properties.'RE.xml.comment'}/
+			linecommentpattern = /(?m)^(@line [0-9]+: )?\s*#[^\n]*/
 			def wordchecker(file, encoding, allowpattern, denypattern, commentpattern) {
 				errorlines = ''
-				content = file.getFile().getText(encoding)
+				// concat takes long time with large files (xhtml etc)
+				//file.getFile().getText(encoding).eachLine{ line,n -> content += "@line ${n+1}: $line\n" }
+				content = []
+				file.getFile().getText(encoding).eachLine{ line,n -> content.push("@line ${n+1}: $line") }
+				content = content.join("\n")
 				if (commentpattern) {
 					content = content.replaceAll(commentpattern, '')
 				}
 				if (allowpattern) {
 					content = content.replaceAll(allowpattern, properties.'wordcheck.allow.replace')
 				}
-				// エラー行番号出力は要検討。出力する場合は複数行コメントで行番号がずれないよう最初に付記する必要あり。
 				content.eachLine { line, n ->
 					if (line =~ denypattern) {
-						errorlines += /* "@line $n: " + */ line.replaceAll("($denypattern)", replacement) + "\n"
+						errorlines += line.replaceAll("($denypattern)", replacement) + "\n"
 					}
 				}
 				if (errorlines) errormsg += "Error Found in $file:\n$errorlines\n\n"
@@ -310,7 +268,7 @@
 			ant.fileset(dir: '@{dir}', includes:'**/*.dtd, ${xmlfiles}', excludes:'@{excludes}').each {
 				wordchecker(it, 'UTF-8', allowpattern, denypattern, xmlcommentpattern)
 			}
-			if (properties.'wordcheck.unescape.properites') {
+			if (properties.'wordcheck.unescape.properties') {
 				// note: native2ascii task require JDK installed and JAVA_HOME env set properly, or you'll see the error "error starting Sun's native2ascii"
 				ant.native2ascii(src:'@{dir}', includes:'**/*.properties',
 					dest:'${lot.temp.dir}/wordcheck', reverse:true, encoding:'UTF-8')
@@ -340,7 +298,7 @@
 	<fail message="${vmsg.wordcheck.no.srcdir}">
 		<condition><not><available file="${wordcheck.src.dir}" type="dir"/></not></condition>
 	</fail>
-	<property name="wordcheck.output"	value="temp/worderror.txt"/>
+	<property name="wordcheck.output"  value="temp/worderror.txt"/>
 	<delete file="${wordcheck.output}" failonerror="false"/>
 	
 	<equals property="wordcheck.deny"	value="@{2}|${wordcheck.deny.common}|${wordcheck.deny.ja}" arg1="${locale}" arg2="ja"/>
@@ -366,9 +324,8 @@
 	<wordchecksuite dir="${wordcheck.src.dir}/suite" output="${wordcheck.output}"
 		allowpattern="${wordcheck.allow}" denypattern="${wordcheck.deny}|${wordcheck.deny.seamonkey}"/>
 	
-	<fail message="${vmsg.wordcheck.found}">
-		<condition><available file="${wordcheck.output}" type="file"/></condition>
-	</fail>
+	<loadfile property="wordcheck.error" srcfile="${wordcheck.output}" encoding="UTF-8" failonerror="false"/>
+	<fail message="${wordcheck.error}${vmsg.wordcheck.found}" if="wordcheck.error"/>
 </target>
 <target name="suspectedwordcheck" depends="load-conf" if="dosuspectedwordcheck">
 	<delete file="${wordcheck.suspected.output}" failonerror="false"/>

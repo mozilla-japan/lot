@@ -67,19 +67,16 @@ cmsg.installer.not.windows	= 残念ながら installer ターゲットは Window
 cmsg.installer.no.product	= インストーラを作成する製品を指定してください。
 
 cmsg.noprop.syntaxcheck.src.dir	= syntaxcheck.src.dir プロパティが設定されていません
-cmsg.noprop.syntaxcheck.dir	= syntaxcheck.dir プロパティが設定されていません
 vmsg.syntaxcheck.no.srcdir	= 構文エラーチェック対象ファイルを含むディレクトリが見つかりませんでした: ${syntaxcheck.src.dir}
-vmsg.syntaxcheck.found		= "${syntaxcheck.src.dir}" ディレクトリ中のファイルに構文エラーが見つかりました。"${syntaxcheck.dir}" ディレクトリのファイルを確認してください。
+vmsg.syntaxcheck.found		= "${syntaxcheck.src.dir}" ディレクトリ中のファイルに構文エラーが見つかりました。"${syntaxcheck.output}" ファイルを確認してください。
 
 cmsg.noprop.placeholdercheck.src.dir	= placeholdercheck.src.dir プロパティが設定されていません
-cmsg.noprop.placeholdercheck.dir	= placeholdercheck.dir プロパティが設定されていません
 vmsg.placeholdercheck.no.srcdir		= プレースホルダエラーチェック対象ファイルを含むディレクトリが見つかりませんでした: ${placeholdercheck.src.dir}
-vmsg.placeholdercheck.found		= "${placeholdercheck.src.dir}" ディレクトリ中のファイルにプレースホルダエラーが見つかりました。"${placeholdercheck.dir}" ディレクトリのファイルを確認してください。
+vmsg.placeholdercheck.found		= "${placeholdercheck.src.dir}" ディレクトリ中のファイルにプレースホルダエラーが見つかりました。"${placeholdercheck.output}" ファイルを確認してください。
 
 cmsg.noprop.pluralcheck.src.dir	= pluralcheck.src.dir プロパティが設定されていません
-cmsg.noprop.pluralcheck.dir	= pluralcheck.dir プロパティが設定されていません
 vmsg.pluralcheck.no.srcdir	= PluralForm エラーチェック対象ファイルを含むディレクトリが見つかりませんでした: ${pluralcheck.src.dir}
-vmsg.pluralcheck.found		= "${pluralcheck.src.dir}" ディレクトリ中のファイルに PluralForm エラーが見つかりました。"${pluralcheck.dir}" ディレクトリのファイルを確認してください。
+vmsg.pluralcheck.found		= "${pluralcheck.src.dir}" ディレクトリ中のファイルに PluralForm エラーが見つかりました。"${pluralcheck.output}" ファイルを確認してください。
 
 cmsg.noprop.wordcheck.src.dir	= wordcheck.src.dir プロパティが設定されていません
 vmsg.wordcheck.no.srcdir	= 使用語句チェック対象ファイルを含むディレクトリが見つかりませんでした: ${wordcheck.src.dir}

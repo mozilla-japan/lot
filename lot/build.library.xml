@@ -40,9 +40,6 @@
 	<echo message="${groovytest}"/><!-- After -->
 	<groovy>
 		<![CDATA[
-			ant.echo new File('l10n/ja/browser/chrome/browser/browser.dtd').getText('UTF-8').replaceAll(properties.'pattern.xmlcomment','').replaceAll(properties.'pattern.entity',{all,a,b,c,d->"$a"}).replaceAll(/\s+/,'\n')
-			
-			
 			ant.echo 'Groovy is Running Correctly!'
 			properties.groovytest = 'Groovy!'
 			
