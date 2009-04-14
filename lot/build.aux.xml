@@ -143,26 +143,24 @@
 	<delete file="${syntaxcheck.output}" failonerror="false"/>
 	
 	<groovy><![CDATA[
-		errormsg = ''
+		errormsg = new StringBuilder()
 		// find error in properties files
 		ant.fileset(dir: properties.'syntaxcheck.src.dir', includes:'**/*.properties').each {
-			content = []
-			it.getFile().getText('UTF-8').eachLine{ line,n -> content.push("@line ${n+1}: $line") }
-			content = content.join("\n") + "\n"
-			content = content.replaceAll(/(?m)${properties.'RE.properties.validline'}\n/, '')
-			if (content) errormsg += "Syntax Error Found in $it:\n$content\n\n"
+			content = new StringBuilder()
+			it.getFile().getText('UTF-8').eachLine{ line,n -> content << "@line ${n+1}: $line\n" }
+			content = content.toString().replaceAll(/(?m)${properties.'RE.properties.validline'}\n/, '')
+			if (content) errormsg << "Syntax Error Found in $it:\n$content\n\n"
 		}
 		// find error in dtd files
 		ant.fileset(dir: properties.'syntaxcheck.src.dir', includes:'**/*.dtd').each {
-			content = []
-			it.getFile().getText('UTF-8').eachLine{ line,n -> content.push("@line ${n+1}: $line") }
-			content = content.join("\n") + "\n"
-			content = content.replaceAll(/(?ms)${properties.'RE.dtd.validblock'}\n/, '')
-			if (content) errormsg += "Syntax Error Found in $it:\n$content\n\n"
+			content = new StringBuilder()
+			it.getFile().getText('UTF-8').eachLine{ line,n -> content << "@line ${n+1}: $line\n" }
+			content = content.toString().replaceAll(/(?ms)${properties.'RE.dtd.validblock'}\n/, '')
+			if (content) errormsg << "Syntax Error Found in $it:\n$content\n\n"
 		}
 		if (errormsg) {
 			new File(properties.'syntaxcheck.output').append(errormsg)
-			ant.fail(message:"$errormsg${properties.'vmsg.syntaxcheck.found'}")
+			ant.fail(taskname: 'syntaxcheck', message:"$errormsg${properties.'vmsg.syntaxcheck.found'}")
 		}
 	]]></groovy>
 </target>
@@ -180,9 +178,9 @@
 	
 	<groovy><![CDATA[
 		max = 5
-		errormsg = ''
+		errormsg = new StringBuilder()
 		ant.fileset(dir: properties.'placeholdercheck.src.dir', includes:'**/*.properties').each {
-			errorlines = ''
+			errorlines = new StringBuilder()
 			it.getFile().getText('UTF-8').eachLine { line, n ->
 				err = false
 				(2..max).each { i ->
@@ -192,13 +190,13 @@
 						}
 					}
 				}
-				if (err) errorlines += "@line ${n+1}: $line\n"
+				if (err) errorlines << "@line ${n+1}: $line\n"
 			}
-			if (errorlines) errormsg += "Placeholder Error Found in $it:\n$errorlines\n\n"
+			if (errorlines) errormsg << "Placeholder Error Found in $it:\n$errorlines\n\n"
 		}
 		if (errormsg) {
 			new File(properties.'placeholdercheck.output').append(errormsg)
-			ant.fail(message:"$errormsg${properties.'vmsg.placeholdercheck.found'}")
+			ant.fail(taskname: 'placeholdercheck', message:"$errormsg${properties.'vmsg.placeholdercheck.found'}")
 		}
 	]]></groovy>
 </target>
@@ -210,19 +208,19 @@
 	<delete file="${pluralcheck.output}" failonerror="false"/>
 	
 	<groovy><![CDATA[
-		errormsg = ''
+		errormsg = new StringBuilder()
 		ant.fileset(dir: properties.'pluralcheck.src.dir', includes:'**/*.properties').each {
-			errorlines = ''
+			errorlines = new StringBuilder()
 			it.getFile().getText('UTF-8').replaceAll(/(?ms)${properties.'pluralcheck.allow'}/, properties.'pluralcheck.allow.replace').eachLine { line, n ->
 				if (line =~ /^\s*[-0-9a-zA-Z_.?{@}]+\s*=.+;.+/) {
-					errorlines += "@line ${n+1}: $line\n"
+					errorlines << "@line ${n+1}: $line\n"
 				}
 			}
-			if (errorlines) errormsg += "Syntax Error Found in $it:\n$errorlines\n\n"
+			if (errorlines) errormsg << "Syntax Error Found in $it:\n$errorlines\n\n"
 		}
 		if (errormsg) {
 			new File(properties.'pluralcheck.output').append(errormsg)
-			//ant.fail(message:"$errormsg${properties.'vmsg.pluralcheck.found'}")
+			ant.echo(taskname: 'pluralcheck', message:"$errormsg${properties.'vmsg.pluralcheck.found'}")
 		}
 	]]></groovy>
 </target>
@@ -246,26 +244,23 @@
 			xmlcommentpattern  = /(?ms)${properties.'RE.xml.comment'}/
 			linecommentpattern = /(?m)^(@line [0-9]+: )?\s*#[^\n]*/
 			def wordchecker(file, encoding, allowpattern, denypattern, commentpattern) {
-				errorlines = ''
-				// concat takes long time with large files (xhtml etc)
-				//file.getFile().getText(encoding).eachLine{ line,n -> content += "@line ${n+1}: $line\n" }
-				content = []
-				file.getFile().getText(encoding).eachLine{ line,n -> content.push("@line ${n+1}: $line") }
-				content = content.join("\n")
+				errorlines = new StringBuilder()
+				content = new StringBuilder()
+				file.getFile().getText(encoding).eachLine{ line,n -> content << "@line ${n+1}: $line\n" }
 				if (commentpattern) {
-					content = content.replaceAll(commentpattern, '')
+					content = content.toString().replaceAll(commentpattern, '')
 				}
 				if (allowpattern) {
-					content = content.replaceAll(allowpattern, properties.'wordcheck.allow.replace')
+					content = content.toString().replaceAll(allowpattern, properties.'wordcheck.allow.replace')
 				}
 				content.eachLine { line, n ->
 					if (line =~ denypattern) {
-						errorlines += line.replaceAll("($denypattern)", replacement) + "\n"
+						errorlines << line.replaceAll("($denypattern)", replacement) + "\n"
 					}
 				}
-				if (errorlines) errormsg += "Error Found in $file:\n$errorlines\n\n"
+				if (errorlines) errormsg << "Error Found in $file:\n$errorlines\n\n"
 			}
-			errormsg     = ''
+			errormsg = new StringBuilder()
 			
 			ant.fileset(dir: '@{dir}', includes:'**/*.dtd, ${xmlfiles}', excludes:'@{excludes}').each {
 				wordchecker(it, 'UTF-8', allowpattern, denypattern, xmlcommentpattern)
@@ -327,7 +322,7 @@
 		allowpattern="${wordcheck.allow}" denypattern="${wordcheck.deny}|${wordcheck.deny.seamonkey}"/>
 	
 	<loadfile property="wordcheck.error" srcfile="${wordcheck.output}" encoding="UTF-8" failonerror="false"/>
-	<fail message="${wordcheck.error}${vmsg.wordcheck.found}" if="wordcheck.error"/>
+	<fail message="${N}${wordcheck.error}${vmsg.wordcheck.found}" if="wordcheck.error"/>
 </target>
 <target name="suspectedwordcheck" depends="load-conf" if="dosuspectedwordcheck">
 	<delete file="${wordcheck.suspected.output}" failonerror="false"/>
