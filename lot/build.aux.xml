@@ -324,7 +324,7 @@
 	<loadfile property="wordcheck.error" srcfile="${wordcheck.output}" encoding="UTF-8" failonerror="false"/>
 	<fail message="${N}${wordcheck.error}${vmsg.wordcheck.found}" if="wordcheck.error"/>
 </target>
-<target name="suspectedwordcheck" depends="load-conf" if="dosuspectedwordcheck">
+<target name="suspectedwordcheck" depends="load-conf" unless="nosuspectedwordcheck" if="dosuspectedwordcheck">
 	<delete file="${wordcheck.suspected.output}" failonerror="false"/>
 	
 	<equals property="wordcheck.suspected"	value="@{2}|${wordcheck.suspected.ja}" arg1="${locale}" arg2="ja"/>

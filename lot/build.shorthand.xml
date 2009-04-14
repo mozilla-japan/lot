@@ -9,6 +9,15 @@
 <propertyalias property="todir"			alias="escape.todir"/>
 <propertyalias property="todir"			alias="unescape.todir"/>
 
+<propertyalias property="docheck"		alias="dosuspectedwordcheck"/>
+<propertyalias property="docheck"		alias="docharcheck"/>
+
+<propertyalias property="nocheck"		alias="nosyntaxcheck"/>
+<propertyalias property="nocheck"		alias="noplaceholdercheck"/>
+<propertyalias property="nocheck"		alias="nopluralcheck"/>
+<propertyalias property="nocheck"		alias="nowordcheck"/>
+<propertyalias property="nocheck"		alias="nosuspectedwordcheck"/>
+<propertyalias property="nocheck"		alias="nocharcheck"/>
 
 
 
