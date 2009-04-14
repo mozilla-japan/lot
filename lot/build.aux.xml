@@ -109,17 +109,116 @@
 
 
 <!-- * error check * -->
-<target name="get-compare-locales" depends="load-mainconf">
-	<get src="${compare-locales.get.url}" dest="${compare-locales.file}"/>
-</target>
 <macrodef name="compare-locales">
 	<attribute name="fromlocale" default="en-US"/>
 	<attribute name="tolocale" default="ja"/>
 	<attribute name="failonerror" default="false"/>
 	<sequential>
-		<exec taskname="perl" executable="perl" failonerror="@{failonerror}">
-			<arg line="${compare-locales.file} ${lot.l10n.dir}/@{fromlocale} ${lot.l10n.dir}/@{tolocale}"/>
-		</exec>
+	<groovy><![CDATA[
+		propertiespattern  = /(?m)${properties.'RE.properties.entityblock'}/
+		dtdpattern         = /(?m)${properties.'RE.dtd.entityblock'}/
+		fromlocale = '@{fromlocale}'
+		tolocale   = '@{tolocale}'
+		//l10n[locale][filename][entitykey] = [prespace:, precomment:, definition:, key:, value:, postcomment:]
+		l10n = [(fromlocale): [:], (tolocale): [:]]
+		
+		def parse(locale, file, encoding, entityblockpattern, preprocess, postprocess) {
+			filename = file.toString()
+			// TODO: 任意ディレクトリの比較をするには key の生成方法を変える必要がある
+			filekey  = filename.replaceAll("/$locale/","/*/")
+			l10n[locale][filekey] = [:]
+			content = file.getFile().getText(encoding)
+			if (preprocess) content = preprocess(content)
+			content.eachMatch(entityblockpattern) {
+				block, prespace, precomment, definition, key, value, postcomment ->
+				l10n[locale][filekey][key] = [prespace:prespace, precomment:precomment, definition:definition, key:key, value:value, postcomment:postcomment]
+				if (postprocess) l10n[locale][filekey][key] = postprocess(l10n[locale][filekey][key])
+				//ant.echo "$key = $value"
+			}
+		}
+		
+		// Phase 1: Parse L10N Files
+		// TODO: 既知の過不足を無視できるように excludes に対応するべし
+		ant.fileset(dir: "${properties.'lot.l10n.dir'}/$fromlocale", includes:'**/*.properties').each {
+			parse(fromlocale, it, 'UTF-8', propertiespattern, null, null)
+		}
+		ant.fileset(dir: "${properties.'lot.l10n.dir'}/$tolocale", includes:'**/*.properties').each {
+			parse(tolocale, it, 'UTF-8', propertiespattern, null, null)
+		}
+		ant.fileset(dir: "${properties.'lot.l10n.dir'}/$fromlocale", includes:'**/*.dtd').each {
+			parse(fromlocale, it, 'UTF-8', dtdpattern, null, null)
+		}
+		ant.fileset(dir: "${properties.'lot.l10n.dir'}/$tolocale", includes:'**/*.dtd').each {
+			parse(tolocale, it, 'UTF-8', dtdpattern, null, null)
+		}
+		
+		
+		// Phase 2: Compare L10N Files
+		infomsg      = new StringBuilder()
+		fileerrmsg   = new StringBuilder()
+		entityerrmsg = new StringBuilder()
+		accesskeymsg = new StringBuilder()
+		
+		infomsg << "Number of $fromlocale locale files: ${l10n[fromlocale].size()}\n"
+		infomsg << "Number of $tolocale locale files: ${l10n[tolocale].size()}\n"
+		
+		onlyfromlocale = l10n[fromlocale].findAll { file,v -> !l10n[tolocale][file] }
+		onlytolocale   = l10n[tolocale].findAll   { file,v -> !l10n[fromlocale][file] }
+		if (onlyfromlocale) {
+			fileerrmsg << "File(s) only in $fromlocale locale:\n"
+			onlyfromlocale.each { file,v -> fileerrmsg << "  $file\n" }
+		}
+		if (onlytolocale) {
+			fileerrmsg << "File(s) only in $tolocale locale:\n"
+			onlytolocale.each { file,v -> fileerrmsg << "  $file\n" }
+		}
+		
+		// compare entities in common files
+		commonfiles = l10n[fromlocale].findAll { file,v -> l10n[tolocale][file] }
+		commonfiles.each { file, entities ->
+			onlyfromlocale[file] = l10n[fromlocale][file].findAll { key,v -> !l10n[tolocale][file][key] }
+			onlytolocale[file]   = l10n[tolocale][file].findAll   { key,v -> !l10n[fromlocale][file][key] }
+			if (onlyfromlocale[file] || onlytolocale[file]) {
+				entityerrmsg << "Entities in this file don't match: $file:\n"
+				if (onlyfromlocale[file]) {
+					entityerrmsg << "  Entities only in $fromlocale locale:\n"
+					onlyfromlocale[file].each { key,block -> entityerrmsg << "    $key\t\t= ${block.value}\n" }
+				}
+				if (onlytolocale[file]) {
+					entityerrmsg << "  Entities only in $tolocale locale:\n"
+					onlytolocale[file].each { key,block -> entityerrmsg << "    $key\t\t= ${block.value}\n" }
+				}
+				entityerrmsg << "\n"
+			}
+			
+			commonentities = [:]
+			commonentities[file] = l10n[fromlocale][file].findAll { key,v -> l10n[tolocale][file][key] }
+			commonentities[file].each { key,block ->
+				
+				// work with common entities of 2 locales...
+				
+			}
+			
+			// check if accesskey of 2 locales are same (for locales who sync with en-US)
+			differentaccesskeys = [:]
+			differentaccesskeys[file] = l10n[fromlocale][file].findAll { key,block ->
+				l10n[tolocale][file][key] && key =~ /\.accesskey$/ && block.value != l10n[tolocale][file][key].value
+			}
+			if (differentaccesskeys[file]) {
+				accesskeymsg << "Accesskey(s) in this file don't match: $file:\n"
+				differentaccesskeys[file].each { key,block -> accesskeymsg << "  $key = [$fromlocale: ${block.value}, $tolocale: ${l10n[tolocale][file][key].value}]\n" }
+			}
+			
+			
+		}
+		
+		println "$infomsg"
+		println "$accesskeymsg"
+		
+		if (fileerrmsg || entityerrmsg) {
+			ant.fail "Compare Locale Error:\n$fileerrmsg\n\n$entityerrmsg"
+		}
+	]]></groovy>
 	</sequential>
 </macrodef>
 <target name="compare-locales-ja" depends="load-mainconf" unless="locale">
@@ -144,20 +243,27 @@
 	
 	<groovy><![CDATA[
 		errormsg = new StringBuilder()
-		// find error in properties files
+		def syntaxchecker(file, encoding, validpattern) {
+			content = new StringBuilder()
+			file.getFile().getText(encoding).eachLine{ line,n -> content << "@line ${n+1}: $line\n" }
+			content = content.toString().replaceAll(validpattern, '')
+			if (content) errormsg << "Syntax Error Found in $file:\n$content\n\n"
+		}
+		
 		ant.fileset(dir: properties.'syntaxcheck.src.dir', includes:'**/*.properties').each {
-			content = new StringBuilder()
-			it.getFile().getText('UTF-8').eachLine{ line,n -> content << "@line ${n+1}: $line\n" }
-			content = content.toString().replaceAll(/(?m)${properties.'RE.properties.validline'}\n/, '')
-			if (content) errormsg << "Syntax Error Found in $it:\n$content\n\n"
+			syntaxchecker(it, 'UTF-8', /(?m)${properties.'RE.properties.validline'}\n/)
 		}
-		// find error in dtd files
 		ant.fileset(dir: properties.'syntaxcheck.src.dir', includes:'**/*.dtd').each {
-			content = new StringBuilder()
-			it.getFile().getText('UTF-8').eachLine{ line,n -> content << "@line ${n+1}: $line\n" }
-			content = content.toString().replaceAll(/(?ms)${properties.'RE.dtd.validblock'}\n/, '')
-			if (content) errormsg << "Syntax Error Found in $it:\n$content\n\n"
+			syntaxchecker(it, 'UTF-8', /(?ms)${properties.'RE.dtd.validblock'}\n/)
 		}
+		// need to support *.ini, *.inc files too...
+		//ant.fileset(dir: properties.'syntaxcheck.src.dir', includes:'**/*.ini').each {
+		//	syntaxchecker(it, 'UTF-8', /(?ms)${properties.'RE.ini.validblock'}\n/)
+		//}
+		//ant.fileset(dir: properties.'syntaxcheck.src.dir', includes:'**/*.inc').each {
+		//	syntaxchecker(it, 'UTF-8', /(?ms)${properties.'RE.inc.validblock'}\n/)
+		//}
+		
 		if (errormsg) {
 			new File(properties.'syntaxcheck.output').append(errormsg)
 			ant.fail(taskname: 'syntaxcheck', message:"$errormsg${properties.'vmsg.syntaxcheck.found'}")
@@ -183,9 +289,9 @@
 			errorlines = new StringBuilder()
 			it.getFile().getText('UTF-8').eachLine { line, n ->
 				err = false
-				(2..max).each { i ->
+				(2..max).each { i -> // search %2$2, %3$S...
 					if (!err && line =~ "^[^#].+=.+%$i\\\$S") {
-						(1..<i).each { j ->
+						(1..<i).each { j -> // confirm if smaller number placeholders are defined
 							err = err || (!line.contains("%$j\$S") && !line.contains("%$j\$0.S"))
 						}
 					}
@@ -243,6 +349,7 @@
 			replacement        = /@{replacement}/
 			xmlcommentpattern  = /(?ms)${properties.'RE.xml.comment'}/
 			linecommentpattern = /(?m)^(@line [0-9]+: )?\s*#[^\n]*/
+			errormsg           = new StringBuilder()
 			def wordchecker(file, encoding, allowpattern, denypattern, commentpattern) {
 				errorlines = new StringBuilder()
 				content = new StringBuilder()
@@ -260,7 +367,6 @@
 				}
 				if (errorlines) errormsg << "Error Found in $file:\n$errorlines\n\n"
 			}
-			errormsg = new StringBuilder()
 			
 			ant.fileset(dir: '@{dir}', includes:'**/*.dtd, ${xmlfiles}', excludes:'@{excludes}').each {
 				wordchecker(it, 'UTF-8', allowpattern, denypattern, xmlcommentpattern)
