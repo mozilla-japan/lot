@@ -346,9 +346,9 @@
 	
 	<wordchecksuite dir="${charcheck.src.dir}" output="${charcheck.output}"
 		allowpattern="${charcheck.allow}" denypattern="${charcheck.deny}" replacement="${charcheck.deny.replace}"/>
-	<fail message="${vmsg.charcheck.found}">
-		<condition><available file="${charcheck.output}" type="file"/></condition>
-	</fail>
+	
+	<loadfile property="charcheck.error" srcfile="${charcheck.output}" encoding="UTF-8" failonerror="false"/>
+	<fail message="${N}${charcheck.error}${vmsg.charcheck.found}" if="charcheck.error"/>
 </target>
 
 <target name="errorcheck" depends="syntaxcheck, placeholdercheck, pluralcheck, wordcheck, suspectedwordcheck, charcheck"/>
