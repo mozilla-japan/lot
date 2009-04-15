@@ -110,9 +110,14 @@
 
 <!-- * error check * -->
 <macrodef name="compare-locales">
-	<attribute name="fromlocale" default="en-US"/>
-	<attribute name="tolocale" default="ja"/>
-	<attribute name="failonerror" default="false"/>
+	<attribute name="fromlocale"		default="en-US"/>
+	<attribute name="tolocale"			default="ja"/>
+	<attribute name="failonerror"		default="false"/>
+	<attribute name="merge"				default="false"/>
+	<attribute name="insertnew"			default="false"/>
+	<attribute name="removeold"			default="false"/>
+	<attribute name="resetaccesskey"	default="false"/>
+	<attribute name="resetcomment"		default="false"/>
 	<sequential>
 	<groovy><![CDATA[
 		propertiespattern  = /(?m)${properties.'RE.properties.entityblock'}/
