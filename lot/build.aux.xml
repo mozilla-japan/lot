@@ -110,128 +110,151 @@
 
 <!-- * error check * -->
 <macrodef name="compare-locales">
-	<attribute name="fromlocale"		default="en-US"/>
-	<attribute name="tolocale"			default="ja"/>
+	<attribute name="locale1"			default="en-US"/>
+	<attribute name="locale2"			default="ja"/>
+	<attribute name="dir1"				default="${lot.l10n.dir}/@{locale1}"/>
+	<attribute name="dir2"				default="${lot.l10n.dir}/@{locale2}"/>
+	<attribute name="excludes"			default=""/>
 	<attribute name="failonerror"		default="false"/>
-	<attribute name="merge"				default="false"/>
 	<attribute name="insertnew"			default="false"/>
-	<attribute name="removeold"			default="false"/>
-	<attribute name="resetaccesskey"	default="false"/>
+	<attribute name="removeobsolate"	default="false"/>
 	<attribute name="resetcomment"		default="false"/>
+	<attribute name="resetaccesskey"	default="false"/>
 	<sequential>
-	<groovy><![CDATA[
+	<groovy taskname="compare-locales"><![CDATA[
+		locale1     = '@{locale1}'
+		locale2     = '@{locale2}'
+		dir1        = new File('@{dir1}').getCanonicalPath()
+		dir2        = new File('@{dir2}').getCanonicalPath()
+		excludes    = '@{excludes}'
+		failonerror = '@{failonerror}' == 'true'
 		propertiespattern  = /(?m)${properties.'RE.properties.entityblock'}/
 		dtdpattern         = /(?m)${properties.'RE.dtd.entityblock'}/
-		fromlocale = '@{fromlocale}'
-		tolocale   = '@{tolocale}'
-		//l10n[locale][filename][entitykey] = [prespace:, precomment:, definition:, key:, value:, postcomment:]
-		l10n = [(fromlocale): [:], (tolocale): [:]]
-		
-		def parse(locale, file, encoding, entityblockpattern, preprocess, postprocess) {
-			filename = file.toString()
-			// TODO: 任意ディレクトリの比較をするには key の生成方法を変える必要がある
-			filekey  = filename.replaceAll("/$locale/","/*/")
-			l10n[locale][filekey] = [:]
-			content = file.getFile().getText(encoding)
-			if (preprocess) content = preprocess(content)
-			content.eachMatch(entityblockpattern) {
-				block, prespace, precomment, definition, key, value, postcomment ->
-				l10n[locale][filekey][key] = [prespace:prespace, precomment:precomment, definition:definition, key:key, value:value, postcomment:postcomment]
-				if (postprocess) l10n[locale][filekey][key] = postprocess(l10n[locale][filekey][key])
-				//ant.echo "$key = $value"
-			}
-		}
-		
-		// Phase 1: Parse L10N Files
-		// TODO: 既知の過不足を無視できるように excludes に対応するべし
-		ant.fileset(dir: "${properties.'lot.l10n.dir'}/$fromlocale", includes:'**/*.properties').each {
-			parse(fromlocale, it, 'UTF-8', propertiespattern, null, null)
-		}
-		ant.fileset(dir: "${properties.'lot.l10n.dir'}/$tolocale", includes:'**/*.properties').each {
-			parse(tolocale, it, 'UTF-8', propertiespattern, null, null)
-		}
-		ant.fileset(dir: "${properties.'lot.l10n.dir'}/$fromlocale", includes:'**/*.dtd').each {
-			parse(fromlocale, it, 'UTF-8', dtdpattern, null, null)
-		}
-		ant.fileset(dir: "${properties.'lot.l10n.dir'}/$tolocale", includes:'**/*.dtd').each {
-			parse(tolocale, it, 'UTF-8', dtdpattern, null, null)
-		}
-		
-		
-		// Phase 2: Compare L10N Files
+		//l10n[basedir][filekey][entitykey] = [prespace:, precomment:, definition:, key:, value:, postcomment:]
+		l10n = [(dir1): [:], (dir2): [:]]
 		infomsg      = new StringBuilder()
 		fileerrmsg   = new StringBuilder()
 		entityerrmsg = new StringBuilder()
 		accesskeymsg = new StringBuilder()
+		commonkeys = uniquekeys1 = uniquekeys2 = 0
 		
-		infomsg << "Number of $fromlocale locale files: ${l10n[fromlocale].size()}\n"
-		infomsg << "Number of $tolocale locale files: ${l10n[tolocale].size()}\n"
-		
-		onlyfromlocale = l10n[fromlocale].findAll { file,v -> !l10n[tolocale][file] }
-		onlytolocale   = l10n[tolocale].findAll   { file,v -> !l10n[fromlocale][file] }
-		if (onlyfromlocale) {
-			fileerrmsg << "File(s) only in $fromlocale locale:\n"
-			onlyfromlocale.each { file,v -> fileerrmsg << "  $file\n" }
+		def parse(dir, file, encoding, entityblockpattern, preprocess, postprocess) {
+			filekey  = file.toString().replaceAll("$dir/","").replaceAll("/$locale1|$locale2","/*")
+			l10n[dir][filekey] = [:]
+			content = file.getFile().getText(encoding)
+			if (preprocess) content = preprocess(content)
+			content.eachMatch(entityblockpattern) {
+				block, prespace, precomment, definition, key, value, postcomment ->
+				l10n[dir][filekey][key] = [prespace:prespace, precomment:precomment, definition:definition, key:key, value:value, postcomment:postcomment]
+				if (postprocess) l10n[dir][filekey][key] = postprocess(l10n[dir][filekey][key])
+			}
 		}
-		if (onlytolocale) {
-			fileerrmsg << "File(s) only in $tolocale locale:\n"
-			onlytolocale.each { file,v -> fileerrmsg << "  $file\n" }
+		
+		// Phase 1: Parse L10N Files
+		ant.fileset(dir: "$dir1", includes:'**/*.properties', excludes:excludes).each {
+			parse(dir1, it, 'UTF-8', propertiespattern, null, null)
+		}
+		ant.fileset(dir: "$dir2", includes:'**/*.properties', excludes:excludes).each {
+			parse(dir2, it, 'UTF-8', propertiespattern, null, null)
+		}
+		ant.fileset(dir: "$dir1", includes:'**/*.dtd', excludes:excludes).each {
+			parse(dir1, it, 'UTF-8', dtdpattern, null, null)
+		}
+		ant.fileset(dir: "$dir2", includes:'**/*.dtd', excludes:excludes).each {
+			parse(dir2, it, 'UTF-8', dtdpattern, null, null)
 		}
 		
-		// compare entities in common files
-		commonfiles = l10n[fromlocale].findAll { file,v -> l10n[tolocale][file] }
-		commonfiles.each { file, entities ->
-			onlyfromlocale[file] = l10n[fromlocale][file].findAll { key,v -> !l10n[tolocale][file][key] }
-			onlytolocale[file]   = l10n[tolocale][file].findAll   { key,v -> !l10n[fromlocale][file][key] }
-			if (onlyfromlocale[file] || onlytolocale[file]) {
-				entityerrmsg << "Entities in this file don't match: $file:\n"
-				if (onlyfromlocale[file]) {
-					entityerrmsg << "  Entities only in $fromlocale locale:\n"
-					onlyfromlocale[file].each { key,block -> entityerrmsg << "    $key\t\t= ${block.value}\n" }
+		// to avoid ignoring existing blank file, check if it is null
+		l10n1 = l10n[dir1].groupBy { k,v -> l10n[dir2][k] != null ? 'common' : 'unique' }
+		l10n2 = l10n[dir2].groupBy { k,v -> l10n[dir1][k] != null ? 'common' : 'unique' }
+		// groupBy will not set empty map when nothing match and need to set empty map
+		l10n1.common = l10n1.common ?: [:]
+		l10n2.common = l10n2.common ?: [:]
+		l10n1.unique = l10n1.unique ?: [:]
+		l10n2.unique = l10n2.unique ?: [:]
+		assert l10n1.common.size() == l10n2.common.size()
+		infomsg << "Number of files in the $dir1 directory:\n"
+		infomsg << "    total: ${l10n[dir1].size()}, common: ${l10n1.common.size()}, unique: ${l10n1.unique.size()}\n\n"
+		infomsg << "Number of files in the $dir2 directory:\n"
+		infomsg << "    total: ${l10n[dir2].size()}, common: ${l10n2.common.size()}, unique: ${l10n2.unique.size()}\n\n"
+		
+		// Phase 2: Unique L10N Files
+		if (l10n1.unique) {
+			fileerrmsg << "File(s) only in $dir1 directory:\n"
+			l10n1.unique.each { filekey,entities ->
+				fileerrmsg << "    $filekey \t(${entities.size()?:0} entities)\n"
+				uniquekeys1 += entities.size()?:0
+			}
+		}
+		if (l10n2.unique) {
+			fileerrmsg << "File(s) only in $dir2 directory:\n"
+			l10n2.unique.each { filekey,entities ->
+				fileerrmsg << "    $filekey \t(${entities.size()?:0} entities)\n"
+				uniquekeys2 += entities.size()?:0
+			}
+		}
+		
+		// Phase 3: Common L10N Files
+		l10n1.common.each { filekey, allentities1 ->
+			allentities2 = l10n2.common[filekey]
+			entities1 = allentities1.groupBy { k,v -> allentities2[k] != null ? 'common' : 'unique' }
+			entities2 = allentities2.groupBy { k,v -> allentities1[k] != null ? 'common' : 'unique' }
+			entities1.common = entities1.common ?: [:]
+			entities2.common = entities2.common ?: [:]
+			entities1.unique = entities1.unique ?: [:]
+			entities2.unique = entities2.unique ?: [:]
+			assert entities1.common.size() == entities2.common.size()
+			commonkeys  += entities1.common.size() - entities1.unique.size()
+			uniquekeys1 += entities1.unique.size()
+			uniquekeys2 += entities2.unique.size()
+			// Phase 3-1: Unique Entities
+			if (entities1.unique || entities2.unique) {
+				entityerrmsg << "Entities in this file don't match: $filekey:\n"
+				if (entities1.unique) {
+					entityerrmsg << "    Only in $dir1/$filekey:\n"
+					entities1.unique.each { key,block -> entityerrmsg << "        $key \t= ${block.value}\n" }
 				}
-				if (onlytolocale[file]) {
-					entityerrmsg << "  Entities only in $tolocale locale:\n"
-					onlytolocale[file].each { key,block -> entityerrmsg << "    $key\t\t= ${block.value}\n" }
+				if (entities2.unique) {
+					entityerrmsg << "    Only in $dir2/$filekey:\n"
+					entities2.unique.each { key,block -> entityerrmsg << "        $key \t= ${block.value}\n" }
 				}
 				entityerrmsg << "\n"
 			}
-			
-			commonentities = [:]
-			commonentities[file] = l10n[fromlocale][file].findAll { key,v -> l10n[tolocale][file][key] }
-			commonentities[file].each { key,block ->
+			// Phase 3-2: Common Entities
+			entities1.common.each { key,block1 ->
+				block2 = entities2.common[key]
+				// Check Accesskey Entities
+				if (key =~ /\.accesskey$/ && block1.value != block2.value) {
+					accesskeymsg << "Accesskey(s) in this file don't match: $filekey:\n"
+					accesskeymsg << "    $key:  ${block1.value} != ${block2.value}\n"
+					
+					
+				}
+				// Merge L10N Files
 				
-				// work with common entities of 2 locales...
 				
 			}
-			
-			// check if accesskey of 2 locales are same (for locales who sync with en-US)
-			differentaccesskeys = [:]
-			differentaccesskeys[file] = l10n[fromlocale][file].findAll { key,block ->
-				l10n[tolocale][file][key] && key =~ /\.accesskey$/ && block.value != l10n[tolocale][file][key].value
-			}
-			if (differentaccesskeys[file]) {
-				accesskeymsg << "Accesskey(s) in this file don't match: $file:\n"
-				differentaccesskeys[file].each { key,block -> accesskeymsg << "  $key = [$fromlocale: ${block.value}, $tolocale: ${l10n[tolocale][file][key].value}]\n" }
-			}
-			
-			
 		}
+		infomsg << "Total Number of entities in the $dir1 directory:\n"
+		infomsg << "    total: ${commonkeys+uniquekeys1}, common: $commonkeys, unique: $uniquekeys1\n\n"
+		infomsg << "Total Number of entities in the $dir2 directory:\n"
+		infomsg << "    total: ${commonkeys+uniquekeys2}, common: $commonkeys, unique: $uniquekeys2\n\n"
 		
 		println "$infomsg"
-		println "$accesskeymsg"
 		
 		if (fileerrmsg || entityerrmsg) {
-			ant.fail "Compare Locale Error:\n$fileerrmsg\n\n$entityerrmsg"
+			new File('@{output}').append("$infomsg\n\n$fileerrmsg\n\n$entityerrmsg\n\n$accesskeymsg")
+			if (failonerror) ant.fail "Compare Locale Error:\n\n$fileerrmsg\n\n$entityerrmsg\n\n$accesskeymsg"
 		}
 	]]></groovy>
 	</sequential>
 </macrodef>
 <target name="compare-locales-ja" depends="load-mainconf" unless="locale">
-	<compare-locales tolocale="ja"/>
-	<compare-locales tolocale="ja-JP-mac"/>
+	<compare-locales dir2="${lot.l10n.dir}/ja" excludes="${compare-locales.excludes}" failonerror="true"/>
+	<compare-locales dir2="${lot.l10n.dir}/ja-JP-mac" excludes="${compare-locales.excludes}" failonerror="true"/>
 </target>
 <target name="compare-locales" depends="load-mainconf, compare-locales-ja" if="locale">
-	<compare-locales tolocale="${locale}" failonerror="true"/>
+	<compare-locales dir2="${lot.l10n.dir}/${locale}" excludes="${compare-locales.excludes}" failonerror="true"/>
 </target>
 
 
@@ -346,11 +369,14 @@
 	<attribute name="dir"/>
 	<attribute name="output"/>
 	<attribute name="excludes" default=""/>
+	<attribute name="regexpengine" default=""/>
 	<sequential><!-- 並列処理にすれば高速化可能... -->
 		<!-- groovy を使うと allowpattern をスラッシュ文字列リテラルに代入するためスラッシュのエスケープが必要 -->
 		<groovy><![CDATA[
+			import org.apache.oro.text.regex.*;
 			allowpattern       = /(?m)@{allowpattern}/
 			denypattern        = /(?m)@{denypattern}/
+			denypattern_       = ~/(?m)@{denypattern}/
 			replacement        = /@{replacement}/
 			xmlcommentpattern  = /(?ms)${properties.'RE.xml.comment'}/
 			linecommentpattern = /(?m)^(@line [0-9]+: )?\s*#[^\n]*/
@@ -365,9 +391,22 @@
 				if (allowpattern) {
 					content = content.toString().replaceAll(allowpattern, properties.'wordcheck.allow.replace')
 				}
-				content.eachLine { line, n ->
-					if (line =~ denypattern) {
-						errorlines << line.replaceAll("($denypattern)", replacement) + "\n"
+				
+				if ('@{regexpengine}' == 'jakartaoro') {
+					PatternMatcher matcher = new Perl5Matcher();
+					PatternCompiler compiler = new Perl5Compiler();
+					Pattern pattern = compiler.compile("($denypattern)");
+					content.eachLine { line, n ->
+						if (matcher.contains(line, pattern)) {
+							errorlines << Util.substitute(matcher, pattern, new Perl5Substitution(replacement, Perl5Substitution.INTERPOLATE_ALL), line, Util.SUBSTITUTE_ALL) + "\n"
+						}
+					}
+				}
+				else {
+					content.eachLine { line, n ->
+						if (line =~ denypattern_) {
+							errorlines << line.toString().replaceAll("($denypattern)", replacement) + "\n"
+						}
 					}
 				}
 				if (errorlines) errormsg << "Error Found in $file:\n$errorlines\n\n"
@@ -446,7 +485,7 @@
 </target>
 
 <!-- currently off by default -->
-<target name="charcheck" depends="load-conf" unless="nocharcheck" if="docharcheck">
+<target name="charcheck" depends="load-conf" unless="nocharcheck">
 	<delete file="${charcheck.output}" failonerror="false"/>
 	
 	<fail message="${cmsg.noprop.charcheck.src.dir}" unless="charcheck.src.dir"/>
@@ -455,11 +494,13 @@
 		<condition><not><available file="${charcheck.src.dir}" type="dir"/></not></condition>
 	</fail>
 	
-	<wordchecksuite dir="${charcheck.src.dir}" output="${charcheck.output}"
-		allowpattern="${charcheck.allow}" denypattern="${charcheck.deny}" replacement="${charcheck.deny.replace}"/>
+	<wordchecksuite dir="${charcheck.src.dir}" output="${charcheck.output}" excludes="${charcheck.excludes}"
+		allowpattern="${charcheck.allow}" denypattern="${charcheck.deny}" replacement="${charcheck.deny.replace}"
+		regexpengine="jakartaoro"/>
 	
 	<loadfile property="charcheck.error" srcfile="${charcheck.output}" encoding="UTF-8" failonerror="false"/>
-	<fail message="${N}${charcheck.error}${vmsg.charcheck.found}" if="charcheck.error"/>
+	<echo></echo>
+	<fail if="charcheck.error">${N}${charcheck.error}${vmsg.charcheck.found}{$}使用不可と検出された文字のリストを取得したい場合は次の(一行の)コマンドを実行してください:${N}cat ${charcheck.output} | perl -pe 'use utf8; use encoding ("utf-8"); s/^[^\[\]]*(\[CHARERROR\[([^\]]+)\]CHARERROR\])?[^\[\]]*|[^\[\]]*|^Error.+/$1\n/g; s/CHARERROR|[\[\]\s]//g; s/(.)/$1\n/g;' | sort | uniq</fail>
 </target>
 
 <target name="errorcheck" depends="syntaxcheck, placeholdercheck, pluralcheck, wordcheck, suspectedwordcheck, charcheck"/>

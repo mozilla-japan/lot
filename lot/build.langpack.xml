@@ -78,6 +78,9 @@
 </target>
 
 <target name="replace" depends="prepare" unless="noreplace" if="doreplace">
+	
+	<!-- こんな Hack は止めて groovy で書き直す！ -->
+	
 	<!-- want to define filterchain at runtime but cannot and make/load build script for repale -->
 	<loadfile srcfile="${lot.src.dir}/${replace.file}" property="replace.replacestring.list" encoding="UTF-8">
 		<filterchain>

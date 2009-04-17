@@ -68,7 +68,8 @@
 <taskdef resource="net/sf/antcontrib/antlib.xml" classpathref="path.antlib"/>
 
 <path id="path.groovy"><fileset dir="antlib" includes="groovy-all-*.jar"/></path>
-<taskdef name="groovy" classname="org.codehaus.groovy.ant.Groovy" classpathref="path.groovy"/>
+<path id="path.groovy"><fileset dir="antlib" includes="groovy-all-*.jar, jakarta-oro-*.jar"/></path>
+<taskdef name="groovy" classname="org.codehaus.groovy.ant.Groovy" classpathref="path.antlib"/>
 <taskdef name="groovyc" classname="org.codehaus.groovy.ant.Groovyc" classpathref="path.groovy"/>
 
 
