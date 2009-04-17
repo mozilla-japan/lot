@@ -74,9 +74,10 @@
 <target name="load-packageconf" depends="load-mainconf" unless="packageconf.loaded">
 	<fail unless="mainconf.loaded"/>
 	<property name="config.package.file" value="config//${config.package.filename}"/>
+	<property name="locale" value="${lot.locale.default}"/>
 	<loadconf file="${config.package.file}">
 		<morefilters>
-			<replaceregex pattern="^(${config.package.stripprefix})#" replace="" flags="i"/>
+			<replaceregex pattern="^(${targetapp}\\.${locale}|${targetapp}|${locale})#" replace="" flags="i"/>
 		</morefilters>
 	</loadconf>
 	<!-- package depending part of mainconf -->

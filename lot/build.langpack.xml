@@ -4,6 +4,7 @@
 <property name="buildfile.langpack.loaded" value="true"/>
 
 <!-- import preset/macro library and additional targets -->
+<import file="build.errorcheck.xml"/>
 <import file="build.diff.xml"		optional="true"/>
 <import file="build.aux.xml"		optional="true"/>
 
@@ -90,7 +91,6 @@
 			<replacestring from="&gt;" to="&amp;gt;"/>
 			<replacestring from="&lt;" to="&amp;lt;"/>
 			<replacestring from="&quot;" to="&amp;quot;"/>
-			<!-- <replaceregex pattern="^([^,]+),([^,]+)$" replace="s/\1/\2/g"/> --><!-- sed script -->
 			<replaceregex pattern="^/((?:[^/]+)(?:\\/[^/]*)*)/((?:[^/]+)(?:\\/[^/]*)*)/$"
 				replace='&lt;replaceregex pattern="\1" replace="\2"/&gt;'/>
 			<replaceregex pattern="^([^,]+),([^,]+)$" replace='&lt;replacestring from="\1" to="\2"/&gt;'/>

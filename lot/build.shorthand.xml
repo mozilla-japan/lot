@@ -10,7 +10,6 @@
 <propertyalias property="todir"			alias="unescape.todir"/>
 
 <propertyalias property="docheck"		alias="dosuspectedwordcheck"/>
-<propertyalias property="docheck"		alias="docharcheck"/>
 
 <propertyalias property="nocheck"		alias="nosyntaxcheck"/>
 <propertyalias property="nocheck"		alias="noplaceholdercheck"/>
