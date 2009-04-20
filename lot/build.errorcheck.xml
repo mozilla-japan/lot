@@ -1,0 +1,429 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="errorcheck" default="" basedir=".">
+<description>errorcheck targets</description>
+<property name="buildfile.errorcheck.loaded" value="true"/>
+
+
+<target name="errorcheck" depends="syntaxcheck, placeholdercheck, pluralcheck, wordcheck, suspectedwordcheck, charcheck, compare"/>
+
+
+<macrodef name="errorlog">
+	<attribute name="file"/>
+	<attribute name="message"	default=""/>
+	<attribute name="append"	default="false"/>
+	<attribute name="encoding"	default="UTF-8"/>
+	<attribute name="type"		default="error"/>
+	<attribute name="fail"		default="false"/>
+	<text name="text" optional="true"/>
+	<sequential>
+		<groovy>ant.mkdir(dir:new File("@{file}").getParent())</groovy>
+		<echo taskname="@{taskname}" file="@{file}" message="@{message}@{text}"/>
+		<if>
+			<istrue value="@{fail}"/>
+			<then>
+				<fail taskname="@{type}" message="@{message}@{text}"/>
+			</then>
+			<else>
+				<echo taskname="@{type}" message="@{message}@{text}"/>
+			</else>
+		</if>
+	</sequential>
+</macrodef>
+
+
+<!-- * Syntax Check * -->
+<target name="syntaxcheck" depends="load-conf" unless="nosyntaxcheck"
+	description="syntax error check of converted files">
+	<fail message="${cmsg.noprop.syntaxcheck.src.dir}" unless="syntaxcheck.src.dir"/>
+	<loadmessage pattern="^vmsg\.syntaxcheck\."/>
+	<fail message="${vmsg.syntaxcheck.no.srcdir}">
+		<condition><not><available file="${syntaxcheck.src.dir}" type="dir"/></not></condition>
+	</fail>
+	
+	<property name="syntaxcheck.output"  value="temp/syntaxerror.txt"/>
+	<delete file="${syntaxcheck.output}" failonerror="false"/>
+	
+	<groovy><![CDATA[
+		errormsg = new StringBuilder()
+		def syntaxchecker(file, encoding, validpattern) {
+			content = new StringBuilder()
+			file.getFile().getText(encoding).eachLine{ line,n -> content << "@line ${n+1}: $line\n" }
+			content = content.toString().replaceAll(validpattern, '')
+			if (content) errormsg << "Syntax Error Found in $file:\n$content\n\n"
+		}
+		
+		ant.fileset(dir: properties.'syntaxcheck.src.dir', includes:'**/*.properties').each {
+			syntaxchecker(it, 'UTF-8', /(?m)${properties.'RE.properties.validline'}\n/)
+		}
+		ant.fileset(dir: properties.'syntaxcheck.src.dir', includes:'**/*.dtd').each {
+			syntaxchecker(it, 'UTF-8', /(?ms)${properties.'RE.dtd.validblock'}\n/)
+		}
+		// need to support *.ini, *.inc files too...
+		//ant.fileset(dir: properties.'syntaxcheck.src.dir', includes:'**/*.ini').each {
+		//	syntaxchecker(it, 'UTF-8', /(?ms)${properties.'RE.ini.validblock'}\n/)
+		//}
+		//ant.fileset(dir: properties.'syntaxcheck.src.dir', includes:'**/*.inc').each {
+		//	syntaxchecker(it, 'UTF-8', /(?ms)${properties.'RE.inc.validblock'}\n/)
+		//}
+		
+		if (errormsg) {
+			ant.errorlog(type: 'syntaxerror', file: properties.'syntaxcheck.output', fail: true,
+				message: "$errormsg${properties.'vmsg.syntaxcheck.found'}")
+		}
+	]]></groovy>
+</target>
+
+<!-- * Placeholder Check * -->
+<target name="placeholdercheck" depends="load-conf" unless="noplaceholdercheck"
+	description="placeholder usage error check of converted properties files">
+	<fail message="${cmsg.noprop.placeholdercheck.src.dir}" unless="placeholdercheck.src.dir"/>
+	<loadmessage pattern="^vmsg\.placeholdercheck\."/>
+	<fail message="${vmsg.placeholdercheck.no.srcdir}">
+		<condition><not><available file="${placeholdercheck.src.dir}" type="dir"/></not></condition>
+	</fail>
+	
+	<property name="placeholdercheck.output"  value="temp/placeholdererror.txt"/>
+	<delete file="${placeholdercheck.output}" failonerror="false"/>
+	
+	<groovy><![CDATA[
+		max = 5
+		errormsg = new StringBuilder()
+		ant.fileset(dir: properties.'placeholdercheck.src.dir', includes:'**/*.properties').each {
+			errorlines = new StringBuilder()
+			it.getFile().getText('UTF-8').eachLine { line, n ->
+				err = false
+				(2..max).each { i -> // search %2$2, %3$S...
+					if (!err && line =~ "^[^#].+=.+%$i\\\$S") {
+						(1..<i).each { j -> // confirm if smaller number placeholders are defined
+							err = err || (!line.contains("%$j\$S") && !line.contains("%$j\$0.S"))
+						}
+					}
+				}
+				if (err) errorlines << "@line ${n+1}: $line\n"
+			}
+			if (errorlines) errormsg << "Placeholder Error Found in $it:\n$errorlines\n\n"
+		}
+		if (errormsg) {
+			ant.errorlog(type: 'placeholdererror', file: properties.'placeholdercheck.output', fail: true,
+				message: "$errormsg${properties.'vmsg.placeholdercheck.found'}")
+		}
+	]]></groovy>
+</target>
+
+<!-- * Plural Form Usage Check * -->
+<target name="pluralcheck" depends="load-conf" unless="nopluralcheck"
+	description="plural form error check of converted properties files">
+	<loadmessage pattern="^vmsg\.pluralcheck\."/>
+	<property name="pluralcheck.output"	value="temp/pluralcheck.txt"/>
+	<delete file="${pluralcheck.output}" failonerror="false"/>
+	
+	<groovy><![CDATA[
+		errormsg = new StringBuilder()
+		ant.fileset(dir: properties.'pluralcheck.src.dir', includes:'**/*.properties').each {
+			errorlines = new StringBuilder()
+			it.getFile().getText('UTF-8').replaceAll(/(?ms)${properties.'pluralcheck.allow'}/, properties.'pluralcheck.allow.replace').eachLine { line, n ->
+				if (line =~ /^\s*[-0-9a-zA-Z_.?{@}]+\s*=.+;.+/) {
+					errorlines << "@line ${n+1}: $line\n"
+				}
+			}
+			if (errorlines) errormsg << "Plural Form Error Found in $it:\n$errorlines\n\n"
+		}
+		if (errormsg) {
+			ant.errorlog(type: 'pluralformerror', file: properties.'pluralcheck.output',
+				message: "$errormsg${properties.'vmsg.pluralcheck.found'}")
+		}
+	]]></groovy>
+</target>
+
+
+<!-- * Contents (Word/Character) Check * -->
+<macrodef name="wordchecksuite">
+	<!-- macrodef 配下の groovy タスクでは @{attribute} を展開したものが groovy のソースとして解釈実行される。但し、属性のデフォルト値に Ant のプロパティ展開式を記述した場合、macrodef 定義時に設定済みのプロパティは展開済みの値が groovy のソースに挿入されるが、macrodef 定義時に未設定のプロパティは展開式のまま groovy のソースに挿入される。文字列リテラル中に @{attribute} を含める場合、GString として解釈されて構文エラーを引き起こさないように注意が必要。 -->
+	<!-- allowpattern, denypattern 属性では(スラッシュ以外には)バックスラッシュのエスケープが必要とならないようにスラッシュ文字列リテラルに含めるが、GString が有効になるので Ant のプロパティをデフォルト値には定義できない。default="${properties.'wordcheck.allow'}" などと指定することもできるが、この場合属性値を受け取った場合にはスラッシュのエスケープが必要だがデフォルト値ではエスケープしてはならないというフォーマットが不統一になる。 -->
+	<attribute name="allowpattern"/><!-- Java Regexp (exception: slash have to be escaped and ${} will be replaced) -->
+	<attribute name="denypattern"/><!-- Java Regexp (exception: slash have to be escaped and ${} will be replaced) -->
+	<attribute name="replacement"	default="${properties.'wordcheck.deny.replace'}"/>
+	<attribute name="dir"/>
+	<attribute name="output"/>
+	<attribute name="excludes"		default=""/>
+	<attribute name="regexpengine"	default=""/>
+	<sequential><!-- 並列処理にすれば高速化可能... -->
+		<groovy><![CDATA[
+			import org.apache.oro.text.regex.*;
+			allowpattern       = /(?m)@{allowpattern}/
+			denypattern        = /(?m)@{denypattern}/
+			denypattern_       = ~/(?m)@{denypattern}/
+			replacement        = /@{replacement}/
+			xmlcommentpattern  = /(?ms)${properties.'RE.xml.comment'}/
+			linecommentpattern = /(?m)^(@line [0-9]+: )?\s*#[^\n]*/
+			errormsg           = new StringBuilder()
+			def wordchecker(file, encoding, allowpattern, denypattern, commentpattern) {
+				errorlines = new StringBuilder()
+				content = new StringBuilder()
+				file.getFile().getText(encoding).eachLine{ line,n -> content << "@line ${n+1}: $line\n" }
+				if (commentpattern) {
+					content = content.toString().replaceAll(commentpattern, '')
+				}
+				if (allowpattern) {
+					content = content.toString().replaceAll(allowpattern, properties.'wordcheck.allow.replace')
+				}
+				
+				if ('@{regexpengine}' == 'jakartaoro') {
+					PatternMatcher matcher = new Perl5Matcher();
+					PatternCompiler compiler = new Perl5Compiler();
+					Pattern pattern = compiler.compile("($denypattern)");
+					content.eachLine { line, n ->
+						if (matcher.contains(line, pattern)) {
+							errorlines << Util.substitute(matcher, pattern, new Perl5Substitution(replacement, Perl5Substitution.INTERPOLATE_ALL), line, Util.SUBSTITUTE_ALL) + "\n"
+						}
+					}
+				}
+				else {
+					content.eachLine { line, n ->
+						if (line =~ denypattern_) {
+							errorlines << line.toString().replaceAll("($denypattern)", replacement) + "\n"
+						}
+					}
+				}
+				if (errorlines) errormsg << "Error Found in $file:\n$errorlines\n\n"
+			}
+			
+			ant.fileset(dir: '@{dir}', includes:'**/*.dtd, ${xmlfiles}', excludes:'@{excludes}').each {
+				wordchecker(it, 'UTF-8', allowpattern, denypattern, xmlcommentpattern)
+			}
+			if (properties.'wordcheck.unescape.properties') {
+				// note: native2ascii task require JDK installed and JAVA_HOME env set properly, or you'll see the error "error starting Sun's native2ascii"
+				ant.native2ascii(src:'@{dir}', includes:'**/*.properties',
+					dest:'${lot.temp.dir}/wordcheck', reverse:true, encoding:'UTF-8')
+				ant.fileset(dir: '${lot.temp.dir}/wordcheck', includes:'**/*.properties', excludes:'@{excludes}').each {
+					wordchecker(it, 'UTF-8', allowpattern, denypattern, linecommentpattern)
+				}
+				ant.delete(dir:'${lot.temp.dir}/wordcheck', failonerror:false)
+			}
+			else {
+				ant.fileset(dir: '@{dir}', includes:'**/*.properties', excludes:'@{excludes}').each {
+					wordchecker(it, 'UTF-8', allowpattern, denypattern, linecommentpattern)
+				}
+			}
+			ant.fileset(dir: '@{dir}', includes:'**/*.inc, **/unix/*.it', excludes:'@{excludes}').each {
+				wordchecker(it, 'UTF-8', allowpattern, denypattern, null)
+			}
+			ant.fileset(dir: '@{dir}', includes:'${sjisfiles}', excludes:'@{excludes}').each {
+				wordchecker(it, 'Shift_JIS', allowpattern, denypattern, null)
+			}
+			if (errormsg) new File('@{output}').append(errormsg)
+		]]></groovy>
+	</sequential>
+</macrodef>
+
+<target name="wordcheck" depends="load-conf" unless="nowordcheck">
+	<fail message="${cmsg.noprop.wordcheck.src.dir}" unless="wordcheck.src.dir"/>
+	<loadmessage pattern="^vmsg\.wordcheck\."/>
+	<fail message="${vmsg.wordcheck.no.srcdir}">
+		<condition><not><available file="${wordcheck.src.dir}" type="dir"/></not></condition>
+	</fail>
+	<property name="wordcheck.output"  value="temp/worderror.txt"/>
+	<delete file="${wordcheck.output}" failonerror="false"/>
+	
+	<equals property="wordcheck.deny"	value="@{2}|${wordcheck.deny.common}|${wordcheck.deny.ja}" arg1="${locale}" arg2="ja"/>
+	<equals property="wordcheck.deny"	value="@{2}|${wordcheck.deny.common}|${wordcheck.deny.ja-JP-mac}" arg1="${locale}" arg2="ja-JP-mac"/>
+	<property name="wordcheck.deny"		value="${wordcheck.deny.common}"/>
+	<equals property="wordcheck.allow"	value="${wordcheck.allow.common}|${wordcheck.allow.ja}" arg1="${locale}" arg2="ja"/>
+	<equals property="wordcheck.allow"	value="${wordcheck.allow.common}|${wordcheck.allow.ja-JP-mac}" arg1="${locale}" arg2="ja-JP-mac"/>
+	<property name="wordcheck.allow"	value="${wordcheck.allow.common}"/>
+	
+	<wordchecksuite dir="${wordcheck.src.dir}" output="${wordcheck.output}"
+		excludes="browser/, calendar/, editor/, mail/, mobile/, suite/"
+		allowpattern="${wordcheck.allow}" denypattern="${wordcheck.deny}"/>
+	<wordchecksuite dir="${wordcheck.src.dir}/browser" output="${wordcheck.output}"
+		allowpattern="${wordcheck.allow}" denypattern="${wordcheck.deny}|${wordcheck.deny.firefox}"/>
+	<wordchecksuite dir="${wordcheck.src.dir}/calendar" output="${wordcheck.output}"
+		allowpattern="${wordcheck.allow}" denypattern="${wordcheck.deny}|${wordcheck.deny.sunbird}"/>
+	<wordchecksuite dir="${wordcheck.src.dir}/editor" output="${wordcheck.output}"
+		allowpattern="${wordcheck.allow}" denypattern="${wordcheck.deny}|${wordcheck.deny.thunderbird}|${wordcheck.deny.seamonkey}"/>
+	<wordchecksuite dir="${wordcheck.src.dir}/mail" output="${wordcheck.output}"
+		allowpattern="${wordcheck.allow}" denypattern="${wordcheck.deny}|${wordcheck.deny.thunderbird}|${wordcheck.deny.seamonkey}"/>
+	<wordchecksuite dir="${wordcheck.src.dir}/mobile" output="${wordcheck.output}"
+		allowpattern="${wordcheck.allow}" denypattern="${wordcheck.deny}|${wordcheck.deny.fennec}"/>
+	<wordchecksuite dir="${wordcheck.src.dir}/suite" output="${wordcheck.output}"
+		allowpattern="${wordcheck.allow}" denypattern="${wordcheck.deny}|${wordcheck.deny.seamonkey}"/>
+	
+	<loadfile property="wordcheck.error" srcfile="${wordcheck.output}" encoding="UTF-8"
+		failonerror="false" quiet="true"/>
+	<fail message="${N}${wordcheck.error}${vmsg.wordcheck.found}" if="wordcheck.error"/>
+</target>
+
+<target name="suspectedwordcheck" depends="load-conf" unless="nosuspectedwordcheck" if="dosuspectedwordcheck">
+	<delete file="${wordcheck.suspected.output}" failonerror="false"/>
+	
+	<equals property="wordcheck.suspected"	value="@{2}|${wordcheck.suspected.ja}" arg1="${locale}" arg2="ja"/>
+	<equals property="wordcheck.suspected"	value="@{2}|${wordcheck.suspected.ja-JP-mac}" arg1="${locale}" arg2="ja-JP-mac"/>
+	
+	<wordchecksuite dir="${wordcheck.src.dir}" output="${wordcheck.suspected.output}"
+		allowpattern="##NOTHING##" denypattern="${wordcheck.suspected}"/>
+</target>
+
+<target name="charcheck" depends="load-conf" unless="nocharcheck">
+	<delete file="${charcheck.output}" failonerror="false"/>
+	
+	<fail message="${cmsg.noprop.charcheck.src.dir}" unless="charcheck.src.dir"/>
+	<loadmessage pattern="^vmsg\.charcheck\."/>
+	<fail message="${vmsg.charcheck.no.srcdir}">
+		<condition><not><available file="${charcheck.src.dir}" type="dir"/></not></condition>
+	</fail>
+	
+	<wordchecksuite dir="${charcheck.src.dir}" output="${charcheck.output}" excludes="${charcheck.excludes}"
+		allowpattern="${charcheck.allow}" denypattern="${charcheck.deny}" replacement="${charcheck.deny.replace}"
+		regexpengine="jakartaoro"/>
+	
+	<loadfile property="charcheck.error" srcfile="${charcheck.output}" encoding="UTF-8"
+		failonerror="false" quiet="true"/>
+	<fail if="charcheck.error">${N}${charcheck.error}${vmsg.charcheck.found}{$}使用不可と検出された文字のリストを取得したい場合は次の(一行の)コマンドを実行してください:${N}cat ${charcheck.output} | perl -pe 'use utf8; use encoding ("utf-8"); s/^[^\[\]]*(\[CHARERROR\[([^\]]+)\]CHARERROR\])?[^\[\]]*|[^\[\]]*|^Error.+/$1\n/g; s/CHARERROR|[\[\]\s]//g; s/(.)/$1\n/g;' | sort | uniq</fail>
+</target>
+
+
+<!-- * compare/diff/merge locales * -->
+<macrodef name="compare">
+	<attribute name="locale1"			default="en-US"/>
+	<attribute name="locale2"			default="ja"/>
+	<attribute name="dir1"				default="${lot.l10n.dir}/@{locale1}"/>
+	<attribute name="dir2"				default="${lot.l10n.dir}/@{locale2}"/>
+	<attribute name="excludes"			default=""/>
+	<attribute name="output"			default="${properties.'compare.output'}"/>
+	<attribute name="failonerror"		default="false"/>
+	<attribute name="insertnew"			default="false"/>
+	<attribute name="removeobsolate"	default="false"/>
+	<attribute name="resetcomment"		default="false"/>
+	<attribute name="resetaccesskey"	default="false"/>
+	<sequential>
+	<groovy taskname="compare"><![CDATA[
+		locale1     = '@{locale1}'
+		locale2     = '@{locale2}'
+		dir1        = new File('@{dir1}').getCanonicalPath()
+		dir2        = new File('@{dir2}').getCanonicalPath()
+		excludes    = '@{excludes}'
+		output      = "@{output}"
+		failonerror = '@{failonerror}' == 'true'
+		propertiespattern  = /(?m)${properties.'RE.properties.entityblock'}/
+		dtdpattern         = /(?m)${properties.'RE.dtd.entityblock'}/
+		//l10n[basedir][filekey][entitykey] = [prespace:, precomment:, definition:, key:, value:, postcomment:]
+		l10n = [(dir1): [:], (dir2): [:]]
+		infomsg      = new StringBuilder()
+		fileerrmsg   = new StringBuilder()
+		entityerrmsg = new StringBuilder()
+		accesskeymsg = new StringBuilder()
+		commonkeys = uniquekeys1 = uniquekeys2 = 0
+		
+		def parse(dir, file, encoding, entityblockpattern, preprocess, postprocess) {
+			filekey  = file.toString().replaceAll("$dir/","").replaceAll("/$locale1|$locale2","/*")
+			l10n[dir][filekey] = [:]
+			content = file.getFile().getText(encoding)
+			if (preprocess) content = preprocess(content)
+			content.eachMatch(entityblockpattern) {
+				block, prespace, precomment, definition, key, value, postcomment ->
+				l10n[dir][filekey][key] = [prespace:prespace, precomment:precomment, definition:definition, key:key, value:value, postcomment:postcomment]
+				if (postprocess) l10n[dir][filekey][key] = postprocess(l10n[dir][filekey][key])
+			}
+		}
+		
+		// Phase 1: Parse L10N Files
+		ant.fileset(dir: "$dir1", includes:'**/*.properties', excludes:excludes).each {
+			parse(dir1, it, 'UTF-8', propertiespattern, null, null)
+		}
+		ant.fileset(dir: "$dir2", includes:'**/*.properties', excludes:excludes).each {
+			parse(dir2, it, 'UTF-8', propertiespattern, null, null)
+		}
+		ant.fileset(dir: "$dir1", includes:'**/*.dtd', excludes:excludes).each {
+			parse(dir1, it, 'UTF-8', dtdpattern, null, null)
+		}
+		ant.fileset(dir: "$dir2", includes:'**/*.dtd', excludes:excludes).each {
+			parse(dir2, it, 'UTF-8', dtdpattern, null, null)
+		}
+		
+		// to avoid ignoring existing blank file, check if it is null
+		l10n1 = l10n[dir1].groupBy { k,v -> l10n[dir2][k] != null ? 'common' : 'unique' }
+		l10n2 = l10n[dir2].groupBy { k,v -> l10n[dir1][k] != null ? 'common' : 'unique' }
+		// groupBy will not set empty map when nothing match and need to set empty map
+		l10n1.common = l10n1.common ?: [:]
+		l10n2.common = l10n2.common ?: [:]
+		l10n1.unique = l10n1.unique ?: [:]
+		l10n2.unique = l10n2.unique ?: [:]
+		assert l10n1.common.size() == l10n2.common.size()
+		infomsg << "Number of files in the $dir1 directory:\n"
+		infomsg << "  total: ${l10n[dir1].size()}, common: ${l10n1.common.size()}, unique: ${l10n1.unique.size()}\n\n"
+		infomsg << "Number of files in the $dir2 directory:\n"
+		infomsg << "  total: ${l10n[dir2].size()}, common: ${l10n2.common.size()}, unique: ${l10n2.unique.size()}\n\n"
+		
+		// Phase 2: Unique L10N Files
+		if (l10n1.unique) {
+			fileerrmsg << "File(s) only in $dir1 directory:\n"
+			l10n1.unique.each { filekey,entities ->
+				uniquekeys1 += entities.size()?:0
+				fileerrmsg << "  $filekey \t(${entities.size()?:0} entities)\n"
+			}
+		}
+		if (l10n2.unique) {
+			fileerrmsg << "File(s) only in $dir2 directory:\n"
+			l10n2.unique.each { filekey,entities ->
+				uniquekeys2 += entities.size()?:0
+				fileerrmsg << "  $filekey \t(${entities.size()?:0} entities)\n"
+			}
+		}
+		
+		// Phase 3: Common L10N Files
+		l10n1.common.each { filekey, allentities1 ->
+			allentities2 = l10n2.common[filekey]
+			entities1 = allentities1.groupBy { k,v -> allentities2[k] != null ? 'common' : 'unique' }
+			entities2 = allentities2.groupBy { k,v -> allentities1[k] != null ? 'common' : 'unique' }
+			entities1.common = entities1.common ?: [:]
+			entities2.common = entities2.common ?: [:]
+			entities1.unique = entities1.unique ?: [:]
+			entities2.unique = entities2.unique ?: [:]
+			assert entities1.common.size() == entities2.common.size()
+			commonkeys  += entities1.common.size() - entities1.unique.size()
+			uniquekeys1 += entities1.unique.size()
+			uniquekeys2 += entities2.unique.size()
+			// Phase 3-1: Unique Entities
+			if (entities1.unique || entities2.unique) {
+				entityerrmsg << "Entities in this file don't match: $filekey:\n"
+				if (entities1.unique) {
+					entityerrmsg << "  Only in $dir1/$filekey:\n"
+					entities1.unique.each { key,block -> entityerrmsg << "    ${block.definition}\n" }
+				}
+				if (entities2.unique) {
+					entityerrmsg << "  Only in $dir2/$filekey:\n"
+					entities2.unique.each { key,block -> entityerrmsg << "    ${block.definition}\n" }
+				}
+				entityerrmsg << "\n"
+			}
+			// Phase 3-2: Common Entities
+			entities1.common.each { key,block1 ->
+				block2 = entities2.common[key]
+				// Check Accesskey Entities
+				if (key =~ properties.'compare.accesskey.pattern' &&
+					!(key =~ properties.'compare.accesskey.except') &&
+					block1.value != block2.value) {
+					accesskeymsg << "Accesskey(s) in this file don't match: $filekey:\n"
+					accesskeymsg << "  $key:  ${block1.value} != ${block2.value}\n"
+					
+					
+				}
+			}
+		}
+		infomsg << "Total Number of entities in the $dir1 directory:\n"
+		infomsg << "  total: ${commonkeys+uniquekeys1}, common: $commonkeys, unique: $uniquekeys1\n\n"
+		infomsg << "Total Number of entities in the $dir2 directory:\n"
+		infomsg << "  total: ${commonkeys+uniquekeys2}, common: $commonkeys, unique: $uniquekeys2\n\n"
+		
+		ant.errorlog(type: 'compare', file: output, fail: failonerror && (fileerrmsg || entityerrmsg), 
+			message: "Compare Locales Result:\n$infomsg\n\n$fileerrmsg\n\n$entityerrmsg\n\n$accesskeymsg")
+	]]></groovy>
+	</sequential>
+</macrodef>
+
+<target name="compare" depends="load-conf">
+	<compare locale2="${locale}" dir2="${compare.dir}" excludes="${compare.excludes}" failonerror="false"/>
+</target>
+
+
+</project>
