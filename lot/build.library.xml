@@ -71,6 +71,15 @@
 <path id="path.groovy"><fileset dir="antlib" includes="groovy-all-*.jar, jakarta-oro-*.jar"/></path>
 <taskdef name="groovy" classname="org.codehaus.groovy.ant.Groovy" classpathref="path.antlib"/>
 <taskdef name="groovyc" classname="org.codehaus.groovy.ant.Groovyc" classpathref="path.groovy"/>
+<if><!-- Set file.encoding system property to load groovy script written in UTF-8 in any platform -->
+	<not><isset property="lib.groovy.encoding.set"/></not>
+	<then>
+		<groovy>
+			System.setProperty("file.encoding","UTF8")
+			properties.'lib.groovy.encoding.set' = true
+		</groovy>
+	</then>
+</if>
 
 
 <!-- * general macrodef * -->
