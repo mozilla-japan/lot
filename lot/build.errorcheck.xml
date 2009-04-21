@@ -298,7 +298,6 @@
 	<sequential>
 	<groovy taskname="compare"><![CDATA[
 		debug       = false
-		
 		locale1     = '@{locale1}'
 		locale2     = '@{locale2}'
 		dir1        = new File('@{dir1}').getCanonicalPath()
@@ -316,11 +315,12 @@
 		fileerrmsg   = new StringBuilder()
 		entityerrmsg = new StringBuilder()
 		accesskeymsg = new StringBuilder()
+		metakeys = 3 // *info, *header, *footer
 		commonkeys = uniquekeys1 = uniquekeys2 = 0
 		
 		def parse(dir, file, encoding, filepattern, entitypattern, preprocess, postprocess) {
 			filekey  = file.toString().replaceAll("$dir/","").replaceAll("/$locale1|$locale2","/*")
-			l10n[dir][filekey] = ['*header':[index:-1,key:'*header'], '*footer':[index:-1,key:'*footer']]
+			l10n[dir][filekey] = ['*info':[:], '*header':[index:-1,key:'*header'], '*footer':[index:-1,key:'*footer']]
 			content = file.getFile().getText(encoding)
 			if (content.contains("\r\n")) {
 				infomsg << "\\r\\n found and replaced with \\n in:$dir/$filekey\n"
@@ -329,11 +329,15 @@
 			if (preprocess) content = preprocess(content)
 			matcher = content =~ filepattern
 			if (matcher.count > 0) {
+				assert content.length() == matcher[0][1].length() + matcher[0][2].length() + matcher[0][matcher.groupCount()].length()
 				content = matcher[0][2]
 				l10n[dir][filekey]['*header'].block = matcher[0][1]
 				l10n[dir][filekey]['*footer'].block = matcher[0][matcher.groupCount()]
 			}
-			else { ant.echo "$file don't match with file pattern (syntax error?)" }
+			else {
+				ant.echo "$file don't match with file pattern (syntax error?)"
+				l10n[dir][filekey]['*info'].isnotstrict = true // set flag not to edit this file
+			}
 			
 			index = 0
 			content.eachMatch(entitypattern) {
@@ -353,7 +357,7 @@
 					if (b) temp << b.getValue().block
 				}
 				if (content != temp.toString()) {
-					ant.echo "parse error on: $file"
+					ant.echo "parse error on: $file\n"
 					ant.echo "[$content]\n\n[$temp]"
 				}
 			}
@@ -391,15 +395,15 @@
 		if (l10n1.unique) {
 			fileerrmsg << "File(s) only in $dir1 directory:\n"
 			l10n1.unique.each { filekey,entities ->
-				uniquekeys1 += entities.size()-2 // don't count header/footer
-				fileerrmsg << "  $filekey \t(${entities.size()-2} entities)\n"
+				uniquekeys1 += entities.size()-metakeys // don't count header/footer
+				fileerrmsg << "  $filekey \t(${entities.size()-metakeys} entities)\n"
 			}
 		}
 		if (l10n2.unique) {
 			fileerrmsg << "File(s) only in $dir2 directory:\n"
 			l10n2.unique.each { filekey,entities ->
-				uniquekeys2 += entities.size()-2 // don't count header/footer
-				fileerrmsg << "  $filekey \t(${entities.size()-2} entities)\n"
+				uniquekeys2 += entities.size()-metakeys // don't count header/footer
+				fileerrmsg << "  $filekey \t(${entities.size()-metakeys} entities)\n"
 			}
 		}
 		
@@ -419,7 +423,7 @@
 			
 			// Phase 3-1: Unique Entities
 			if (entities1.unique || entities2.unique) {
-				entityerrmsg << "Following ${entities1.unique.size()+entities2.unique.size()}/${entities1.common.size()-2+entities1.unique.size()+entities2.unique.size()} Entities in this file don't match: $filekey:\n"
+				entityerrmsg << "Following ${entities1.unique.size()+entities2.unique.size()}/${entities1.common.size()-metakeys+entities1.unique.size()+entities2.unique.size()} Entities in this file don't match: $filekey:\n"
 				if (entities1.unique) {
 					entityerrmsg << "  ${entities1.unique.size()} entities only in $dir1/$filekey:\n"
 					entities1.unique.each { key,block -> entityerrmsg << "    ${block.definition}\n" }
