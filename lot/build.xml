@@ -268,6 +268,7 @@
 	<property name="noplaceholdercheck" value="YES"/>
 	<property name="nopluralcheck" value="YES"/>
 	<property name="nowordcheck" value="YES"/>
+	<property name="nosuspectedwordcheck" value="YES"/>
 	<property name="nocharcheck" value="YES"/>
 </target>
 

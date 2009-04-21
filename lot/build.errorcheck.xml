@@ -53,17 +53,17 @@
 		}
 		
 		ant.fileset(dir: properties.'syntaxcheck.src.dir', includes:'**/*.properties').each {
-			syntaxchecker(it, 'UTF-8', /(?m)${properties.'RE.properties.validline'}\n/)
+			syntaxchecker(it, 'UTF-8', /${properties.'RE.properties.validline'}\n/)
 		}
 		ant.fileset(dir: properties.'syntaxcheck.src.dir', includes:'**/*.dtd').each {
-			syntaxchecker(it, 'UTF-8', /(?ms)${properties.'RE.dtd.validblock'}\n/)
+			syntaxchecker(it, 'UTF-8', /${properties.'RE.dtd.validblock'}\n/)
 		}
 		// need to support *.ini, *.inc files too...
 		//ant.fileset(dir: properties.'syntaxcheck.src.dir', includes:'**/*.ini').each {
-		//	syntaxchecker(it, 'UTF-8', /(?ms)${properties.'RE.ini.validblock'}\n/)
+		//	syntaxchecker(it, 'UTF-8', /${properties.'RE.ini.validblock'}\n/)
 		//}
 		//ant.fileset(dir: properties.'syntaxcheck.src.dir', includes:'**/*.inc').each {
-		//	syntaxchecker(it, 'UTF-8', /(?ms)${properties.'RE.inc.validblock'}\n/)
+		//	syntaxchecker(it, 'UTF-8', /${properties.'RE.inc.validblock'}\n/)
 		//}
 		
 		if (errormsg) {
@@ -154,7 +154,7 @@
 			denypattern        = /(?m)@{denypattern}/
 			denypattern_       = ~/(?m)@{denypattern}/
 			replacement        = /@{replacement}/
-			xmlcommentpattern  = /(?ms)${properties.'RE.xml.comment'}/
+			xmlcommentpattern  = /${properties.'RE.xml.comment'}/
 			linecommentpattern = /(?m)^(@line [0-9]+: )?\s*#[^\n]*/
 			errormsg           = new StringBuilder()
 			def wordchecker(file, encoding, allowpattern, denypattern, commentpattern) {
@@ -297,6 +297,8 @@
 	<attribute name="resetaccesskey"	default="false"/>
 	<sequential>
 	<groovy taskname="compare"><![CDATA[
+		debug       = false
+		
 		locale1     = '@{locale1}'
 		locale2     = '@{locale2}'
 		dir1        = new File('@{dir1}').getCanonicalPath()
@@ -304,8 +306,10 @@
 		excludes    = '@{excludes}'
 		output      = "@{output}"
 		failonerror = '@{failonerror}' == 'true'
-		propertiespattern  = /(?m)${properties.'RE.properties.entityblock'}/
-		dtdpattern         = /(?m)${properties.'RE.dtd.entityblock'}/
+		propfilepattern   = /${properties.'RE.properties.file'}/
+		dtdfilepattern    = /${properties.'RE.dtd.file'}/
+		propentitypattern = /${properties.'RE.properties.entityblock'}/
+		dtdentitypattern  = /${properties.'RE.dtd.anyentityblock'}/
 		//l10n[basedir][filekey][entitykey] = [prespace:, precomment:, definition:, key:, value:, postcomment:]
 		l10n = [(dir1): [:], (dir2): [:]]
 		infomsg      = new StringBuilder()
@@ -314,30 +318,59 @@
 		accesskeymsg = new StringBuilder()
 		commonkeys = uniquekeys1 = uniquekeys2 = 0
 		
-		def parse(dir, file, encoding, entityblockpattern, preprocess, postprocess) {
+		def parse(dir, file, encoding, filepattern, entitypattern, preprocess, postprocess) {
 			filekey  = file.toString().replaceAll("$dir/","").replaceAll("/$locale1|$locale2","/*")
-			l10n[dir][filekey] = [:]
+			l10n[dir][filekey] = ['*header':[index:-1,key:'*header'], '*footer':[index:-1,key:'*footer']]
 			content = file.getFile().getText(encoding)
+			if (content.contains("\r\n")) {
+				infomsg << "\\r\\n found and replaced with \\n in:$dir/$filekey\n"
+				content = content.replaceAll(/\r\n/, "\n")
+			}
 			if (preprocess) content = preprocess(content)
-			content.eachMatch(entityblockpattern) {
+			matcher = content =~ filepattern
+			if (matcher.count > 0) {
+				content = matcher[0][2]
+				l10n[dir][filekey]['*header'].block = matcher[0][1]
+				l10n[dir][filekey]['*footer'].block = matcher[0][matcher.groupCount()]
+			}
+			else { ant.echo "$file don't match with file pattern (syntax error?)" }
+			
+			index = 0
+			content.eachMatch(entitypattern) {
 				block, prespace, precomment, definition, key, value, postcomment ->
-				l10n[dir][filekey][key] = [prespace:prespace, precomment:precomment, definition:definition, key:key, value:value, postcomment:postcomment]
+				if (l10n[dir][filekey][key]) {
+					entityerrmsg << "Duplicate Entities found in: $filekey:\n"
+					entityerrmsg << "  ${l10n[dir][filekey][key].definition}\n  $definition\n\n"
+					l10n[dir][filekey]["~$key"] = l10n[dir][filekey][key]
+				}
+				l10n[dir][filekey][key] = [index:index++, block:block, prespace:prespace, precomment:precomment, definition:definition, key:key, value:value, postcomment:postcomment]
 				if (postprocess) l10n[dir][filekey][key] = postprocess(l10n[dir][filekey][key])
+			}
+			if (debug) {
+				temp = new StringBuilder()
+				(0..<l10n[dir][filekey].size()).each { i ->
+					b = l10n[dir][filekey].find { k,v-> k[0] != '*' && v.index==i }
+					if (b) temp << b.getValue().block
+				}
+				if (content != temp.toString()) {
+					ant.echo "parse error on: $file"
+					ant.echo "[$content]\n\n[$temp]"
+				}
 			}
 		}
 		
 		// Phase 1: Parse L10N Files
 		ant.fileset(dir: "$dir1", includes:'**/*.properties', excludes:excludes).each {
-			parse(dir1, it, 'UTF-8', propertiespattern, null, null)
+			parse(dir1, it, 'UTF-8', propfilepattern, propentitypattern, null, null)
 		}
 		ant.fileset(dir: "$dir2", includes:'**/*.properties', excludes:excludes).each {
-			parse(dir2, it, 'UTF-8', propertiespattern, null, null)
+			parse(dir2, it, 'UTF-8', propfilepattern, propentitypattern, null, null)
 		}
 		ant.fileset(dir: "$dir1", includes:'**/*.dtd', excludes:excludes).each {
-			parse(dir1, it, 'UTF-8', dtdpattern, null, null)
+			parse(dir1, it, 'UTF-8', dtdfilepattern, dtdentitypattern, null, null)
 		}
 		ant.fileset(dir: "$dir2", includes:'**/*.dtd', excludes:excludes).each {
-			parse(dir2, it, 'UTF-8', dtdpattern, null, null)
+			parse(dir2, it, 'UTF-8', dtdfilepattern, dtdentitypattern, null, null)
 		}
 		
 		// to avoid ignoring existing blank file, check if it is null
@@ -358,15 +391,15 @@
 		if (l10n1.unique) {
 			fileerrmsg << "File(s) only in $dir1 directory:\n"
 			l10n1.unique.each { filekey,entities ->
-				uniquekeys1 += entities.size()?:0
-				fileerrmsg << "  $filekey \t(${entities.size()?:0} entities)\n"
+				uniquekeys1 += entities.size()-2 // don't count header/footer
+				fileerrmsg << "  $filekey \t(${entities.size()-2} entities)\n"
 			}
 		}
 		if (l10n2.unique) {
 			fileerrmsg << "File(s) only in $dir2 directory:\n"
 			l10n2.unique.each { filekey,entities ->
-				uniquekeys2 += entities.size()?:0
-				fileerrmsg << "  $filekey \t(${entities.size()?:0} entities)\n"
+				uniquekeys2 += entities.size()-2 // don't count header/footer
+				fileerrmsg << "  $filekey \t(${entities.size()-2} entities)\n"
 			}
 		}
 		
@@ -383,19 +416,21 @@
 			commonkeys  += entities1.common.size() - entities1.unique.size()
 			uniquekeys1 += entities1.unique.size()
 			uniquekeys2 += entities2.unique.size()
+			
 			// Phase 3-1: Unique Entities
 			if (entities1.unique || entities2.unique) {
-				entityerrmsg << "Entities in this file don't match: $filekey:\n"
+				entityerrmsg << "Following ${entities1.unique.size()+entities2.unique.size()}/${entities1.common.size()-2+entities1.unique.size()+entities2.unique.size()} Entities in this file don't match: $filekey:\n"
 				if (entities1.unique) {
-					entityerrmsg << "  Only in $dir1/$filekey:\n"
+					entityerrmsg << "  ${entities1.unique.size()} entities only in $dir1/$filekey:\n"
 					entities1.unique.each { key,block -> entityerrmsg << "    ${block.definition}\n" }
 				}
 				if (entities2.unique) {
-					entityerrmsg << "  Only in $dir2/$filekey:\n"
+					entityerrmsg << "  ${entities2.unique.size()} entities only in $dir2/$filekey:\n"
 					entities2.unique.each { key,block -> entityerrmsg << "    ${block.definition}\n" }
 				}
 				entityerrmsg << "\n"
 			}
+			
 			// Phase 3-2: Common Entities
 			entities1.common.each { key,block1 ->
 				block2 = entities2.common[key]
@@ -410,6 +445,7 @@
 				}
 			}
 		}
+		
 		infomsg << "Total Number of entities in the $dir1 directory:\n"
 		infomsg << "  total: ${commonkeys+uniquekeys1}, common: $commonkeys, unique: $uniquekeys1\n\n"
 		infomsg << "Total Number of entities in the $dir2 directory:\n"
