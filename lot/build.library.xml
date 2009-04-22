@@ -42,9 +42,6 @@
 		<![CDATA[
 			ant.echo 'Groovy is Running Correctly!'
 			properties.groovytest = 'Groovy!'
-			
-			//for (p in properties) ant.echo p // echo all properites list
-			//properties.each { ant.echo it }
 		]]>
 	</groovy>
 	<echo message="${groovytest}"/><!-- Groovy! -->
@@ -239,65 +236,33 @@
 
 
 <!-- * confirm to continue or not * -->
-<target name="--confirm-check--" unless="noconfirm">
-	<!-- do confirm only when if/unless condition satisfied -->
-	<condition property="do.confirm" value="YES">
-		<and>
-			<or>
-				<equals arg1="${if}" arg2="##IF_ATTRIBUTE_IS_NOT_SPECIFIED##"/>
-				<isset property="${if}"/>
-			</or>
-			<or>
-				<equals arg1="${unless}" arg2="##UNLESS_ATTRIBUTE_IS_NOT_SPECIFIED##"/>
-				<not><isset property="${unless}"/></not>
-			</or>
-		</and>
-	</condition>
-</target>
-<target name="--confirm--" depends="--confirm-check--" if="do.confirm" unless="noconfirm">
-	<input addproperty="confirm.answer" message="${message}"/>
-	<isfalse property="do.abort" arg="${confirm.answer}"/>
-	<fail if="do.abort" message="${failmessage}"/>
-</target>
 <macrodef name="confirm">
 	<attribute name="message"/>
-	<attribute name="failmessage" default="${cmsg.confirm.failmessage}"/>
-	<attribute name="if" default="##IF_ATTRIBUTE_IS_NOT_SPECIFIED##"/>
-	<attribute name="unless" default="##UNLESS_ATTRIBUTE_IS_NOT_SPECIFIED##"/>
+	<attribute name="failmessage"	default="${cmsg.confirm.failmessage}"/>
+	<attribute name="if"			default=""/>
+	<attribute name="unless"		default=""/>
 	<sequential>
-		<!-- to keep do.confirm/do.abort properties unset after execting this macro, use antcall
-			 if you don't like to use antcall, we can do similar thing using temporary property name generated from tempfile task...  -->
-		<antcall target="--confirm--">
-			<param name="message" value="@{message}"/>
-			<param name="failmessage" value="@{failmessage}"/>
-			<param name="if" value="@{if}"/>
-			<param name="unless" value="@{unless}"/>
-			<propertyset>
-				<propertyref name="noconfirm"/>
-			</propertyset>
-		</antcall>
+		<groovy>
+			<arg value="@{message}"/>
+			<arg value="@{failmessage}"/>
+			<arg value="@{if}"/>
+			<arg value="@{unless}"/>
+			<![CDATA[
+				if ( !properties.containsKey('noconfirm') &&
+					( properties.containsKey(args[2]) || args[2] == '') &&
+					(!properties.containsKey(args[3]) || args[3] == '') ) {
+						answerproperty = 'confirm.answer'
+						abortproperty  = 'confirm.doabort'
+						while (properties.containsKey(answerproperty)) answerproperty += '_'
+						while (properties.containsKey(abortproperty)) abortproperty += '_'
+						ant.input(taskname:'confirm', addproperty:answerproperty, message:args[0])
+						ant.isfalse(property:abortproperty, arg:properties[answerproperty])
+						if (properties[abortproperty] == "true") ant.fail args[1]
+				}
+			]]>
+		</groovy>
 	</sequential>
 </macrodef>
-
-<target name="--simpleconfirm--" unless="noconfirm">
-	<input addproperty="confirm.answer" message="${message}"/>
-	<isfalse property="do.abort" arg="${confirm.answer}"/>
-	<fail if="do.abort" message="${failmessage}"/>
-</target>
-<macrodef name="simpleconfirm"><!-- same as above confirm except this doesn't support if/unless -->
-	<attribute name="message"/>
-	<attribute name="failmessage" default="${cmsg.confirm.failmessage}"/>
-	<sequential>
-		<antcall target="--confirm--">
-			<param name="message" value="@{message}"/>
-			<param name="failmessage" value="@{failmessage}"/>
-			<propertyset>
-				<propertyref name="noconfirm"/>
-			</propertyset>
-		</antcall>
-	</sequential>
-</macrodef>
-
 
 
 <!-- * delete with confirm * -->
