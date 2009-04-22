@@ -325,7 +325,13 @@
 <target name="compare" depends="load-conf" unless="nocompare">
 	<compare locale2="${locale}" dir2="${compare.dir}" excludes="${compare.excludes}" failonerror="false"/>
 </target>
+<target name="merge" depends="load-conf" unless="nomerge">
+	<confirm message="${lot.l10n.dir}/en-US ディレクトリのファイルを ${merge.dir} ディレクトリのファイルにマージし、書き換えます。実行してもよろしいですか？ (Y/N)"/>
+	<compare locale2="${locale}" dir2="${merge.dir}" excludes="${merge.excludes}"
+		mode="merge" output="${merge.output}" failonerror="false"/>
+</target>
 <target name="resetaccesskey" depends="load-conf" unless="nomerge">
+	<confirm message="${lot.l10n.dir}/en-US ディレクトリと ${merge.dir} ディレクトリのファイルのアクセスキーを比較し、異なるものは前者の定義に書き換えます。実行してもよろしいですか？ (Y/N)"/>
 	<compare locale2="${locale}" dir2="${resetaccesskey.dir}" excludes="${resetaccesskey.excludes}"
 		mode="resetaccesskey" output="${resetaccesskey.output}" failonerror="false"/>
 </target>

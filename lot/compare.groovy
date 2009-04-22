@@ -61,15 +61,15 @@ def parse(dir, file, encoding, filepattern, entitypattern, preprocess, postproce
 			entityerrmsg << "  ${l10n[dir][filekey][key].definition}\n  $definition\n\n"
 			l10n[dir][filekey]["~$key"] = l10n[dir][filekey][key]
 		}
-		l10n[dir][filekey][key] = [index:index++, block:block, prespace:prespace, precomment:precomment, definition:definition, key:key, value:value, postcomment:postcomment]
+		l10n[dir][filekey][key] = [index:index++, block:block, prespace:prespace, prebbcomment:precomment, definition:definition, key:key, value:value, postcomment:postcomment]
 		if (postprocess) l10n[dir][filekey][key] = postprocess(l10n[dir][filekey][key])
 	}
 	if (debug) {
 		temp = new StringBuilder()
 		temp << l10n[dir][filekey]['*header'].block
-		(0..<l10n[dir][filekey].size()).each { i ->
-			b = l10n[dir][filekey].find { k,v-> k[0] != '*' && v.index==i }
-			if (b) temp << b.getValue().block
+		(0..<l10n[dir][filekey].size()-metakeys).each { i ->
+			e = l10n[dir][filekey].find { k,v-> k[0] != '*' && v.index==i }
+			if (e) temp << e.value.block
 		}
 		temp << l10n[dir][filekey]['*footer'].block
 		if (content != temp.toString()) {
@@ -113,18 +113,27 @@ if (l10n1.unique) {
 	l10n1.unique.each { filekey,entities ->
 		uniquekeys1 += entities.size()-metakeys // don't count header/footer
 		fileerrmsg << "  $filekey \t(${entities.size()-metakeys} entities)\n"
+		// Merge: copy new files
+		if (mode.insert) {
+			ant.echo "Copying new file: $filekey"
+			newfile = l10n1.unique[filekey]['*info'].file.toString().replaceAll("$dir1/","$dir2/").replaceAll("/$locale1","/$locale2")
+			ant.copy(taskname: 'merge', file: "${l10n1.unique[filekey]['*info'].file}", tofile: newfile, overwrite: true, preservelastmodified: true)
+			mergediff << "diff -u /dev/null $newfile".execute().text
+		}
 	}
-	// Merge: copy new files
-	
 }
 if (l10n2.unique) {
 	fileerrmsg << "File(s) only in $dir2 directory:\n"
 	l10n2.unique.each { filekey,entities ->
 		uniquekeys2 += entities.size()-metakeys // don't count header/footer
 		fileerrmsg << "  $filekey \t(${entities.size()-metakeys} entities)\n"
+		// Merge: remove obsolate files
+		if (mode.clean) {
+			ant.echo "Removing obsolate file: $filekey"
+			ant.move(taskname: 'merge', file: l10n2.unique[filekey]['*info'].file, tofile: "${l10n2.unique[filekey]['*info'].file}~", overwrite: true, preservelastmodified: true)
+			mergediff << "diff -u ${l10n2.unique[filekey]['*info'].file} /dev/null".execute().text
+		}
 	}
-	// Merge: remove obsolate files
-	
 }
 
 // Phase 3: Common L10N Files
@@ -154,17 +163,44 @@ l10n1.common.each { filekey, allentities1 ->
 		}
 		entityerrmsg << "\n"
 		
-		// Pre-Merge: Insert New Entities
-		if (mode.insert) {
-			
-			
-			
-		}
-		// Pre-Merge: Remove Obsolate Entities
-		if (mode.clean) {
-			
-			
-			
+		// Pre-Merge: Insert New / Remove Obsolate Entities
+		if ((entities1.unique && mode.insert) || (entities2.unique && mode.clean)) {
+			if (!l10n.merged[filekey]) l10n.merged[filekey] = allentities2
+			// prepare list to keep the order of entities
+			keylist = []
+			(0..<l10n.merged[filekey].size()-metakeys).each { i ->
+				e = l10n.merged[filekey].find{ k,v -> v.index==i }
+				assert e != null // index に飛びがあってはならない
+				keylist.push(e.key)
+			}
+			// find previous entity index and insert after it
+			if (entities1.unique && mode.insert) {
+				entities1.unique.sort{ l,r -> l.value.index <=> r.value.index }.each { key,block ->
+				mergelog << "new entity $key will be inserted to: $filekey:\n"
+					l10n.merged[filekey][key] = block
+					if (block.index == 0) {
+						keylist.add(0,key)
+					}
+					else {
+						prevkey = allentities1.find{ k,b -> b.index==block.index-1 }.key
+						i = keylist.indexOf(prevkey)
+						assert i != -1
+						keylist.add(i+1,key)
+					}
+				}
+			}
+			if (entities2.unique && mode.clean) {
+				// just remove from map and list
+				entities2.unique.each { key,block ->
+					mergelog << "obsolate entity $key will be removed from: $filekey:\n"
+					l10n.merged[filekey].remove(key)
+					keylist.remove(key)
+				}
+			}
+			// set new indices to each entity
+			(0..<keylist.size()).each { i ->
+				l10n.merged[filekey][keylist[i]].index = i
+			}
 		}
 	}
 	
@@ -179,8 +215,8 @@ l10n1.common.each { filekey, allentities1 ->
 			accesskeymsg << "  $key:  ${block1.value} != ${block2.value}\n"
 			// Pre-Merge: Reset Accesskeys
 			if (mode.resetaccesskey) {
-				mergelog << "$key accesskey in this file will be reset: $filekey:\n"
 				if (!l10n.merged[filekey]) l10n.merged[filekey] = allentities2
+				mergelog << "$key accesskey in this file will be reset: $filekey:\n"
 				// definition じゃなくて value だけ置き換える方がベター
 				l10n.merged[filekey][key].definition = block1.definition
 				l10n.merged[filekey][key].block = block2.prespace+block2.precomment+block1.definition+block2.postcomment
@@ -203,12 +239,14 @@ l10n1.common.each { filekey, allentities1 ->
 		else {
 			mergelog << "Merging file: $filekey\n"
 			// ToDo: confirm overwriting backup file
-			ant.copy(file: l10n.merged[filekey]['*info'].file, tofile: "${l10n.merged[filekey]['*info'].file}~", overwrite: true, preservelastmodified: true)
+			ant.echo "Copying original file before merge: $filekey"
+			ant.copy(taskname: 'backup', file: l10n.merged[filekey]['*info'].file, tofile: "${l10n.merged[filekey]['*info'].file}~", overwrite: true, preservelastmodified: true)
 			content = new StringBuilder()
 			content << l10n.merged[filekey]['*header'].block
+			// 配列作って結合の方が良いかも
 			(0..<l10n.merged[filekey].size()).each { i ->
-				b = l10n.merged[filekey].find { k,v-> k[0] != '*' && v.index==i }
-				if (b) content << b.getValue().block
+				e = l10n.merged[filekey].find { k,v-> k[0] != '*' && v.index==i }
+				if (e) content << e.value.block
 			}
 			content << l10n.merged[filekey]['*footer'].block
 			l10n.merged[filekey]['*info'].file.getFile().write(content.toString())
