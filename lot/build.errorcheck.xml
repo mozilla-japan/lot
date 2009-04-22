@@ -296,7 +296,7 @@
 
 <!-- * compare/diff/merge locales * -->
 <macrodef name="compare">
-	<!-- mode = compare, merge (insert+clean), order, resetcomment, resetaccesskey -->
+	<!-- mode = compare, merge (insert+clean), resetorder, resetcomment, resetaccesskey -->
 	<attribute name="mode"				default="compare"/>
 	<attribute name="locale1"			default="en-US"/>
 	<attribute name="locale2"			default="ja"/>
@@ -304,11 +304,8 @@
 	<attribute name="dir2"				default="${lot.l10n.dir}/@{locale2}"/>
 	<attribute name="excludes"			default=""/>
 	<attribute name="output"			default="${compare.output}"/>
+	<attribute name="format"			default="text"/>
 	<attribute name="failonerror"		default="false"/>
-	<attribute name="insertnew"			default="false"/>
-	<attribute name="removeobsolate"	default="false"/>
-	<attribute name="resetcomment"		default="false"/>
-	<attribute name="resetaccesskey"	default="false"/>
 	<sequential>
 	<groovy taskname="compare" src="compare.groovy">
 		<!-- pass attributes using args to avoid being interprited as groovy code -->
@@ -319,14 +316,18 @@
 		<arg value="@{dir2}"/>
 		<arg value="@{excludes}"/>
 		<arg value="@{output}"/>
+		<arg value="@{format}"/>
 		<arg value="@{failonerror}"/>
 	</groovy>
 	</sequential>
 </macrodef>
 
-<target name="compare" depends="load-conf">
+<target name="compare" depends="load-conf" unless="nocompare">
 	<compare locale2="${locale}" dir2="${compare.dir}" excludes="${compare.excludes}" failonerror="false"/>
 </target>
-
+<target name="resetaccesskey" depends="load-conf" unless="nomerge">
+	<compare locale2="${locale}" dir2="${resetaccesskey.dir}" excludes="${resetaccesskey.excludes}"
+		mode="resetaccesskey" output="${resetaccesskey.output}" failonerror="false"/>
+</target>
 
 </project>

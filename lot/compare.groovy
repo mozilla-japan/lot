@@ -3,25 +3,30 @@ assert ant && project && properties && target && task && args
 
 // Phase 0: Prepare Variables
 debug       = false
-mode        = [compare:args[0].contains('compare'), insert:args[0].contains('insert')||args[0].contains('merge'), clean:args[0].contains('clean')||args[0].contains('merge'), order:args[0].contains('order'), resetcomment:args[0].contains('resetcomment'), resetaccesskey:args[0].contains('resetaccesskey')]
+// mode = compare, merge (insert+clean), order, resetcomment, resetaccesskey
+mode        = [compare:args[0].contains('compare'), insert:args[0].contains('insert')||args[0].contains('merge'), clean:args[0].contains('clean')||args[0].contains('merge'), resetorder:args[0].contains('resetorder'), resetcomment:args[0].contains('resetcomment'), resetaccesskey:args[0].contains('resetaccesskey')]
+if (mode.resetorder || mode.resetcomment) ant.fail "Sorry, requested mode hasn't implemented yet."
 locale1     = args[1]
 locale2     = args[2]
 dir1        = new File(args[3]).getCanonicalPath()
 dir2        = new File(args[4]).getCanonicalPath()
 excludes    = args[5]
 output      = args[6]
-failonerror = args[7] == 'true'
+// format = text, xml, html
+format      = args[7]
+failonerror = args[8] == 'true'
 propfilepattern   = /${properties.'RE.properties.file'}/
 dtdfilepattern    = /${properties.'RE.dtd.file'}/
 propentitypattern = /${properties.'RE.properties.entityblock'}/
 dtdentitypattern  = /${properties.'RE.dtd.anyentityblock'}/
-//l10n[basedir][filekey][entitykey] = [prespace:, precomment:, definition:, key:, value:, postcomment:]
-l10n = [(dir1): [:], (dir2): [:]]
+//l10n[basedir][filekey][entitykey] = [index, block, prespace:, precomment:, definition:, key:, value:, postcomment:]
+l10n = [(dir1): [:], (dir2): [:], merged: [:]]
 infomsg      = new StringBuilder()
 fileerrmsg   = new StringBuilder()
 entityerrmsg = new StringBuilder()
 accesskeymsg = new StringBuilder()
 mergelog     = new StringBuilder()
+mergediff    = new StringBuilder()
 metakeys = 3 // *info, *header, *footer
 commonkeys = uniquekeys1 = uniquekeys2 = 0
 
@@ -61,10 +66,12 @@ def parse(dir, file, encoding, filepattern, entitypattern, preprocess, postproce
 	}
 	if (debug) {
 		temp = new StringBuilder()
+		temp << l10n[dir][filekey]['*header'].block
 		(0..<l10n[dir][filekey].size()).each { i ->
 			b = l10n[dir][filekey].find { k,v-> k[0] != '*' && v.index==i }
 			if (b) temp << b.getValue().block
 		}
+		temp << l10n[dir][filekey]['*footer'].block
 		if (content != temp.toString()) {
 			ant.echo "parse error on: $file\n"
 			ant.echo "[$content]\n\n[$temp]"
@@ -147,9 +154,18 @@ l10n1.common.each { filekey, allentities1 ->
 		}
 		entityerrmsg << "\n"
 		
-		// Merge: merge new/obsolate entities
-		
-		
+		// Pre-Merge: Insert New Entities
+		if (mode.insert) {
+			
+			
+			
+		}
+		// Pre-Merge: Remove Obsolate Entities
+		if (mode.clean) {
+			
+			
+			
+		}
 	}
 	
 	// Phase 3-2: Common Entities
@@ -161,17 +177,54 @@ l10n1.common.each { filekey, allentities1 ->
 			block1.value != block2.value) {
 			accesskeymsg << "Accesskey(s) in this file don't match: $filekey:\n"
 			accesskeymsg << "  $key:  ${block1.value} != ${block2.value}\n"
-			// Reset: reset accesskeys
+			// Pre-Merge: Reset Accesskeys
+			if (mode.resetaccesskey) {
+				mergelog << "$key accesskey in this file will be reset: $filekey:\n"
+				if (!l10n.merged[filekey]) l10n.merged[filekey] = allentities2
+				// definition じゃなくて value だけ置き換える方がベター
+				l10n.merged[filekey][key].definition = block1.definition
+				l10n.merged[filekey][key].block = block2.prespace+block2.precomment+block1.definition+block2.postcomment
+			}
+		}
+		// Pre-Merge: Reset Comment
+		if (mode.resetcomment) {
+			
+			// 無条件に英語コメントに戻すのは無意味
+			// 3 File Merge でサポートする
 			
 		}
-		// Check Comment Updates
-		
-		
 	}
-	// Merge: finally output merged files
 	
-	
+	// Phase 3-3: Output Merged File
+	if (l10n.merged[filekey]) {
+		if (l10n.merged[filekey]['*info'].isnotstrict) {
+			mergelog << "\nCannot merge file (not supported format): $filekey\n"
+		}
+		else {
+			mergelog << "Merging file: $filekey\n"
+			// ToDo: confirm overwriting backup file
+			ant.copy(file: l10n.merged[filekey]['*info'].file, tofile: "${l10n.merged[filekey]['*info'].file}~", overwrite: true, preservelastmodified: true)
+			content = new StringBuilder()
+			content << l10n.merged[filekey]['*header'].block
+			(0..<l10n.merged[filekey].size()).each { i ->
+				b = l10n.merged[filekey].find { k,v-> k[0] != '*' && v.index==i }
+				if (b) content << b.getValue().block
+			}
+			content << l10n.merged[filekey]['*footer'].block
+			l10n.merged[filekey]['*info'].file.getFile().write(content.toString())
+			// output diff of original/merged files
+			mergediff << "diff -u ${l10n.merged[filekey]['*info'].file}~ ${l10n.merged[filekey]['*info'].file}".execute().text
+		}
+	}
 }
+
+// Phase 4: Output Log/Diff etc
+
+if (mergediff) {
+	mergelog << "See ${output}.diff file to check merge diff."
+	new File("${output}.diff").append("$mergediff\n\n\n")
+}
+
 
 infomsg << "Total Number of entities in the $dir1 directory:\n"
 infomsg << "  total: ${commonkeys+uniquekeys1}, common: $commonkeys, unique: $uniquekeys1\n\n"
@@ -179,4 +232,4 @@ infomsg << "Total Number of entities in the $dir2 directory:\n"
 infomsg << "  total: ${commonkeys+uniquekeys2}, common: $commonkeys, unique: $uniquekeys2\n\n"
 
 ant.errorlog(type: 'compare', file: output, fail: failonerror && (fileerrmsg || entityerrmsg), 
-	message: "Compare Locales Result:\n$infomsg\n\n$fileerrmsg\n\n$entityerrmsg\n\n$accesskeymsg")
+	message: "Compare Locales Result:\n$infomsg\n\n$fileerrmsg\n\n$entityerrmsg\n\n$accesskeymsg\n\n$mergelog")

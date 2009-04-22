@@ -79,32 +79,22 @@
 </target>
 
 <target name="replace" depends="prepare" unless="noreplace" if="doreplace">
-	
-	<!-- こんな Hack は止めて groovy で書き直す！ -->
-	
-	<!-- want to define filterchain at runtime but cannot and make/load build script for repale -->
-	<loadfile srcfile="${lot.src.dir}/${replace.file}" property="replace.replacestring.list" encoding="UTF-8">
-		<filterchain>
-			<linecontainsregexp>
-				<regexp pattern="^\s*[^#]"/>
-			</linecontainsregexp>
-			<replacestring from="&gt;" to="&amp;gt;"/>
-			<replacestring from="&lt;" to="&amp;lt;"/>
-			<replacestring from="&quot;" to="&amp;quot;"/>
-			<replaceregex pattern="^/((?:[^/]+)(?:\\/[^/]*)*)/((?:[^/]+)(?:\\/[^/]*)*)/$"
-				replace='&lt;replaceregex pattern="\1" replace="\2"/&gt;'/>
-			<replaceregex pattern="^([^,]+),([^,]+)$" replace='&lt;replacestring from="\1" to="\2"/&gt;'/>
-		</filterchain>
-	</loadfile>
-	<copy overwrite="true" file="${replace.build.template}" tofile="${replace.build.file}" encoding="UTF-8">
-		<filterchain>
-			<tokenfilter>
-				<filetokenizer/>
-				<replacestring from="&lt;!-- FILTERCHAIN_LIST --&gt;" to="${replace.replacestring.list}"/>
-			</tokenfilter>
-		</filterchain>
-	</copy>
-	<ant antfile="${replace.build.file}" target="replace"/>
+	<groovy><![CDATA[
+		replacelist = []
+		new File("${properties.'lot.src.dir'}/${properties.'replace.file'}").getText('UTF-8').readLines().each {
+			if (it.matches(/\s*[^#].*,.*/)) replacelist.push(it.split(','))
+		}
+		ant.fileset(dir: properties.'replace.src.dir', includes: properties.'replace.utf8.includes', excludes: properties.'replace.utf8.excludes').each {
+			file = it.getFile()
+			before = after = file.getText('UTF-8')
+			replacelist.each { after = after.replaceAll(it[0], it[1]) }
+			if (before != after) {
+				timestamp = file.lastModified()
+				file.write(after, 'UTF-8')
+				file.setLastModified(timestamp)
+			}
+		}
+	]]></groovy>
 </target>
 
 <target name="modify" depends="prepare, replace"
