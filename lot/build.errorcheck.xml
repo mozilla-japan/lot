@@ -16,7 +16,10 @@
 	<attribute name="fail"		default="false"/>
 	<text name="text" optional="true"/>
 	<sequential>
-		<groovy>ant.mkdir(dir:new File("@{file}").getParent())</groovy>
+		<groovy>
+			<arg value="@{file}"/>
+			ant.mkdir(dir:new File(args[0]).getParent())
+		</groovy>
 		<echo taskname="@{taskname}" file="@{file}" message="@{message}@{text}"/>
 		<if>
 			<istrue value="@{fail}"/>
@@ -138,22 +141,33 @@
 
 <!-- * Contents (Word/Character) Check * -->
 <macrodef name="wordchecksuite">
-	<!-- macrodef 配下の groovy タスクでは @{attribute} を展開したものが groovy のソースとして解釈実行される。但し、属性のデフォルト値に Ant のプロパティ展開式を記述した場合、macrodef 定義時に設定済みのプロパティは展開済みの値が groovy のソースに挿入されるが、macrodef 定義時に未設定のプロパティは展開式のまま groovy のソースに挿入される。文字列リテラル中に @{attribute} を含める場合、GString として解釈されて構文エラーを引き起こさないように注意が必要。 -->
-	<!-- allowpattern, denypattern 属性では(スラッシュ以外には)バックスラッシュのエスケープが必要とならないようにスラッシュ文字列リテラルに含めるが、GString が有効になるので Ant のプロパティをデフォルト値には定義できない。default="${properties.'wordcheck.allow'}" などと指定することもできるが、この場合属性値を受け取った場合にはスラッシュのエスケープが必要だがデフォルト値ではエスケープしてはならないというフォーマットが不統一になる。 -->
-	<attribute name="allowpattern"/><!-- Java Regexp (exception: slash have to be escaped and ${} will be replaced) -->
-	<attribute name="denypattern"/><!-- Java Regexp (exception: slash have to be escaped and ${} will be replaced) -->
-	<attribute name="replacement"	default="${properties.'wordcheck.deny.replace'}"/>
-	<attribute name="dir"/>
-	<attribute name="output"/>
+	<attribute name="allowpattern"	default="${wordcheck.allow}"/>
+	<attribute name="denypattern"	default="${wordcheck.deny}"/>
+	<attribute name="replacement"	default="${wordcheck.deny.replace}"/>
+	<attribute name="dir"			default="${wordcheck.src.dir}"/>
+	<attribute name="output"		default="${wordcheck.output}"/>
 	<attribute name="excludes"		default=""/>
 	<attribute name="regexpengine"	default=""/>
-	<sequential><!-- 並列処理にすれば高速化可能... -->
-		<groovy><![CDATA[
+	<sequential>
+		<groovy>
+			<!-- pass attributes using args to avoid being interprited as groovy code -->
+			<arg value="(?m)@{allowpattern}"/>
+			<arg value="(?m)@{denypattern}"/>
+			<arg value="@{replacement}"/>
+			<arg value="@{dir}"/>
+			<arg value="@{output}"/>
+			<arg value="@{excludes}"/>
+			<arg value="@{regexpengine}"/>
+			<![CDATA[
 			import org.apache.oro.text.regex.*;
-			allowpattern       = /(?m)@{allowpattern}/
-			denypattern        = /(?m)@{denypattern}/
-			denypattern_       = ~/(?m)@{denypattern}/
-			replacement        = /@{replacement}/
+			allowpattern	= args[0]
+			denypattern		= args[1]
+			denypattern_	= ~denypattern
+			replacement		= args[2]
+			dir				= args[3]
+			output			= args[4]
+			excludes		= args[5]
+			regexpengine	= args[6]
 			xmlcommentpattern  = /${properties.'RE.xml.comment'}/
 			linecommentpattern = /(?m)^(@line [0-9]+: )?\s*#[^\n]*/
 			errormsg           = new StringBuilder()
@@ -168,7 +182,7 @@
 					content = content.toString().replaceAll(allowpattern, properties.'wordcheck.allow.replace')
 				}
 				
-				if ('@{regexpengine}' == 'jakartaoro') {
+				if (regexpengine == 'jakartaoro') {
 					PatternMatcher matcher = new Perl5Matcher();
 					PatternCompiler compiler = new Perl5Compiler();
 					Pattern pattern = compiler.compile("($denypattern)");
@@ -188,30 +202,30 @@
 				if (errorlines) errormsg << "Error Found in $file:\n$errorlines\n\n"
 			}
 			
-			ant.fileset(dir: '@{dir}', includes:'**/*.dtd, ${xmlfiles}', excludes:'@{excludes}').each {
+			ant.fileset(dir:dir, includes:'**/*.dtd, ${xmlfiles}', excludes:excludes).each {
 				wordchecker(it, 'UTF-8', allowpattern, denypattern, xmlcommentpattern)
 			}
 			if (properties.'wordcheck.unescape.properties') {
 				// note: native2ascii task require JDK installed and JAVA_HOME env set properly, or you'll see the error "error starting Sun's native2ascii"
-				ant.native2ascii(src:'@{dir}', includes:'**/*.properties',
+				ant.native2ascii(src:dir, includes:'**/*.properties',
 					dest:'${lot.temp.dir}/wordcheck', reverse:true, encoding:'UTF-8')
-				ant.fileset(dir: '${lot.temp.dir}/wordcheck', includes:'**/*.properties', excludes:'@{excludes}').each {
+				ant.fileset(dir: '${lot.temp.dir}/wordcheck', includes:'**/*.properties', excludes:excludes).each {
 					wordchecker(it, 'UTF-8', allowpattern, denypattern, linecommentpattern)
 				}
 				ant.delete(dir:'${lot.temp.dir}/wordcheck', failonerror:false)
 			}
 			else {
-				ant.fileset(dir: '@{dir}', includes:'**/*.properties', excludes:'@{excludes}').each {
+				ant.fileset(dir:dir, includes:'**/*.properties', excludes:excludes).each {
 					wordchecker(it, 'UTF-8', allowpattern, denypattern, linecommentpattern)
 				}
 			}
-			ant.fileset(dir: '@{dir}', includes:'**/*.inc, **/unix/*.it', excludes:'@{excludes}').each {
+			ant.fileset(dir:dir, includes:'**/*.inc, **/unix/*.it', excludes:excludes).each {
 				wordchecker(it, 'UTF-8', allowpattern, denypattern, null)
 			}
-			ant.fileset(dir: '@{dir}', includes:'${sjisfiles}', excludes:'@{excludes}').each {
+			ant.fileset(dir:dir, includes:'${sjisfiles}', excludes:excludes).each {
 				wordchecker(it, 'Shift_JIS', allowpattern, denypattern, null)
 			}
-			if (errormsg) new File('@{output}').append(errormsg)
+			if (errormsg) new File(output).append(errormsg)
 		]]></groovy>
 	</sequential>
 </macrodef>
@@ -232,21 +246,19 @@
 	<equals property="wordcheck.allow"	value="${wordcheck.allow.common}|${wordcheck.allow.ja-JP-mac}" arg1="${locale}" arg2="ja-JP-mac"/>
 	<property name="wordcheck.allow"	value="${wordcheck.allow.common}"/>
 	
-	<wordchecksuite dir="${wordcheck.src.dir}" output="${wordcheck.output}"
-		excludes="browser/, calendar/, editor/, mail/, mobile/, suite/"
-		allowpattern="${wordcheck.allow}" denypattern="${wordcheck.deny}"/>
-	<wordchecksuite dir="${wordcheck.src.dir}/browser" output="${wordcheck.output}"
-		allowpattern="${wordcheck.allow}" denypattern="${wordcheck.deny}|${wordcheck.deny.firefox}"/>
-	<wordchecksuite dir="${wordcheck.src.dir}/calendar" output="${wordcheck.output}"
-		allowpattern="${wordcheck.allow}" denypattern="${wordcheck.deny}|${wordcheck.deny.sunbird}"/>
-	<wordchecksuite dir="${wordcheck.src.dir}/editor" output="${wordcheck.output}"
-		allowpattern="${wordcheck.allow}" denypattern="${wordcheck.deny}|${wordcheck.deny.thunderbird}|${wordcheck.deny.seamonkey}"/>
-	<wordchecksuite dir="${wordcheck.src.dir}/mail" output="${wordcheck.output}"
-		allowpattern="${wordcheck.allow}" denypattern="${wordcheck.deny}|${wordcheck.deny.thunderbird}|${wordcheck.deny.seamonkey}"/>
-	<wordchecksuite dir="${wordcheck.src.dir}/mobile" output="${wordcheck.output}"
-		allowpattern="${wordcheck.allow}" denypattern="${wordcheck.deny}|${wordcheck.deny.fennec}"/>
-	<wordchecksuite dir="${wordcheck.src.dir}/suite" output="${wordcheck.output}"
-		allowpattern="${wordcheck.allow}" denypattern="${wordcheck.deny}|${wordcheck.deny.seamonkey}"/>
+	<wordchecksuite excludes="browser/, calendar/, editor/, mail/, mobile/, suite/"/>
+	<wordchecksuite dir="${wordcheck.src.dir}/browser"
+		denypattern="${wordcheck.deny}|${wordcheck.deny.firefox}"/>
+	<wordchecksuite dir="${wordcheck.src.dir}/calendar"
+		denypattern="${wordcheck.deny}|${wordcheck.deny.sunbird}"/>
+	<wordchecksuite dir="${wordcheck.src.dir}/editor"
+		denypattern="${wordcheck.deny}|${wordcheck.deny.thunderbird}|${wordcheck.deny.seamonkey}"/>
+	<wordchecksuite dir="${wordcheck.src.dir}/mail"
+		denypattern="${wordcheck.deny}|${wordcheck.deny.thunderbird}|${wordcheck.deny.seamonkey}"/>
+	<wordchecksuite dir="${wordcheck.src.dir}/mobile"
+		denypattern="${wordcheck.deny}|${wordcheck.deny.fennec}"/>
+	<wordchecksuite dir="${wordcheck.src.dir}/suite"
+		denypattern="${wordcheck.deny}|${wordcheck.deny.seamonkey}"/>
 	
 	<loadfile property="wordcheck.error" srcfile="${wordcheck.output}" encoding="UTF-8"
 		failonerror="false" quiet="true"/>
@@ -284,27 +296,40 @@
 
 <!-- * compare/diff/merge locales * -->
 <macrodef name="compare">
+	<!-- mode = compare, merge (insert+clean), order, resetcomment, resetaccesskey -->
+	<attribute name="mode"				default="compare"/>
 	<attribute name="locale1"			default="en-US"/>
 	<attribute name="locale2"			default="ja"/>
 	<attribute name="dir1"				default="${lot.l10n.dir}/@{locale1}"/>
 	<attribute name="dir2"				default="${lot.l10n.dir}/@{locale2}"/>
 	<attribute name="excludes"			default=""/>
-	<attribute name="output"			default="${properties.'compare.output'}"/>
+	<attribute name="output"			default="${compare.output}"/>
 	<attribute name="failonerror"		default="false"/>
 	<attribute name="insertnew"			default="false"/>
 	<attribute name="removeobsolate"	default="false"/>
 	<attribute name="resetcomment"		default="false"/>
 	<attribute name="resetaccesskey"	default="false"/>
 	<sequential>
-	<groovy taskname="compare"><![CDATA[
+	<groovy taskname="compare" src="compare.groovy">
+		<!-- pass attributes using args to avoid being interprited as groovy code -->
+		<arg value="@{mode}"/>
+		<arg value="@{locale1}"/>
+		<arg value="@{locale2}"/>
+		<arg value="@{dir1}"/>
+		<arg value="@{dir2}"/>
+		<arg value="@{excludes}"/>
+		<arg value="@{output}"/>
+		<arg value="@{failonerror}"/>
+		<![CDATA[
 		debug       = false
-		locale1     = '@{locale1}'
-		locale2     = '@{locale2}'
-		dir1        = new File('@{dir1}').getCanonicalPath()
-		dir2        = new File('@{dir2}').getCanonicalPath()
-		excludes    = '@{excludes}'
-		output      = "@{output}"
-		failonerror = '@{failonerror}' == 'true'
+		mode        = [compare:args[0].contains('compare'), insert:args[0].contains('insert')||args[0].contains('merge'), clean:args[0].contains('clean')||args[0].contains('merge'), order:args[0].contains('order'), resetcomment:args[0].contains('resetcomment'), resetaccesskey:args[0].contains('resetaccesskey')]
+		locale1     = args[1]
+		locale2     = args[2]
+		dir1        = new File(args[3]).getCanonicalPath()
+		dir2        = new File(args[4]).getCanonicalPath()
+		excludes    = args[5]
+		output      = args[6]
+		failonerror = args[7] == 'true'
 		propfilepattern   = /${properties.'RE.properties.file'}/
 		dtdfilepattern    = /${properties.'RE.dtd.file'}/
 		propentitypattern = /${properties.'RE.properties.entityblock'}/
@@ -315,12 +340,14 @@
 		fileerrmsg   = new StringBuilder()
 		entityerrmsg = new StringBuilder()
 		accesskeymsg = new StringBuilder()
+		mergelog     = new StringBuilder()
 		metakeys = 3 // *info, *header, *footer
 		commonkeys = uniquekeys1 = uniquekeys2 = 0
 		
 		def parse(dir, file, encoding, filepattern, entitypattern, preprocess, postprocess) {
 			filekey  = file.toString().replaceAll("$dir/","").replaceAll("/$locale1|$locale2","/*")
-			l10n[dir][filekey] = ['*info':[:], '*header':[index:-1,key:'*header'], '*footer':[index:-1,key:'*footer']]
+			l10n[dir][filekey] = ['*info':[dir:dir, file:file, encoding:encoding],
+				'*header':[index:-1,key:'*header'], '*footer':[index:-1,key:'*footer']]
 			content = file.getFile().getText(encoding)
 			if (content.contains("\r\n")) {
 				infomsg << "\\r\\n found and replaced with \\n in:$dir/$filekey\n"
@@ -329,7 +356,8 @@
 			if (preprocess) content = preprocess(content)
 			matcher = content =~ filepattern
 			if (matcher.count > 0) {
-				assert content.length() == matcher[0][1].length() + matcher[0][2].length() + matcher[0][matcher.groupCount()].length()
+				//assert content.length() == matcher[0][1].length() + matcher[0][2].length() + matcher[0][matcher.groupCount()].length()
+				//assert content == matcher[0][1]+matcher[0][2]+matcher[0][matcher.groupCount()]
 				content = matcher[0][2]
 				l10n[dir][filekey]['*header'].block = matcher[0][1]
 				l10n[dir][filekey]['*footer'].block = matcher[0][matcher.groupCount()]
@@ -398,6 +426,8 @@
 				uniquekeys1 += entities.size()-metakeys // don't count header/footer
 				fileerrmsg << "  $filekey \t(${entities.size()-metakeys} entities)\n"
 			}
+			// Merge: copy new files
+			
 		}
 		if (l10n2.unique) {
 			fileerrmsg << "File(s) only in $dir2 directory:\n"
@@ -405,6 +435,8 @@
 				uniquekeys2 += entities.size()-metakeys // don't count header/footer
 				fileerrmsg << "  $filekey \t(${entities.size()-metakeys} entities)\n"
 			}
+			// Merge: remove obsolate files
+			
 		}
 		
 		// Phase 3: Common L10N Files
@@ -433,6 +465,10 @@
 					entities2.unique.each { key,block -> entityerrmsg << "    ${block.definition}\n" }
 				}
 				entityerrmsg << "\n"
+				
+				// Merge: merge new/obsolate entities
+				
+				
 			}
 			
 			// Phase 3-2: Common Entities
@@ -444,10 +480,16 @@
 					block1.value != block2.value) {
 					accesskeymsg << "Accesskey(s) in this file don't match: $filekey:\n"
 					accesskeymsg << "  $key:  ${block1.value} != ${block2.value}\n"
-					
+					// Reset: reset accesskeys
 					
 				}
+				// Check Comment Updates
+				
+				
 			}
+			// Merge: finally output merged files
+			
+			
 		}
 		
 		infomsg << "Total Number of entities in the $dir1 directory:\n"

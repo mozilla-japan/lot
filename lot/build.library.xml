@@ -184,48 +184,18 @@
 	</sequential>
 </macrodef>
 
-<!-- 一見これで問題なさそうだが、@{attribute} 展開後の文字列が groovy のコードとして解釈されるため、どの文字列リテラルに入れても $ や / が特殊な記号として解釈されてしまう場合があり、完全にそのまま保持することができない。
 <macrodef name="updateproperty">
+	<!-- groovy 要素中のテキストに直接 @{attribute} を埋め込むと展開後の文字列が groovy ソースとして解釈され、どうやっても何らかのエスケープが必要になる。それを回避するため Ant 上で解釈される arg 要素中で @{attribute} を展開した上で groovy に渡す。 -->
 	<attribute name="name"/>
 	<attribute name="value"/>
 	<sequential>
-		<groovy><![CDATA[
-			properties.'@{name}' = '@{value}' // backslash will be treated as escape prefix...
-		]]></groovy>
-	</sequential>
-</macrodef> -->
-<if><!-- antcall を実行する毎に groovy タスクが実行されるとメモリ消費が積み重なって(デフォルトメモリサイズでは16回目くらいで) java.lang.OutOfMemoryError: PermGen space エラーが発生するので、初回のみ実行させるようにする -->
-	<not><isset property="lib.updateproperty.defined"/></not>
-	<then>
 		<groovy>
-		<![CDATA[
-			// need to specify explicit type etc to be used from Java world
-			import org.apache.tools.ant.Task
-			import org.apache.tools.ant.BuildException
-			class UpdatePropertyTask extends Task {
-				String name
-				String value
-				public void setName(String n) { name = n }
-				public void setValue(String v) { value = v }
-				public void execute() throws BuildException {
-					if (name == null) {
-						throw new BuildException("You must specify name attribute", getLocation());
-					}
-					if (value == null) {
-						throw new BuildException("You must specify value attribute", getLocation());
-					}
-					// in the class definition we cannot access to 'properties' introduced by groovy and cannot to like:
-					// properties.name = value
-					project.setProperty(name, value)
-				}
-			}
-			
-			project.addTaskDefinition('updateproperty', UpdatePropertyTask)
-			properties.'lib.updateproperty.defined' = true
-		]]>
+			<arg value="@{name}"/>
+			<arg value="@{value}"/>
+			properties[args[0]] = args[1]
 		</groovy>
-	</then>
-</if>
+	</sequential>
+</macrodef>
 
 
 <!-- * load config/message * -->
