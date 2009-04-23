@@ -335,6 +335,12 @@
 		mode="merge" output="${merge.output}" failonerror="true"/>
 	<echo message="ブロック最初のエンティティが削除される場合、ブロックに対するコメントがそのエンティティ単体のものとして削除されることがあります(現時点での仕様)。必ず処理結果を差分ファイルで確認し、必要に応じて修正してください。"/>
 </target>
+<target name="mergeonlyfile" depends="load-conf" unless="nomerge"
+	description="compare l10n files and merge new/obsolate files (not merge entities)">
+	<confirm message="${lot.l10n.dir}/en-US ディレクトリのファイルと ${merge.dir} ディレクトリのファイルを比較し、新しいファイルを追加、古いものは削除します。実行してもよろしいですか？ (Y/N)${N}次のファイルやディレクトリは除外されます: ${merge.excludes}"/>
+	<compare locale2="${locale}" dir2="${merge.dir}" excludes="${merge.excludes}"
+		mode="merge+onlyfile" output="${merge.output}" failonerror="true"/>
+</target>
 <target name="insertnew" depends="load-conf" unless="nomerge"
 	description="compare l10n files and merge new files/entities (not remove obsolate ones)">
 	<confirm message="${lot.l10n.dir}/en-US ディレクトリのファイルを ${merge.dir} ディレクトリのファイルを比較し、新しいファイルやエンティティを追加します。実行してもよろしいですか？ (Y/N)${N}次のファイルやディレクトリは除外されます: ${merge.excludes}"/>

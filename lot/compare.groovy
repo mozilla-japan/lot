@@ -3,16 +3,17 @@ assert ant && project && properties && target && task && args
 
 // Phase 0: Prepare Variables
 debug = false
-// mode = compare, merge (insert+clean), resetorder, resetheader, resetfooter, resetcomment, resetaccesskey
+// mode = compare, merge (insert+clean), onlyfile, resetorder, resetheader, resetfooter, resetcomment, resetaccesskey
 mode = [compare:args[0].contains('compare'),
-	insert:args[0].contains('insert')||args[0].contains('merge'),
-	clean:args[0].contains('clean')||args[0].contains('merge'),
+	insert:args[0].contains('insert') || args[0].contains('merge'),
+	clean:args[0].contains('clean')   || args[0].contains('merge'),
+	onlyfile:args[0].contains('onlyfile'),
 	resetorder:args[0].contains('resetorder'),
-	resetorder:args[0].contains('resetheader'),
-	resetorder:args[0].contains('resetfooter'),
+	resetheader:args[0].contains('resetheader'),
+	resetfooter:args[0].contains('resetfooter'),
 	resetcomment:args[0].contains('resetcomment'),
 	resetaccesskey:args[0].contains('resetaccesskey')]
-if (mode.resetorder || mode.resetcomment) ant.fail "Sorry, requested mode hasn't implemented yet."
+if (mode.resetorder || mode.resetheader || mode.resetfooter || mode.resetcomment) ant.fail "Sorry, requested mode hasn't implemented yet."
 locale1     = args[1]
 locale2     = args[2]
 dir1        = new File(args[3]).getCanonicalPath().replaceAll("\\\\", "/")
@@ -187,7 +188,7 @@ l10n1.common.each { filekey, allentities1 ->
 		entityerrmsg << "\n"
 		
 		// Pre-Merge: Insert New / Remove Obsolate Entities
-		if ((entities1.unique && mode.insert) || (entities2.unique && mode.clean)) {
+		if (((entities1.unique && mode.insert) || (entities2.unique && mode.clean)) && !mode.onlyfile) {
 			if (!l10n.merged[filekey]) l10n.merged[filekey] = allentities2
 			// prepare list to keep the order of entities
 			keylist = []
@@ -237,7 +238,7 @@ l10n1.common.each { filekey, allentities1 ->
 			accesskeymsg << "Accesskey(s) in this file don't match: $filekey:\n"
 			accesskeymsg << "  $key:  ${block1.value} != ${block2.value}\n"
 			// Pre-Merge: Reset Accesskeys
-			if (mode.resetaccesskey) {
+			if (mode.resetaccesskey && !mode.onlyfile) {
 				if (!l10n.merged[filekey]) l10n.merged[filekey] = allentities2
 				mergelog << "$key accesskey in this file will be reset: $filekey:\n"
 				// better to replace only value part, not whole definition
@@ -246,7 +247,7 @@ l10n1.common.each { filekey, allentities1 ->
 			}
 		}
 		// Pre-Merge: Reset Comment
-		if (mode.resetcomment) {
+		if (mode.resetcomment && !mode.onlyfile) {
 			
 			// Resetting all comments to en-US is useless
 			// need to support 3 file merge
@@ -281,7 +282,7 @@ l10n1.common.each { filekey, allentities1 ->
 
 if (mergediff) {
 	mergelog << "See ${output}.diff file to check merge diff."
-	new File("${output}.diff").append("$mergediff\n\n\n")
+	new File("${output}.diff").append("$mergediff\n")
 }
 
 
