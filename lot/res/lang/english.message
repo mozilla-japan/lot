@@ -61,25 +61,25 @@ cmsg.restoresrc.cancelled	= Restore was cancelled.
 cmsg.installer.not.windows	= Sorry but installer task is supported only on windows.
 cmsg.installer.no.product	= Please specify product to make installer.
 
-cmsg.noprop.syntaxcheck.src.dir	= 'syntaxcheck.src.dir' property must be set
-vmsg.syntaxcheck.no.srcdir	= The directory including files to be checked syntax error was not found: ${syntaxcheck.src.dir}
-vmsg.syntaxcheck.found		= Syntax error was found in the files included in "${syntaxcheck.src.dir}" directory. See "${syntaxcheck.output}" file.
+cmsg.noprop.syntaxcheck.dir	= 'syntaxcheck.dir' property must be set
+vmsg.syntaxcheck.no.srcdir	= The directory including files to be checked syntax error was not found: ${syntaxcheck.dir}
+vmsg.syntaxcheck.found		= Syntax error was found in the files included in "${syntaxcheck.dir}" directory. See "${syntaxcheck.output}" file.
 
-cmsg.noprop.placeholdercheck.src.dir	= 'placeholdercheck.src.dir' property must be set
-vmsg.placeholdercheck.no.srcdir		= The directory including files to be checked placeholder error was not found: ${placeholdercheck.src.dir}
-vmsg.placeholdercheck.found		= Placeholder error was found in the files included in "${placeholdercheck.src.dir}" directory. See "${placeholdercheck.output}" file.
+cmsg.noprop.placeholdercheck.dir	= 'placeholdercheck.dir' property must be set
+vmsg.placeholdercheck.no.srcdir		= The directory including files to be checked placeholder error was not found: ${placeholdercheck.dir}
+vmsg.placeholdercheck.found		= Placeholder error was found in the files included in "${placeholdercheck.dir}" directory. See "${placeholdercheck.output}" file.
 
-cmsg.noprop.pluralcheck.src.dir	= 'pluralcheck.src.dir' property must be set
-vmsg.pluralcheck.no.srcdir	= The directory including files to be checked pluralform error was not found: ${pluralcheck.src.dir}
-vmsg.pluralcheck.found		= Pluralform error was found in the files included in "${pluralcheck.src.dir}" directory. See "${pluralcheck.output}" file.
+cmsg.noprop.pluralcheck.dir	= 'pluralcheck.dir' property must be set
+vmsg.pluralcheck.no.srcdir	= The directory including files to be checked pluralform error was not found: ${pluralcheck.dir}
+vmsg.pluralcheck.found		= Pluralform error was found in the files included in "${pluralcheck.dir}" directory. See "${pluralcheck.output}" file.
 
-cmsg.noprop.wordcheck.src.dir	= 'wordcheck.src.dir' property must be set
-vmsg.wordcheck.no.srcdir	= The directory including files to be checked forbidden words was not found: ${wordcheck.src.dir}
-vmsg.wordcheck.found		= Forbidden words are found in the files included in "${wordcheck.src.dir}" directory. See "${wordcheck.output}" file.
+cmsg.noprop.wordcheck.dir	= 'wordcheck.dir' property must be set
+vmsg.wordcheck.no.srcdir	= The directory including files to be checked forbidden words was not found: ${wordcheck.dir}
+vmsg.wordcheck.found		= Forbidden words are found in the files included in "${wordcheck.dir}" directory. See "${wordcheck.output}" file.
 
-cmsg.noprop.charcheck.src.dir	= 'charcheck.src.dir' property must be set
-vmsg.charcheck.no.srcdir	= The directory including files to be checked forbidden characters was not found: ${charcheck.src.dir}
-vmsg.charcheck.found		= Forbidden characters are found in the files included in "${charcheck.src.dir}" directory. See "${charcheck.output}" file.
+cmsg.noprop.charcheck.dir	= 'charcheck.dir' property must be set
+vmsg.charcheck.no.srcdir	= The directory including files to be checked forbidden characters was not found: ${charcheck.dir}
+vmsg.charcheck.found		= Forbidden characters are found in the files included in "${charcheck.dir}" directory. See "${charcheck.output}" file.
 
 vmsg.escape.no.fromdir		= Please store files to be converted from unicode escape to ${escape.encoding} in "${escape.fromdir}" directory.
 vmsg.unescape.no.fromdir	= Please store files to be converted from ${unescape.encoding} to unicode escape in "${unescape.fromdir}" directory.

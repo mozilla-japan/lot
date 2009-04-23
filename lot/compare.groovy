@@ -149,7 +149,7 @@ if (l10n1.unique) {
 			ant.echo "Copying new file: $filekey"
 			newfile = l10n1.unique[filekey]['*info'].file.replaceAll("$dir1/","$dir2/").replaceAll("/$locale1","/$locale2")
 			ant.copy(taskname: 'merge', file: "${l10n1.unique[filekey]['*info'].file}", tofile: newfile, overwrite: true, preservelastmodified: true)
-			mergediff << "diff -u /dev/null $newfile".execute().text
+			mergediff << "diff -u /dev/null $newfile".execute().in.getText('UTF-8')
 		}
 	}
 }
@@ -162,7 +162,7 @@ if (l10n2.unique) {
 		if (mode.clean && !mode.onlyentity) {
 			ant.echo "Removing obsolate file: $filekey"
 			ant.move(taskname: 'merge', file: l10n2.unique[filekey]['*info'].file, tofile: "${l10n2.unique[filekey]['*info'].file}~", overwrite: true, preservelastmodified: true)
-			mergediff << "diff -u ${l10n2.unique[filekey]['*info'].file} /dev/null".execute().text
+			mergediff << "diff -u ${l10n2.unique[filekey]['*info'].file} /dev/null".execute().in.getText('UTF-8')
 		}
 	}
 }
@@ -278,9 +278,10 @@ l10n1.common.each { filekey, allentities1 ->
 			l10n.merged[filekey].each { k,v -> if (k[0] != '*') blocklist[v.index] = v.block }
 			blocklist.each { content << it }
 			content << l10n.merged[filekey]['*footer'].block
-			new File(l10n.merged[filekey]['*info'].file).write(content.toString())
+			new File(l10n.merged[filekey]['*info'].file).write(content.toString(), 'UTF-8')
 			// output diff of original/merged files
-			mergediff << "diff -u ${l10n.merged[filekey]['*info'].file}~ ${l10n.merged[filekey]['*info'].file}".execute().text
+			mergediff << "diff -u ${l10n.merged[filekey]['*info'].file}~ ${l10n.merged[filekey]['*info'].file}".execute().in.getText('UTF-8')
+			//ant.exec(executable:'diff', output: , append: true) { arg(line: "-u ${l10n.merged[filekey]['*info'].file}~ ${l10n.merged[filekey]['*info'].file}") }
 		}
 	}
 }
@@ -288,8 +289,8 @@ l10n1.common.each { filekey, allentities1 ->
 // Phase 4: Output Log/Diff etc
 
 if (mergediff) {
-	mergelog << "See ${output}.diff file to check merge diff."
-	new File("${output}.diff").append("$mergediff\n")
+	mergelog << "See ${output}.diff file to check merge diff.\n"
+	new File("${output}.diff").append("$mergediff\n", 'UTF-8')
 }
 
 

@@ -66,25 +66,25 @@ cmsg.restoresrc.cancelled	= リストアは中止されました。
 cmsg.installer.not.windows	= 残念ながら installer ターゲットは Windows でのみサポートされています。
 cmsg.installer.no.product	= インストーラを作成する製品を指定してください。
 
-cmsg.noprop.syntaxcheck.src.dir	= syntaxcheck.src.dir プロパティが設定されていません
-vmsg.syntaxcheck.no.srcdir	= 構文エラーチェック対象ファイルを含むディレクトリが見つかりませんでした: ${syntaxcheck.src.dir}
-vmsg.syntaxcheck.found		= "${syntaxcheck.src.dir}" ディレクトリ中のファイルに構文エラーが見つかりました。"${syntaxcheck.output}" ファイルを確認してください。
+cmsg.noprop.syntaxcheck.dir	= syntaxcheck.dir プロパティが設定されていません
+vmsg.syntaxcheck.no.srcdir	= 構文エラーチェック対象ファイルを含むディレクトリが見つかりませんでした: ${syntaxcheck.dir}
+vmsg.syntaxcheck.found		= "${syntaxcheck.dir}" ディレクトリ中のファイルに構文エラーが見つかりました。"${syntaxcheck.output}" ファイルを確認してください。
 
-cmsg.noprop.placeholdercheck.src.dir	= placeholdercheck.src.dir プロパティが設定されていません
-vmsg.placeholdercheck.no.srcdir		= プレースホルダエラーチェック対象ファイルを含むディレクトリが見つかりませんでした: ${placeholdercheck.src.dir}
-vmsg.placeholdercheck.found		= "${placeholdercheck.src.dir}" ディレクトリ中のファイルにプレースホルダエラーが見つかりました。"${placeholdercheck.output}" ファイルを確認してください。
+cmsg.noprop.placeholdercheck.dir	= placeholdercheck.dir プロパティが設定されていません
+vmsg.placeholdercheck.no.srcdir		= プレースホルダエラーチェック対象ファイルを含むディレクトリが見つかりませんでした: ${placeholdercheck.dir}
+vmsg.placeholdercheck.found		= "${placeholdercheck.dir}" ディレクトリ中のファイルにプレースホルダエラーが見つかりました。"${placeholdercheck.output}" ファイルを確認してください。
 
-cmsg.noprop.pluralcheck.src.dir	= pluralcheck.src.dir プロパティが設定されていません
-vmsg.pluralcheck.no.srcdir	= PluralForm エラーチェック対象ファイルを含むディレクトリが見つかりませんでした: ${pluralcheck.src.dir}
-vmsg.pluralcheck.found		= "${pluralcheck.src.dir}" ディレクトリ中のファイルに PluralForm エラーが見つかりました。"${pluralcheck.output}" ファイルを確認してください。
+cmsg.noprop.pluralcheck.dir	= pluralcheck.dir プロパティが設定されていません
+vmsg.pluralcheck.no.srcdir	= PluralForm エラーチェック対象ファイルを含むディレクトリが見つかりませんでした: ${pluralcheck.dir}
+vmsg.pluralcheck.found		= "${pluralcheck.dir}" ディレクトリ中のファイルに PluralForm エラーが見つかりました。"${pluralcheck.output}" ファイルを確認してください。
 
-cmsg.noprop.wordcheck.src.dir	= wordcheck.src.dir プロパティが設定されていません
-vmsg.wordcheck.no.srcdir	= 使用語句チェック対象ファイルを含むディレクトリが見つかりませんでした: ${wordcheck.src.dir}
-vmsg.wordcheck.found		= "${wordcheck.src.dir}" ディレクトリ中のファイルに使用禁止語句が見つかりました。"${wordcheck.output}" ファイルを確認してください。
+cmsg.noprop.wordcheck.dir	= wordcheck.dir プロパティが設定されていません
+vmsg.wordcheck.no.srcdir	= 使用語句チェック対象ファイルを含むディレクトリが見つかりませんでした: ${wordcheck.dir}
+vmsg.wordcheck.found		= "${wordcheck.dir}" ディレクトリ中のファイルに使用禁止語句が見つかりました。"${wordcheck.output}" ファイルを確認してください。
 
-cmsg.noprop.charcheck.src.dir	= charcheck.src.dir プロパティが設定されていません
-vmsg.charcheck.no.srcdir	= 使用文字チェック対象ファイルを含むディレクトリが見つかりませんでした: ${charcheck.src.dir}
-vmsg.charcheck.found		= "${charcheck.src.dir}" ディレクトリ中のファイルに使用禁止文字が見つかりました。"${charcheck.output}" ファイルを確認してください。
+cmsg.noprop.charcheck.dir	= charcheck.dir プロパティが設定されていません
+vmsg.charcheck.no.srcdir	= 使用文字チェック対象ファイルを含むディレクトリが見つかりませんでした: ${charcheck.dir}
+vmsg.charcheck.found		= "${charcheck.dir}" ディレクトリ中のファイルに使用禁止文字が見つかりました。"${charcheck.output}" ファイルを確認してください。
 
 vmsg.escape.no.fromdir		= ${escape.encoding} から Unicode エスケープに変換するファイルを "${escape.fromdir}" ディレクトリに入れてください。
 vmsg.unescape.no.fromdir	= Unicode エスケープから ${unescape.encoding} に変換するファイルを "${unescape.fromdir}" ディレクトリに入れてください。

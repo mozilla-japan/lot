@@ -20,7 +20,7 @@
 			<arg value="@{file}"/>
 			ant.mkdir(dir:new File(args[0]).getParent())
 		</groovy>
-		<echo taskname="@{taskname}" file="@{file}" message="@{message}@{text}"/>
+		<echo taskname="@{taskname}" file="@{file}" message="@{message}@{text}" encoding="@{encoding}"/>
 		<if>
 			<istrue value="@{fail}"/>
 			<then>
@@ -225,7 +225,7 @@
 			ant.fileset(dir:dir, includes:'${sjisfiles}', excludes:excludes).each {
 				wordchecker(it, 'Shift_JIS', allowpattern, denypattern, null)
 			}
-			if (errormsg) new File(output).append(errormsg)
+			if (errormsg) new File(output).append(errormsg, 'UTF-8')
 		]]></groovy>
 	</sequential>
 </macrodef>
