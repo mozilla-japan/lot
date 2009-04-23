@@ -37,10 +37,10 @@
 <!-- * Syntax Check * -->
 <target name="syntaxcheck" depends="load-conf" unless="nosyntaxcheck"
 	description="syntax error check of converted files">
-	<fail message="${cmsg.noprop.syntaxcheck.src.dir}" unless="syntaxcheck.src.dir"/>
+	<fail message="${cmsg.noprop.syntaxcheck.dir}" unless="syntaxcheck.dir"/>
 	<loadmessage pattern="^vmsg\.syntaxcheck\."/>
 	<fail message="${vmsg.syntaxcheck.no.srcdir}">
-		<condition><not><available file="${syntaxcheck.src.dir}" type="dir"/></not></condition>
+		<condition><not><available file="${syntaxcheck.dir}" type="dir"/></not></condition>
 	</fail>
 	
 	<property name="syntaxcheck.output"  value="temp/syntaxerror.txt"/>
@@ -55,17 +55,17 @@
 			if (content) errormsg << "Syntax Error Found in $file:\n$content\n\n"
 		}
 		
-		ant.fileset(dir: properties.'syntaxcheck.src.dir', includes:'**/*.properties').each {
+		ant.fileset(dir: properties.'syntaxcheck.dir', includes:'**/*.properties').each {
 			syntaxchecker(it, 'UTF-8', /${properties.'RE.properties.validline'}\n/)
 		}
-		ant.fileset(dir: properties.'syntaxcheck.src.dir', includes:'**/*.dtd').each {
+		ant.fileset(dir: properties.'syntaxcheck.dir', includes:'**/*.dtd').each {
 			syntaxchecker(it, 'UTF-8', /${properties.'RE.dtd.validblock'}\n/)
 		}
 		// need to support *.ini, *.inc files too...
-		//ant.fileset(dir: properties.'syntaxcheck.src.dir', includes:'**/*.ini').each {
+		//ant.fileset(dir: properties.'syntaxcheck.dir', includes:'**/*.ini').each {
 		//	syntaxchecker(it, 'UTF-8', /${properties.'RE.ini.validblock'}\n/)
 		//}
-		//ant.fileset(dir: properties.'syntaxcheck.src.dir', includes:'**/*.inc').each {
+		//ant.fileset(dir: properties.'syntaxcheck.dir', includes:'**/*.inc').each {
 		//	syntaxchecker(it, 'UTF-8', /${properties.'RE.inc.validblock'}\n/)
 		//}
 		
@@ -79,10 +79,10 @@
 <!-- * Placeholder Check * -->
 <target name="placeholdercheck" depends="load-conf" unless="noplaceholdercheck"
 	description="placeholder usage error check of converted properties files">
-	<fail message="${cmsg.noprop.placeholdercheck.src.dir}" unless="placeholdercheck.src.dir"/>
+	<fail message="${cmsg.noprop.placeholdercheck.dir}" unless="placeholdercheck.dir"/>
 	<loadmessage pattern="^vmsg\.placeholdercheck\."/>
 	<fail message="${vmsg.placeholdercheck.no.srcdir}">
-		<condition><not><available file="${placeholdercheck.src.dir}" type="dir"/></not></condition>
+		<condition><not><available file="${placeholdercheck.dir}" type="dir"/></not></condition>
 	</fail>
 	
 	<property name="placeholdercheck.output"  value="temp/placeholdererror.txt"/>
@@ -91,7 +91,7 @@
 	<groovy><![CDATA[
 		max = 5
 		errormsg = new StringBuilder()
-		ant.fileset(dir: properties.'placeholdercheck.src.dir', includes:'**/*.properties').each {
+		ant.fileset(dir: properties.'placeholdercheck.dir', includes:'**/*.properties').each {
 			errorlines = new StringBuilder()
 			it.getFile().getText('UTF-8').eachLine { line, n ->
 				err = false
@@ -122,7 +122,7 @@
 	
 	<groovy><![CDATA[
 		errormsg = new StringBuilder()
-		ant.fileset(dir: properties.'pluralcheck.src.dir', includes:'**/*.properties').each {
+		ant.fileset(dir: properties.'pluralcheck.dir', includes:'**/*.properties').each {
 			errorlines = new StringBuilder()
 			it.getFile().getText('UTF-8').replaceAll(/(?ms)${properties.'pluralcheck.allow'}/, properties.'pluralcheck.allow.replace').eachLine { line, n ->
 				if (line =~ /^\s*[-0-9a-zA-Z_.?{@}]+\s*=.+;.+/) {
@@ -144,7 +144,7 @@
 	<attribute name="allowpattern"	default="${wordcheck.allow}"/>
 	<attribute name="denypattern"	default="${wordcheck.deny}"/>
 	<attribute name="replacement"	default="${wordcheck.deny.replace}"/>
-	<attribute name="dir"			default="${wordcheck.src.dir}"/>
+	<attribute name="dir"			default="${wordcheck.dir}"/>
 	<attribute name="output"		default="${wordcheck.output}"/>
 	<attribute name="excludes"		default=""/>
 	<attribute name="regexpengine"	default=""/>
@@ -232,10 +232,10 @@
 
 <target name="wordcheck" depends="load-conf" unless="nowordcheck"
 	description="word error check of converted files">
-	<fail message="${cmsg.noprop.wordcheck.src.dir}" unless="wordcheck.src.dir"/>
+	<fail message="${cmsg.noprop.wordcheck.dir}" unless="wordcheck.dir"/>
 	<loadmessage pattern="^vmsg\.wordcheck\."/>
 	<fail message="${vmsg.wordcheck.no.srcdir}">
-		<condition><not><available file="${wordcheck.src.dir}" type="dir"/></not></condition>
+		<condition><not><available file="${wordcheck.dir}" type="dir"/></not></condition>
 	</fail>
 	<property name="wordcheck.output"  value="temp/worderror.txt"/>
 	<delete file="${wordcheck.output}" failonerror="false"/>
@@ -248,17 +248,17 @@
 	<property name="wordcheck.allow"	value="${wordcheck.allow.common}"/>
 	
 	<wordchecksuite excludes="browser/, calendar/, editor/, mail/, mobile/, suite/"/>
-	<wordchecksuite dir="${wordcheck.src.dir}/browser"
+	<wordchecksuite dir="${wordcheck.dir}/browser"
 		denypattern="${wordcheck.deny}|${wordcheck.deny.firefox}"/>
-	<wordchecksuite dir="${wordcheck.src.dir}/calendar"
+	<wordchecksuite dir="${wordcheck.dir}/calendar"
 		denypattern="${wordcheck.deny}|${wordcheck.deny.sunbird}"/>
-	<wordchecksuite dir="${wordcheck.src.dir}/editor"
+	<wordchecksuite dir="${wordcheck.dir}/editor"
 		denypattern="${wordcheck.deny}|${wordcheck.deny.thunderbird}|${wordcheck.deny.seamonkey}"/>
-	<wordchecksuite dir="${wordcheck.src.dir}/mail"
+	<wordchecksuite dir="${wordcheck.dir}/mail"
 		denypattern="${wordcheck.deny}|${wordcheck.deny.thunderbird}|${wordcheck.deny.seamonkey}"/>
-	<wordchecksuite dir="${wordcheck.src.dir}/mobile"
+	<wordchecksuite dir="${wordcheck.dir}/mobile"
 		denypattern="${wordcheck.deny}|${wordcheck.deny.fennec}"/>
-	<wordchecksuite dir="${wordcheck.src.dir}/suite"
+	<wordchecksuite dir="${wordcheck.dir}/suite"
 		denypattern="${wordcheck.deny}|${wordcheck.deny.seamonkey}"/>
 	
 	<loadfile property="wordcheck.error" srcfile="${wordcheck.output}" encoding="UTF-8"
@@ -272,7 +272,7 @@
 	<equals property="wordcheck.suspected"	value="@{2}|${wordcheck.suspected.ja}" arg1="${locale}" arg2="ja"/>
 	<equals property="wordcheck.suspected"	value="@{2}|${wordcheck.suspected.ja-JP-mac}" arg1="${locale}" arg2="ja-JP-mac"/>
 	
-	<wordchecksuite dir="${wordcheck.src.dir}" output="${wordcheck.suspected.output}"
+	<wordchecksuite dir="${wordcheck.dir}" output="${wordcheck.suspected.output}"
 		allowpattern="##NOTHING##" denypattern="${wordcheck.suspected}"/>
 </target>
 
@@ -280,13 +280,13 @@
 	description="character error check of converted files">
 	<delete file="${charcheck.output}" failonerror="false"/>
 	
-	<fail message="${cmsg.noprop.charcheck.src.dir}" unless="charcheck.src.dir"/>
+	<fail message="${cmsg.noprop.charcheck.dir}" unless="charcheck.dir"/>
 	<loadmessage pattern="^vmsg\.charcheck\."/>
 	<fail message="${vmsg.charcheck.no.srcdir}">
-		<condition><not><available file="${charcheck.src.dir}" type="dir"/></not></condition>
+		<condition><not><available file="${charcheck.dir}" type="dir"/></not></condition>
 	</fail>
 	
-	<wordchecksuite dir="${charcheck.src.dir}" output="${charcheck.output}" excludes="${charcheck.excludes}"
+	<wordchecksuite dir="${charcheck.dir}" output="${charcheck.output}" excludes="${charcheck.excludes}"
 		allowpattern="${charcheck.allow}" denypattern="${charcheck.deny}" replacement="${charcheck.deny.replace}"
 		regexpengine="jakartaoro"/>
 	

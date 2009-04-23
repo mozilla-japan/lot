@@ -3,11 +3,14 @@ assert ant && project && properties && target && task && args
 
 // Phase 0: Prepare Variables
 debug = false
-// mode = compare, merge (insert+clean), onlyfile, resetorder, resetheader, resetfooter, resetcomment, resetaccesskey
+// mode = compare, merge (insert+clean), onlyfile, onlyentity, onlyaccesskey,
+//        resetorder, resetheader, resetfooter, resetcomment, resetaccesskey
 mode = [compare:args[0].contains('compare'),
 	insert:args[0].contains('insert') || args[0].contains('merge'),
 	clean:args[0].contains('clean')   || args[0].contains('merge'),
 	onlyfile:args[0].contains('onlyfile'),
+	onlyentity:args[0].contains('onlyentity') || args[0].contains('onlyaccesskey'),
+	onlyaccesskey:args[0].contains('onlyaccesskey'),
 	resetorder:args[0].contains('resetorder'),
 	resetheader:args[0].contains('resetheader'),
 	resetfooter:args[0].contains('resetfooter'),
@@ -41,6 +44,10 @@ mergelog     = new StringBuilder()
 mergediff    = new StringBuilder()
 metakeys = 3 // *info, *header, *footer
 commonkeys = uniquekeys1 = uniquekeys2 = 0
+
+def isaccesskey(key) {
+	key =~ properties.'compare.accesskey.pattern' && !(key =~ properties.'compare.accesskey.except')
+}
 
 def parse(dir, file, encoding, filepattern, entitypattern, preprocess, postprocess) {
 	filekey  = file.toString().replaceAll("\\\\", "/").replaceAll("$dir/","").replaceAll("/$locale1|$locale2","/*")
@@ -138,7 +145,7 @@ if (l10n1.unique) {
 		uniquekeys1 += entities.size()-metakeys // don't count header/footer
 		fileerrmsg << "  $filekey \t(${entities.size()-metakeys} entities)\n"
 		// Merge: copy new files
-		if (mode.insert) {
+		if (mode.insert && !mode.onlyentity) {
 			ant.echo "Copying new file: $filekey"
 			newfile = l10n1.unique[filekey]['*info'].file.replaceAll("$dir1/","$dir2/").replaceAll("/$locale1","/$locale2")
 			ant.copy(taskname: 'merge', file: "${l10n1.unique[filekey]['*info'].file}", tofile: newfile, overwrite: true, preservelastmodified: true)
@@ -152,7 +159,7 @@ if (l10n2.unique) {
 		uniquekeys2 += entities.size()-metakeys // don't count header/footer
 		fileerrmsg << "  $filekey \t(${entities.size()-metakeys} entities)\n"
 		// Merge: remove obsolate files
-		if (mode.clean) {
+		if (mode.clean && !mode.onlyentity) {
 			ant.echo "Removing obsolate file: $filekey"
 			ant.move(taskname: 'merge', file: l10n2.unique[filekey]['*info'].file, tofile: "${l10n2.unique[filekey]['*info'].file}~", overwrite: true, preservelastmodified: true)
 			mergediff << "diff -u ${l10n2.unique[filekey]['*info'].file} /dev/null".execute().text
@@ -200,25 +207,27 @@ l10n1.common.each { filekey, allentities1 ->
 			// find previous entity index and insert after it
 			if (entities1.unique && mode.insert) {
 				entities1.unique.sort{ l,r -> l.value.index <=> r.value.index }.each { key,block ->
-				mergelog << "new entity $key will be inserted to: $filekey:\n"
-					l10n.merged[filekey][key] = block
-					if (block.index == 0) {
-						keylist.add(0,key)
-					}
-					else {
-						prevkey = allentities1.find{ k,b -> b.index==block.index-1 }.key
-						i = keylist.indexOf(prevkey)
-						assert i != -1
-						keylist.add(i+1,key)
+					if (!mode.onlyaccesskey || isaccesskey(key)) {
+						mergelog << "new entity $key will be inserted to: $filekey:\n"
+						l10n.merged[filekey][key] = block
+						idx1 = block.index
+						idx2 = -1
+						while (--idx1 >= 0 && idx2 < 0) {
+							prevkey = allentities1.find{ k,b -> b.index==idx1 }.key
+							idx2 = keylist.indexOf(prevkey)
+						}
+						keylist.add(idx2+1,key)
 					}
 				}
 			}
 			if (entities2.unique && mode.clean) {
 				// just remove from map and list
 				entities2.unique.each { key,block ->
-					mergelog << "obsolate entity $key will be removed from: $filekey:\n"
-					l10n.merged[filekey].remove(key)
-					keylist.remove(key)
+					if (!mode.onlyaccesskey || isaccesskey(key)) {
+						mergelog << "obsolate entity $key will be removed from: $filekey:\n"
+						l10n.merged[filekey].remove(key)
+						keylist.remove(key)
+					}
 				}
 			}
 			// set new indices to each entity
@@ -232,9 +241,7 @@ l10n1.common.each { filekey, allentities1 ->
 	entities1.common.each { key,block1 ->
 		block2 = entities2.common[key]
 		// Check Accesskey Entities
-		if (key =~ properties.'compare.accesskey.pattern' &&
-			!(key =~ properties.'compare.accesskey.except') &&
-			block1.value != block2.value) {
+		if (isaccesskey(key) && block1.value != block2.value) {
 			accesskeymsg << "Accesskey(s) in this file don't match: $filekey:\n"
 			accesskeymsg << "  $key:  ${block1.value} != ${block2.value}\n"
 			// Pre-Merge: Reset Accesskeys
