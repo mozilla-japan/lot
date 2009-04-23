@@ -319,24 +319,6 @@ ant backupsrc
 ant restoresrc
 ant restoresrc -Dfile=backup/src-mozilla1.8-2005081813.zip
 </echo><echo/>
-
-<!-- <echo taskname="*">ant diff
-ant diff -Dfromdir=src/l10n/ja~ -Dtodir=src/l10n/ja
-ant patch -Dfile=lot-2.0-20080925.patch
-ant patch-dry -Dfile=patch/lot-2.0-20080925.patch
-</echo><echo/>
-<echo taskname="*">ant diff-src
-ant diff-loose -Dpackage=thunderbird
-ant diff-loose -Dfromlocale=en-US -Dtolocale=ja
-ant diff-jar -Dmode=trunk -Dpackage=thunderbird -Dlocale=ja
-ant diff-xpi -Dlocale=ja -Dfromrevision=1.0.5
-</echo><echo/>
-<echo taskname="*">ant lpdiff-src
-ant lpdiff-loose
-ant lpdiff-loose -Dfromlocale=en-US -Dtolocale=ja-JP-mac
-ant lpdiff-jar -Dlocale=ja
-ant lpdiff-xpi -Dlocale=ja-JP-mac
-</echo><echo/> -->
 </target>
 
 
