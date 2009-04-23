@@ -271,6 +271,9 @@
 	<property name="nosuspectedwordcheck" value="YES"/>
 	<property name="nocharcheck" value="YES"/>
 </target>
+<target name="nocompare" description="exec following targets without compare">
+	<property name="nocompare" value="YES"/>
+</target>
 
 <target name="version" description="display lot version">
 	<echo taskname="version" message="${lot.fullname} ${lot.version}"/>

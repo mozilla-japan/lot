@@ -230,7 +230,8 @@
 	</sequential>
 </macrodef>
 
-<target name="wordcheck" depends="load-conf" unless="nowordcheck">
+<target name="wordcheck" depends="load-conf" unless="nowordcheck"
+	description="word error check of converted files">
 	<fail message="${cmsg.noprop.wordcheck.src.dir}" unless="wordcheck.src.dir"/>
 	<loadmessage pattern="^vmsg\.wordcheck\."/>
 	<fail message="${vmsg.wordcheck.no.srcdir}">
@@ -275,7 +276,8 @@
 		allowpattern="##NOTHING##" denypattern="${wordcheck.suspected}"/>
 </target>
 
-<target name="charcheck" depends="load-conf" unless="nocharcheck">
+<target name="charcheck" depends="load-conf" unless="nocharcheck"
+	description="character error check of converted files">
 	<delete file="${charcheck.output}" failonerror="false"/>
 	
 	<fail message="${cmsg.noprop.charcheck.src.dir}" unless="charcheck.src.dir"/>
@@ -322,18 +324,28 @@
 	</sequential>
 </macrodef>
 
-<target name="compare" depends="load-conf" unless="nocompare">
+<target name="compare" depends="load-conf" unless="nocompare"
+	description="compare l10n files and check new/obsolate files/entities etc">
 	<compare locale2="${locale}" dir2="${compare.dir}" excludes="${compare.excludes}" failonerror="false"/>
 </target>
-<target name="merge" depends="load-conf" unless="nomerge">
-	<confirm message="${lot.l10n.dir}/en-US ディレクトリのファイルを ${merge.dir} ディレクトリのファイルにマージし、書き換えます。実行してもよろしいですか？ (Y/N)"/>
+<target name="merge" depends="load-conf" unless="nomerge"
+	description="compare l10n files and merge new/obsolate files/entities">
+	<confirm message="${lot.l10n.dir}/en-US ディレクトリのファイルと ${merge.dir} ディレクトリのファイルを比較し、新しいファイルやエンティティを追加、古いものは削除します。実行してもよろしいですか？ (Y/N)${N}次のファイルやディレクトリは除外されます: ${merge.excludes}${N}注: 古いものを削除せず残したい場合は merge ではなく insertnew ターゲットを使用してください。"/>
 	<compare locale2="${locale}" dir2="${merge.dir}" excludes="${merge.excludes}"
-		mode="merge" output="${merge.output}" failonerror="false"/>
+		mode="merge" output="${merge.output}" failonerror="true"/>
+	<echo message="ブロック最初のエンティティが削除される場合、ブロックに対するコメントがそのエンティティ単体のものとして削除されることがあります(現時点での仕様)。必ず処理結果を差分ファイルで確認し、必要に応じて修正してください。"/>
 </target>
-<target name="resetaccesskey" depends="load-conf" unless="nomerge">
-	<confirm message="${lot.l10n.dir}/en-US ディレクトリと ${merge.dir} ディレクトリのファイルのアクセスキーを比較し、異なるものは前者の定義に書き換えます。実行してもよろしいですか？ (Y/N)"/>
+<target name="insertnew" depends="load-conf" unless="nomerge"
+	description="compare l10n files and merge new files/entities (not remove obsolate ones)">
+	<confirm message="${lot.l10n.dir}/en-US ディレクトリのファイルを ${merge.dir} ディレクトリのファイルを比較し、新しいファイルやエンティティを追加します。実行してもよろしいですか？ (Y/N)${N}次のファイルやディレクトリは除外されます: ${merge.excludes}"/>
+	<compare locale2="${locale}" dir2="${merge.dir}" excludes="${merge.excludes}"
+		mode="insert" output="${merge.output}" failonerror="true"/>
+</target>
+<target name="resetaccesskey" depends="load-conf" unless="nomerge"
+	description="compare l10n files and reset accesskeys">
+	<confirm message="${lot.l10n.dir}/en-US ディレクトリと ${merge.dir} ディレクトリのファイルのアクセスキーを比較し、異なるものは前者の定義に書き換えます。実行してもよろしいですか？ (Y/N)${N}次のファイルやディレクトリは除外されます: ${resetaccesskey.excludes}"/>
 	<compare locale2="${locale}" dir2="${resetaccesskey.dir}" excludes="${resetaccesskey.excludes}"
-		mode="resetaccesskey" output="${resetaccesskey.output}" failonerror="false"/>
+		mode="resetaccesskey" output="${resetaccesskey.output}" failonerror="true"/>
 </target>
 
 </project>

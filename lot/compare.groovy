@@ -8,8 +8,8 @@ mode        = [compare:args[0].contains('compare'), insert:args[0].contains('ins
 if (mode.resetorder || mode.resetcomment) ant.fail "Sorry, requested mode hasn't implemented yet."
 locale1     = args[1]
 locale2     = args[2]
-dir1        = new File(args[3]).getCanonicalPath()
-dir2        = new File(args[4]).getCanonicalPath()
+dir1        = new File(args[3]).getCanonicalPath().replaceAll("\\\\", "/")
+dir2        = new File(args[4]).getCanonicalPath().replaceAll("\\\\", "/")
 excludes    = args[5]
 output      = args[6]
 // format = text, xml, html
@@ -31,8 +31,8 @@ metakeys = 3 // *info, *header, *footer
 commonkeys = uniquekeys1 = uniquekeys2 = 0
 
 def parse(dir, file, encoding, filepattern, entitypattern, preprocess, postprocess) {
-	filekey  = file.toString().replaceAll("$dir/","").replaceAll("/$locale1|$locale2","/*")
-	l10n[dir][filekey] = ['*info':[dir:dir, file:file, encoding:encoding],
+	filekey  = file.toString().replaceAll("\\\\", "/").replaceAll("$dir/","").replaceAll("/$locale1|$locale2","/*")
+	l10n[dir][filekey] = ['*info':[dir:dir, file:file.toString().replaceAll("\\\\", "/"), encoding:encoding],
 		'*header':[index:-1,key:'*header'], '*footer':[index:-1,key:'*footer']]
 	content = file.getFile().getText(encoding)
 	if (content.contains("\r\n")) {
@@ -116,7 +116,7 @@ if (l10n1.unique) {
 		// Merge: copy new files
 		if (mode.insert) {
 			ant.echo "Copying new file: $filekey"
-			newfile = l10n1.unique[filekey]['*info'].file.toString().replaceAll("$dir1/","$dir2/").replaceAll("/$locale1","/$locale2")
+			newfile = l10n1.unique[filekey]['*info'].file.replaceAll("$dir1/","$dir2/").replaceAll("/$locale1","/$locale2")
 			ant.copy(taskname: 'merge', file: "${l10n1.unique[filekey]['*info'].file}", tofile: newfile, overwrite: true, preservelastmodified: true)
 			mergediff << "diff -u /dev/null $newfile".execute().text
 		}
@@ -170,7 +170,7 @@ l10n1.common.each { filekey, allentities1 ->
 			keylist = []
 			(0..<l10n.merged[filekey].size()-metakeys).each { i ->
 				e = l10n.merged[filekey].find{ k,v -> v.index==i }
-				assert e != null // index に飛びがあってはならない
+				assert e != null // index must be continuous (all index must be found)
 				keylist.push(e.key)
 			}
 			// find previous entity index and insert after it
@@ -217,7 +217,7 @@ l10n1.common.each { filekey, allentities1 ->
 			if (mode.resetaccesskey) {
 				if (!l10n.merged[filekey]) l10n.merged[filekey] = allentities2
 				mergelog << "$key accesskey in this file will be reset: $filekey:\n"
-				// definition じゃなくて value だけ置き換える方がベター
+				// better to replace only value part, not whole definition
 				l10n.merged[filekey][key].definition = block1.definition
 				l10n.merged[filekey][key].block = block2.prespace+block2.precomment+block1.definition+block2.postcomment
 			}
@@ -225,8 +225,8 @@ l10n1.common.each { filekey, allentities1 ->
 		// Pre-Merge: Reset Comment
 		if (mode.resetcomment) {
 			
-			// 無条件に英語コメントに戻すのは無意味
-			// 3 File Merge でサポートする
+			// Resetting all comments to en-US is useless
+			// need to support 3 file merge
 			
 		}
 	}
@@ -243,13 +243,11 @@ l10n1.common.each { filekey, allentities1 ->
 			ant.copy(taskname: 'backup', file: l10n.merged[filekey]['*info'].file, tofile: "${l10n.merged[filekey]['*info'].file}~", overwrite: true, preservelastmodified: true)
 			content = new StringBuilder()
 			content << l10n.merged[filekey]['*header'].block
-			// 配列作って結合の方が良いかも
-			(0..<l10n.merged[filekey].size()).each { i ->
-				e = l10n.merged[filekey].find { k,v-> k[0] != '*' && v.index==i }
-				if (e) content << e.value.block
-			}
+			blocklist = []
+			l10n.merged[filekey].each { k,v -> if (k[0] != '*') blocklist[v.index] = v.block }
+			blocklist.each { content << it }
 			content << l10n.merged[filekey]['*footer'].block
-			l10n.merged[filekey]['*info'].file.getFile().write(content.toString())
+			new File(l10n.merged[filekey]['*info'].file).write(content.toString())
 			// output diff of original/merged files
 			mergediff << "diff -u ${l10n.merged[filekey]['*info'].file}~ ${l10n.merged[filekey]['*info'].file}".execute().text
 		}
