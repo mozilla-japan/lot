@@ -2,9 +2,16 @@
 assert ant && project && properties && target && task && args
 
 // Phase 0: Prepare Variables
-debug       = false
-// mode = compare, merge (insert+clean), order, resetcomment, resetaccesskey
-mode        = [compare:args[0].contains('compare'), insert:args[0].contains('insert')||args[0].contains('merge'), clean:args[0].contains('clean')||args[0].contains('merge'), resetorder:args[0].contains('resetorder'), resetcomment:args[0].contains('resetcomment'), resetaccesskey:args[0].contains('resetaccesskey')]
+debug = false
+// mode = compare, merge (insert+clean), resetorder, resetheader, resetfooter, resetcomment, resetaccesskey
+mode = [compare:args[0].contains('compare'),
+	insert:args[0].contains('insert')||args[0].contains('merge'),
+	clean:args[0].contains('clean')||args[0].contains('merge'),
+	resetorder:args[0].contains('resetorder'),
+	resetorder:args[0].contains('resetheader'),
+	resetorder:args[0].contains('resetfooter'),
+	resetcomment:args[0].contains('resetcomment'),
+	resetaccesskey:args[0].contains('resetaccesskey')]
 if (mode.resetorder || mode.resetcomment) ant.fail "Sorry, requested mode hasn't implemented yet."
 locale1     = args[1]
 locale2     = args[2]
@@ -16,9 +23,13 @@ output      = args[6]
 format      = args[7]
 failonerror = args[8] == 'true'
 propfilepattern   = /${properties.'RE.properties.file'}/
-dtdfilepattern    = /${properties.'RE.dtd.file'}/
 propentitypattern = /${properties.'RE.properties.entityblock'}/
+dtdfilepattern    = /${properties.'RE.dtd.file'}/
 dtdentitypattern  = /${properties.'RE.dtd.anyentityblock'}/
+incfilepattern    = /${properties.'RE.inc.file'}/
+incentitypattern  = /${properties.'RE.inc.entityblock'}/
+inifilepattern    = /${properties.'RE.ini.file'}/
+inientitypattern  = /${properties.'RE.ini.entityblock'}/
 //l10n[basedir][filekey][entitykey] = [index, block, prespace:, precomment:, definition:, key:, value:, postcomment:]
 l10n = [(dir1): [:], (dir2): [:], merged: [:]]
 infomsg      = new StringBuilder()
@@ -91,6 +102,18 @@ ant.fileset(dir: "$dir1", includes:'**/*.dtd', excludes:excludes).each {
 }
 ant.fileset(dir: "$dir2", includes:'**/*.dtd', excludes:excludes).each {
 	parse(dir2, it, 'UTF-8', dtdfilepattern, dtdentitypattern, null, null)
+}
+ant.fileset(dir: "$dir1", includes:'**/*.inc', excludes:excludes).each {
+	parse(dir1, it, 'UTF-8', incfilepattern, incentitypattern, null, null)
+}
+ant.fileset(dir: "$dir2", includes:'**/*.inc', excludes:excludes).each {
+	parse(dir2, it, 'UTF-8', incfilepattern, incentitypattern, null, null)
+}
+ant.fileset(dir: "$dir1", includes:'**/*.ini', excludes:excludes).each {
+	parse(dir1, it, 'UTF-8', inifilepattern, inientitypattern, null, null)
+}
+ant.fileset(dir: "$dir2", includes:'**/*.ini', excludes:excludes).each {
+	parse(dir2, it, 'UTF-8', inifilepattern, inientitypattern, null, null)
 }
 
 // to avoid ignoring existing blank file, check if it is null
