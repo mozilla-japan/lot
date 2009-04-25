@@ -5,16 +5,16 @@
 <!-- http://hg.mozilla.org/comm-central/file/tip/suite/locales/generic/install.rdf -->
 
 <Description about="urn:mozilla:install-manifest">
-	<em:id>{${package.guid}}</em:id>
-	<em:name>${package.name}</em:name>
-	<em:version>${package.revision}</em:version>
+	<em:id>${seamonkey.langpack.guid}</em:id>
+	<em:name>${seamonkey.langpack.name}</em:name>
+	<em:version>${seamonkey.langpack.revision}</em:version>
 	<em:type>${package.type}</em:type>
 	
 	<em:targetApplication>
 		<Description>
-			<em:id>{${targetapp.guid}}</em:id>
-			<em:minVersion>${targetapp.minVersion}</em:minVersion>
-			<em:maxVersion>${targetapp.maxVersion}</em:maxVersion>
+			<em:id>{${seamonkey.guid}}</em:id>
+			<em:minVersion>${seamonkey.minVersion}</em:minVersion>
+			<em:maxVersion>${seamonkey.maxVersion}</em:maxVersion>
 		</Description>
 	</em:targetApplication>
 	

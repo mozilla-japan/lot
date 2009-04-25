@@ -5,16 +5,16 @@
 <!-- http://hg.mozilla.org/comm-central/file/tip/mail/locales/generic/install.rdf -->
 
 <Description about="urn:mozilla:install-manifest">
-	<em:id>{${package.guid}}</em:id>
-	<em:name>${package.name}</em:name>
-	<em:version>${package.revision}</em:version>
+	<em:id>${thunderbird.guid}</em:id>
+	<em:name>${thunderbird.name}</em:name>
+	<em:version>${thunderbird.revision}</em:version>
 	<em:type>${package.type}</em:type>
 	
 	<em:targetApplication>
 		<Description>
-			<em:id>{${targetapp.guid}}</em:id>
-			<em:minVersion>${targetapp.minVersion}</em:minVersion>
-			<em:maxVersion>${targetapp.maxVersion}</em:maxVersion>
+			<em:id>{${thunderbird.guid}}</em:id>
+			<em:minVersion>${thunderbird.minVersion}</em:minVersion>
+			<em:maxVersion>${thunderbird.maxVersion}</em:maxVersion>
 		</Description>
 	</em:targetApplication>
 	

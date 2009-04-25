@@ -4,14 +4,77 @@
 <property name="buildfile.aux.loaded" value="true"/>
 
 
-<!-- * update and commit lot itself * -->
-<target name="checkout-src" depends="load-mainconf"
-	description="checkout src files from l10n svn server">
-	<exec executable="svn" taskname="svn">
-		<!-- svn+ssh://svn.mozilla.l10n.jp/usr/local/var/svn/l10n/trunk/ -->
-		<arg line="checkout http://svn.mozilla.l10n.jp/trunk/ ${lot.src.dir}/l10n"/>
+<!-- start working with lot -->
+<target name="genconf">
+	<fail message="user.conf file already exists">
+		<condition><available file="${config.dir}/user.conf"/></condition>
+	</fail>
+	<input addproperty="locale" defaultvalue="${lot.locale.default}"
+		message="input your locale code (default: ${lot.locale.default})"/>
+	<equals arg1="${locale}" arg2="ja" property="genconf.lot.lang" value="japanese" else="english"/>
+	<input addproperty="genconf.lot.user.name" defaultvalue="${lot.user.name}"
+		message="input your name (default: ${lot.user.name})"/>
+	<input addproperty="genconf.lot.user.homepageURL" defaultvalue="${lot.user.homepageURL}"
+		message="input your homepage url (default: ${lot.user.homepageURL})"/>
+	<input addproperty="genconf.firefox.langpack.guid" defaultvalue="langpack-${locale}@firefox.l10n.jp"
+		message="input your firefox langpack guid (default: langpack-${locale}@firefox.l10n.jp)"/>
+	<input addproperty="genconf.thunderbird.langpack.guid" defaultvalue="langpack-${locale}@thunderbird.l10n.jp"
+		message="input your thunderbird langpack guid (default: langpack-${locale}@thunderbird.l10n.jp)"/>
+	<input addproperty="genconf.fennec.langpack.guid" defaultvalue="langpack-${locale}@fennec.l10n.jp"
+		message="input your fennec langpack guid (default: langpack-${locale}@fennec.l10n.jp)"/>
+	<equals arg1="${locale}" arg2="ja" property="genconf.nopluralcheck"
+		value="#nopluralcheck			= true"		else="nopluralcheck			= true"/>
+	<equals arg1="${locale}" arg2="ja" property="genconf.nowordcheck"
+		value="#nowordcheck			= true"			else="nowordcheck			= true"/>
+	<equals arg1="${locale}" arg2="ja" property="genconf.nosuspectedwordcheck"
+		value="#nosuspectedwordcheck		= true" else="nosuspectedwordcheck		= true"/>
+	<equals arg1="${locale}" arg2="ja" property="genconf.nocharcheck"
+		value="#nocharcheck			= true"			else="nocharcheck			= true"/>
+	<copy file="${lot.res.dir}/template/user.conf" tofile="config/user.conf">
+		<filterchain><expandproperties/></filterchain>
+	</copy>
+</target>
+
+<target name="remove-en-US">
+	<available property="en-US.dir.exists" file="${lot.l10n.dir}/en-US" type="dir"/>
+	<confirm message="${lot.l10n.dir}/en-US ディレクトリを削除してもよろしいですか？(Y/N)" if="en-US.dir.exists"/>
+	<delete dir="${lot.l10n.dir}/en-US"/>
+</target>
+
+<target name="download-en-US" depends="load-mainconf, remove-en-US"
+	description="downlaod and expand en-US l10n zip file">
+	<mkdir dir="${lot.temp.dir}"/>
+	<get src="${download.en-US.url}" dest="${lot.temp.dir}/en-US.zip"/>
+	<unzip src="${lot.temp.dir}/en-US.zip" dest="${lot.l10n.dir}"/>
+</target>
+
+<target name="clone-locale" depends="load-mainconf">
+	<property name="locale" value="${lot.locale.default}"/>
+	<echo message="executing hg clone command:${N}hg clone http://hg.mozilla.org/releases/l10n-mozilla-1.9.1/${locale} ${lot.l10n.dir}/${locale}"/>
+	<exec executable="hg" taskname="hg">
+		<arg line="clone http://hg.mozilla.org/releases/l10n-mozilla-1.9.1/${locale} ${lot.l10n.dir}/${locale}"/>
 	</exec>
 </target>
+
+<target name="checkout-src" depends="load-mainconf"
+	description="checkout src files from l10n svn server (for ja only)">
+	<property name="locale" value="${lot.locale.default}"/>
+	<if>
+		<equals arg1="${locale}" arg2="ja"/>
+		<then>
+			<input message="Japanese L10N SVN サーバのアカウント名を入力してください。アカウントを持っていないか、サーバにコミットする予定もない場合は何も入力しないでください。" addproperty="svn.username"/>
+			<equals arg1="${svn.username}" arg2="" trim="true" property="svn.repo" value="http://svn.mozilla.l10n.jp/trunk/" else="svn+ssh://${svn.username}@svn.mozilla.l10n.jp/usr/local/var/svn/l10n/trunk/"/>
+			<confirm message="次の SVN コマンドを実行してもよろしいですか？(Y/N)${N}svn checkout ${svn.repo} ${lot.src.dir}/l10n"/>
+			<exec executable="svn" taskname="svn">
+				<arg line="checkout ${svn.repo} ${lot.src.dir}/l10n"/>
+			</exec>
+		</then>
+	</if>
+</target>
+
+<target name="start-l10n" depends="genconf, download-en-US, clone-locale, checkout-src"/>
+
+<!-- * update and commit lot itself * -->
 <target name="update-src" depends="load-mainconf"
 	description="update src files in the working directory">
 	<exec executable="svn" taskname="svn">
@@ -49,14 +112,13 @@
 	<fail message="コミットログが指定されていません。">
 		<condition><equals arg1="${commit-lot.message}" arg2="" trim="true"/></condition>
 	</fail>
-	<confirm message='${commit-lot.dir} ディレクトリで次の cvs commit コマンドを実行しようとしています:${N}
+	<confirm message='${commit-lot.dir} ディレクトリで次の svn commit コマンドを実行しようとしています:${N}
 		svn commit -m "${commit-lot.message}"${N}本当に実行してもよろしいですか？(Y/N)'
 		failmessage="svn commit を中止しました。"/>
 	<exec executable="svn" taskname="svn" dir="${commit-lot.dir}">
 		<arg line='commit -m "${commit-lot.message}"'/>
 	</exec>
 </target>
-
 
 
 <!-- * backup and restore * -->
@@ -154,10 +216,6 @@
 	<property name="hg.mozilla.dir" value="comm-central/mozilla"/>
 	<property name="hg.comm.dir" value="comm-central"/>
 	<property name="hg.mobile.dir" value="mobile-browser"/>
-</target>
-
-<target name="remove-en-US">
-	<delete dir="${lot.l10n.dir}/en-US"/>
 </target>
 
 <target name="mozilla-to-l10n" depends="prepare-hg"
@@ -273,7 +331,6 @@
 
 <target name="en-US-to-l10n" depends="remove-en-US, mozilla-to-l10n, comm-to-l10n, mobile-to-l10n"
        description="copy changing directory structure of en-US locale files within both mozilla and comm repository"/>
-
 
 
 <!-- * better to have * -->

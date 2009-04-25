@@ -240,12 +240,12 @@
 	<property name="wordcheck.output"  value="temp/worderror.txt"/>
 	<delete file="${wordcheck.output}" failonerror="false"/>
 	
-	<equals property="wordcheck.deny"	value="@{2}|${wordcheck.deny.common}|${wordcheck.deny.ja}" arg1="${locale}" arg2="ja"/>
-	<equals property="wordcheck.deny"	value="@{2}|${wordcheck.deny.common}|${wordcheck.deny.ja-JP-mac}" arg1="${locale}" arg2="ja-JP-mac"/>
-	<property name="wordcheck.deny"		value="${wordcheck.deny.common}"/>
-	<equals property="wordcheck.allow"	value="${wordcheck.allow.common}|${wordcheck.allow.ja}" arg1="${locale}" arg2="ja"/>
-	<equals property="wordcheck.allow"	value="${wordcheck.allow.common}|${wordcheck.allow.ja-JP-mac}" arg1="${locale}" arg2="ja-JP-mac"/>
-	<property name="wordcheck.allow"	value="${wordcheck.allow.common}"/>
+	<equals property="wordcheck.deny"	value="${wordcheck.deny.ja}" arg1="${locale}" arg2="ja"/>
+	<equals property="wordcheck.deny"	value="${wordcheck.deny.ja-JP-mac}" arg1="${locale}" arg2="ja-JP-mac"/>
+	<property name="wordcheck.deny"		value="##NOTHING##"/>
+	<equals property="wordcheck.allow"	value="${wordcheck.allow.ja}" arg1="${locale}" arg2="ja"/>
+	<equals property="wordcheck.allow"	value="${wordcheck.allow.ja-JP-mac}" arg1="${locale}" arg2="ja-JP-mac"/>
+	<property name="wordcheck.allow"	value="##NOTHING##"/>
 	
 	<wordchecksuite excludes="browser/, calendar/, editor/, mail/, mobile/, suite/"/>
 	<wordchecksuite dir="${wordcheck.dir}/browser"
@@ -271,6 +271,7 @@
 	
 	<equals property="wordcheck.suspected"	value="@{2}|${wordcheck.suspected.ja}" arg1="${locale}" arg2="ja"/>
 	<equals property="wordcheck.suspected"	value="@{2}|${wordcheck.suspected.ja-JP-mac}" arg1="${locale}" arg2="ja-JP-mac"/>
+	<property name="wordcheck.suspected"	value="##NOTHING##"/>
 	
 	<wordchecksuite dir="${wordcheck.dir}" output="${wordcheck.suspected.output}"
 		allowpattern="##NOTHING##" denypattern="${wordcheck.suspected}"/>

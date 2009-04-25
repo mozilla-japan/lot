@@ -18,21 +18,19 @@
 	<antcall>
 		<target name="prepare"/><target name="clean-pre-convert"/>
 		<target name="apply-filters"/><target name="modify"/>
-		<target name="errorcheck"/><target name="compare"/>
 	</antcall>
 </presetdef>
-<target name="convert" depends="convert-locales" if="locale"
+<target name="convert"
 	description="apply filters to src files and modify them">
-	<execconvert/>
-</target>
-<target name="convert-locales" unless="locale"
-	description="apply filters to src files and modify them (both ja/ja-JP-mac)">
-	<execconvert>
-		<param name="locale" value="ja"/>
-	</execconvert>
-	<execconvert>
-		<param name="locale" value="ja-JP-mac"/>
-	</execconvert>
+	<groovy><![CDATA[
+		if (properties.locale == 'ja' || properties.locale == 'ja-JP-mac') {
+			ant.execconvert()
+		}
+		else if (properties.'lot.locale.default' == 'ja') {
+			ant.execconvert { param(name:'locale', value:'ja') }
+			ant.execconvert { param(name:'locale', value:'ja-JP-mac') }
+		}
+	]]></groovy>
 </target>
 
 <target name="clean-pre-convert" unless="convert.overwrite">
@@ -103,9 +101,26 @@
 </target>
 
 
+		<!-- *** Check Converted Files *** -->
 <!-- * error check for convert * -->
 <!-- defined in build.aux.xml -->
-
+<presetdef name="execcheck">
+	<antcall>
+		<target name="prepare"/><target name="errorcheck"/><target name="compare"/>
+	</antcall>
+</presetdef>
+<target name="check"
+	description="check converted l10n files and compare with en-US">
+	<groovy><![CDATA[
+		if (!properties.locale && properties.'lot.locale.default' == 'ja') {
+			ant.execcheck { param(name:'locale', value:'ja') }
+			ant.execcheck { param(name:'locale', value:'ja-JP-mac') }
+		}
+		else {
+			ant.execcheck()
+		}
+	]]></groovy>
+</target>
 
 
 		<!-- *** Make XPI Package from Converted Files *** -->
@@ -118,18 +133,17 @@
 		<target name="jar"/><target name="xpi"/>
 	</antcall>
 </presetdef>
-<target name="pack" depends="pack-locales" if="locale"
+<target name="pack"
 	description="make xpi package from converted src files">
-	<execpack/>
-</target>
-<target name="pack-locales" unless="locale"
-	description="make xpi package from converted src files (both ja/ja-JP-mac)">
-	<execpack>
-		<param name="locale" value="ja"/>
-	</execpack>
-	<execpack>
-		<param name="locale" value="ja-JP-mac"/>
-	</execpack>
+	<groovy><![CDATA[
+		if (!properties.locale && properties.'lot.locale.default' == 'ja') {
+			ant.execpack { param(name:'locale', value:'ja') }
+			ant.execpack { param(name:'locale', value:'ja-JP-mac') }
+		}
+		else {
+			ant.execpack()
+		}
+	]]></groovy>
 </target>
 
 <target name="clean-pre-pack" unless="pack.overwrite">

@@ -115,8 +115,8 @@
 		</filterchain>
 		<!-- set some filters from properties -->
 		<footer trimleading="true" filtering="no">
-			locale						= ${locale}
-			package.creator				= ${package.creator}
+			locale							= ${locale}
+			package.creator					= ${package.creator}
 			firefox.l10n.contributor.em		= ${firefox.l10n.contributor.em}
 			thunderbird.l10n.contributor.em	= ${thunderbird.l10n.contributor.em}
 			fennec.l10n.contributor.em		= ${fennec.l10n.contributor.em}
@@ -157,7 +157,7 @@
 
 <!-- * Build Interface * -->
 <!-- general packaging process according to properties -->
-<target name="build" depends="intro, clean, convert, pack"
+<target name="build" depends="intro, clean, convert, check, pack"
 	description="make xpi package from src files">
 	<antcall target="clean">
 		<param name="noconfirm" value="YES"/>

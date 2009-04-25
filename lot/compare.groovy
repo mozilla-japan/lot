@@ -324,8 +324,8 @@ infomsg << "Total Number of entities in the $dir1 directory:\n"
 infomsg << "  total: ${commonkeys+uniquekeys1}, common: $commonkeys, unique: $uniquekeys1\n\n"
 infomsg << "Total Number of entities in the $dir2 directory:\n"
 infomsg << "  total: ${commonkeys+uniquekeys2}, common: $commonkeys, unique: $uniquekeys2\n\n"
-infomsg << "Total Number of same/different entities in the two directory:\n"
-infomsg << "  same: $samekeys (${Math.round(samekeys/commonkeys*100)}% of common keys), different: ${uniquekeys1+uniquekeys2+commonkeys-samekeys}\n\n"
+infomsg << "Total Number of same/different/unique entities in the two directory:\n"
+infomsg << "  same: $samekeys (${Math.round(commonkeys?samekeys/commonkeys*100:0)}%), different: ${commonkeys-samekeys}, unique: ${uniquekeys1+uniquekeys2}\n\n"
 
 ant.errorlog(type: 'compare', file: output, fail: failonerror && (fileerrmsg || entityerrmsg), 
 	message: "Compare Locales Result:\n$infomsg\n\n$fileerrmsg\n\n$entityerrmsg\n\n$accesskeymsg\n\n$mergelog")

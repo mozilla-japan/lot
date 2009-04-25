@@ -36,7 +36,7 @@ cmsg.intro			= Welcome to Localization Tools, called just 'lot'.${N}\
 				  You can see command line examples with this command: ant examples${N}\
 				  Press Enter to continue (Ctrl+C to stop). 
 
-vmsg.clean.confirm		= All temporary files will be deleted. Are you sure you want to delete ${lot.temp.dir} directory? (Y/N)
+cmsg.clean.confirm		= All temporary files will be deleted. Are you sure you want to delete ${lot.temp.dir} directory? (Y/N)
 cmsg.clean.aborted		= Cleaning temporary files aborted.
 
 cmsg.localeconf.no.locale	= 'locale' property must be set before loading locale specific configuration
