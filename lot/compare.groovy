@@ -228,10 +228,12 @@ l10n1.common.each { filekey, allentities1 ->
 				entities1.unique.sort{ l,r -> l.value.index <=> r.value.index }.each { key,block ->
 					if (!mode.onlyaccesskey || isaccesskey(key)) {
 						mergelog << "new entity $key will be inserted to: $filekey:\n"
-						mergecomment = mode.withcomment ? "${l10n2.common[filekey]['*info'].filetype.commentheader}MERGE NOTE: ${properties.'merge.comment'}${l10n2.common[filekey]['*info'].filetype.commentfooter}\n" : ""
 						l10n.merged[filekey][key] = block
-						l10n.merged[filekey][key].mergecomment = mergecomment
-						l10n.merged[filekey][key].block = block.prespace+block.precomment+mergecomment+block.definition+block.postcomment
+						if (mode.withcomment) {
+							mergecomment = "${l10n2.common[filekey]['*info'].filetype.commentheader}MERGE NOTE: ${properties.'merge.comment'}${l10n2.common[filekey]['*info'].filetype.commentfooter}\n"
+							l10n.merged[filekey][key].mergecomment = mergecomment
+							l10n.merged[filekey][key].block = block.prespace+block.precomment+mergecomment+block.definition+block.postcomment
+						}
 						idx1 = block.index
 						idx2 = -1
 						while (--idx1 >= 0 && idx2 < 0) {

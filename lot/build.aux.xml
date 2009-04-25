@@ -156,6 +156,10 @@
 	<property name="hg.mobile.dir" value="mobile-browser"/>
 </target>
 
+<target name="remove-en-US">
+	<delete dir="${lot.l10n.dir}/en-US"/>
+</target>
+
 <target name="mozilla-to-l10n" depends="prepare-hg"
 	description="copy changing directory structure of en-US locale files within mozilla repository">
 	<!-- prepare properties to make this script possible to use stand alone -->
@@ -267,7 +271,7 @@
 	</copy>
 </target>
 
-<target name="en-US-to-l10n" depends="mozilla-to-l10n, comm-to-l10n, mobile-to-l10n"
+<target name="en-US-to-l10n" depends="remove-en-US, mozilla-to-l10n, comm-to-l10n, mobile-to-l10n"
        description="copy changing directory structure of en-US locale files within both mozilla and comm repository"/>
 
 
