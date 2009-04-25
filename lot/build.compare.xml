@@ -88,9 +88,10 @@
 
 <target name="merge" depends="load-conf" unless="nomerge"
 	description="compare l10n files and merge new/obsolate files/entities">
+	<istrue arg="${merge.withcomment}" property="merge.mode" value="merge+withcomment" else="merge"/>
 	<confirm message="${lot.l10n.dir}/en-US ディレクトリのファイルと ${merge.dir} ディレクトリのファイルを比較し、新しいファイルやエンティティを追加、古いものは削除します。実行してもよろしいですか？ (Y/N)${N}次のファイルやディレクトリは除外されます: ${merge.excludes}${N}注: 古いものを削除せず残したい場合は merge ではなく insertnew ターゲットを使用してください。"/>
 	<compare locale2="${locale}" dir2="${merge.dir}" excludes="${merge.excludes}"
-		mode="merge" output="${merge.output}" failonerror="true"/>
+		mode="${merge.mode}" output="${merge.output}" failonerror="true"/>
 	<echo message="ブロック最初のエンティティが削除される場合、ブロックに対するコメントがそのエンティティ単体のものとして削除されることがあります(現時点での仕様)。必ず処理結果を差分ファイルで確認し、必要に応じて修正してください。"/>
 </target>
 
@@ -103,9 +104,10 @@
 
 <target name="insertnew" depends="load-conf" unless="nomerge"
 	description="compare l10n files and merge new files/entities (not remove obsolate ones)">
+	<istrue arg="${merge.withcomment}" property="insertnew.mode" value="insert+withcomment" else="insert"/>
 	<confirm message="${lot.l10n.dir}/en-US ディレクトリのファイルを ${merge.dir} ディレクトリのファイルを比較し、新しいファイルやエンティティを追加します。実行してもよろしいですか？ (Y/N)${N}次のファイルやディレクトリは除外されます: ${merge.excludes}"/>
 	<compare locale2="${locale}" dir2="${merge.dir}" excludes="${merge.excludes}"
-		mode="insert" output="${merge.output}" failonerror="true"/>
+		mode="${insertnew.mode}" output="${merge.output}" failonerror="true"/>
 </target>
 
 <target name="resetaccesskey" depends="load-conf" unless="nomerge"

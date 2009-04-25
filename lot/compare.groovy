@@ -8,6 +8,7 @@ debug = false
 mode = [compare:args[0].contains('compare'),
 	insert:args[0].contains('insert') || args[0].contains('merge'),
 	clean:args[0].contains('clean')   || args[0].contains('merge'),
+	withcomment:args[0].contains('withcomment'),
 	onlyfile:args[0].contains('onlyfile'),
 	onlyentity:args[0].contains('onlyentity') || args[0].contains('onlyaccesskey'),
 	onlyaccesskey:args[0].contains('onlyaccesskey'),
@@ -27,11 +28,17 @@ output      = args[6]
 format      = args[7]
 failonerror = args[8] == 'true'
 pattern = [
-	properties: [header: /${properties.'RE.properties.header'}/, entityblock: /${properties.'RE.properties.entityblock'}/, footer: /${properties.'RE.properties.footer'}/, file: /${properties.'RE.properties.file'}/],
-	dtd: [header: /${properties.'RE.dtd.header'}/, entityblock: /${properties.'RE.dtd.anyentityblock'}/, footer: /${properties.'RE.dtd.footer'}/, file: /${properties.'RE.dtd.file'}/],
-	inc: [header: /${properties.'RE.inc.header'}/, entityblock: /${properties.'RE.inc.entityblock'}/, footer: /${properties.'RE.inc.footer'}/, file: /${properties.'RE.inc.file'}/],
-	ini: [header: /${properties.'RE.ini.header'}/, entityblock: /${properties.'RE.ini.entityblock'}/, footer: /${properties.'RE.ini.footer'}/, file: /${properties.'RE.ini.file'}/]
+	properties: [header: properties.'RE.properties.header', entityblock: properties.'RE.properties.entityblock', footer: properties.'RE.properties.footer', l10ncomment: properties.'RE.properties.l10ncomment'],
+	dtd: [header: properties.'RE.dtd.header', entityblock: properties.'RE.dtd.anyentityblock', footer: properties.'RE.dtd.footer', l10ncomment: properties.'RE.dtd.l10ncomment'],
+	inc: [header: properties.'RE.inc.header', entityblock: properties.'RE.inc.entityblock', footer: properties.'RE.inc.footer', l10ncomment: properties.'RE.inc.l10ncomment'],
+	ini: [header: properties.'RE.ini.header', entityblock: properties.'RE.ini.entityblock', footer: properties.'RE.ini.footer', l10ncomment: properties.'RE.ini.l10ncomment']
 ]
+filetype = [
+	properties: [encoding: 'UTF-8', pattern:pattern.properties, commentheader: "# ", commentfooter: ""],
+	dtd: [encoding: 'UTF-8', pattern:pattern.dtd, commentheader: "<!-- ", commentfooter: " -->"],
+	inc: [encoding: 'UTF-8', pattern:pattern.inc, commentheader: "#", commentfooter: ""],
+	ini: [encoding: 'UTF-8', pattern:pattern.ini, commentheader: "#", commentfooter: ""]
+]	
 //l10n[basedir][filekey][entitykey] = [index, block, prespace:, precomment:, definition:, key:, value:, postcomment:]
 l10n = [(dir1): [:], (dir2): [:], merged: [:]]
 infomsg      = new StringBuilder()
@@ -41,36 +48,36 @@ accesskeymsg = new StringBuilder()
 mergelog     = new StringBuilder()
 mergediff    = new StringBuilder()
 metakeys = 3 // *info, *header, *footer
-commonkeys = uniquekeys1 = uniquekeys2 = 0
+commonkeys = samekeys = uniquekeys1 = uniquekeys2 = 0
 
 def isaccesskey(key) {
 	key =~ properties.'compare.accesskey.pattern' && !(key =~ properties.'compare.accesskey.except')
 }
 
-def parse(dir, file, encoding, pattern, preprocess, postprocess) {
+def parse(dir, file, filetype, preprocess, postprocess) {
 	filekey  = file.toString().replaceAll("\\\\", "/").replaceAll("$dir/","").replaceAll("/$locale1|$locale2","/*")
-	l10n[dir][filekey] = ['*info':[dir:dir, file:file.toString().replaceAll("\\\\", "/"), encoding:encoding],
+	l10n[dir][filekey] = ['*info':[dir:dir, file:file.toString().replaceAll("\\\\", "/"), filetype:filetype],
 		'*header':[index:-1,key:'*header',block:''], '*footer':[index:-1,key:'*footer',block:'']]
-	content = file.getFile().getText(encoding)
+	content = file.getFile().getText(filetype.encoding)
 	if (content.contains("\r\n")) {
 		infomsg << "\\r\\n found and replaced with \\n in:$dir/$filekey\n"
 		content = content.replaceAll(/\r\n/, "\n")
 	}
 	original = content
 	if (preprocess) content = preprocess(content)
-	content.find(pattern.header) {
+	content.find(filetype.pattern.header) {
 		l10n[dir][filekey]['*header'].block = it
 		content = content[it.size()..<content.size()]
 	}
 	index = start = end = 0
-	content.eachMatch(pattern.entityblock) {
+	content.eachMatch(filetype.pattern.entityblock) { // don't use matcher to keep parser fast
 		block, prespace, precomment, definition, key, value, postcomment ->
 		start = end
 		if (content[end..<end+block.size()] == block) {
 			end += block.size()
 		}
 		else {
-			content[end..<content.size()].find(/^((?s:.+?))($pattern.entityblock)/) {
+			content[end..<content.size()].find(/^((?s:.+?))($filetype.pattern.entityblock)/) {
 				assert it[2] == block
 				ant.echo "Ignoring invalid string in $dir/$filekey:\n${it[1]}"
 				end += it[0].size()
@@ -82,11 +89,11 @@ def parse(dir, file, encoding, pattern, preprocess, postprocess) {
 			entityerrmsg << "  ${l10n[dir][filekey][key].definition}\n  $definition\n\n"
 			l10n[dir][filekey]["~$key"] = l10n[dir][filekey][key]
 		}
-		l10n[dir][filekey][key] = [index:index++, block:block, prespace:prespace, prebbcomment:precomment, definition:definition, key:key, value:value, postcomment:postcomment]
+		l10n[dir][filekey][key] = [index:index++, block:block, prespace:prespace, precomment:precomment, definition:definition, key:key, value:value, postcomment:postcomment]
 		if (postprocess) l10n[dir][filekey][key] = postprocess(l10n[dir][filekey][key])
 	}
 	content = content[end..<content.size()]
-	content.find(/^${pattern.footer}$/) {
+	content.find(/^${filetype.pattern.footer}$/) {
 		l10n[dir][filekey]['*footer'].block = it
 		content = ''
 	}
@@ -112,28 +119,28 @@ def parse(dir, file, encoding, pattern, preprocess, postprocess) {
 
 // Phase 1: Parse L10N Files
 ant.fileset(dir:"$dir1", includes:'**/*.properties', excludes:excludes).each {
-	parse(dir1, it, 'UTF-8', pattern.properties, null, null)
+	parse(dir1, it, filetype.properties, null, null)
 }
 ant.fileset(dir:"$dir2", includes:'**/*.properties', excludes:excludes).each {
-	parse(dir2, it, 'UTF-8', pattern.properties, null, null)
+	parse(dir2, it, filetype.properties, null, null)
 }
 ant.fileset(dir:"$dir1", includes:'**/*.dtd', excludes:excludes).each {
-	parse(dir1, it, 'UTF-8', pattern.dtd, null, null)
+	parse(dir1, it, filetype.dtd, null, null)
 }
 ant.fileset(dir:"$dir2", includes:'**/*.dtd', excludes:excludes).each {
-	parse(dir2, it, 'UTF-8', pattern.dtd, null, null)
+	parse(dir2, it, filetype.dtd, null, null)
 }
 ant.fileset(dir:"$dir1", includes:'**/*.inc', excludes:excludes).each {
-	parse(dir1, it, 'UTF-8', pattern.inc, null, null)
+	parse(dir1, it, filetype.inc, null, null)
 }
 ant.fileset(dir:"$dir2", includes:'**/*.inc', excludes:excludes).each {
-	parse(dir2, it, 'UTF-8', pattern.inc, null, null)
+	parse(dir2, it, filetype.inc, null, null)
 }
 ant.fileset(dir:"$dir1", includes:'**/*.ini', excludes:excludes).each {
-	parse(dir1, it, 'UTF-8', pattern.ini, null, null)
+	parse(dir1, it, filetype.ini, null, null)
 }
 ant.fileset(dir:"$dir2", includes:'**/*.ini', excludes:excludes).each {
-	parse(dir2, it, 'UTF-8', pattern.ini, null, null)
+	parse(dir2, it, filetype.ini, null, null)
 }
 
 // to avoid ignoring existing blank file, check if it is null
@@ -161,7 +168,7 @@ if (l10n1.unique) {
 			ant.echo "Copying new file: $filekey"
 			newfile = l10n1.unique[filekey]['*info'].file.replaceAll("$dir1/","$dir2/").replaceAll("/$locale1","/$locale2")
 			ant.copy(taskname: 'merge', file: "${l10n1.unique[filekey]['*info'].file}", tofile: newfile, overwrite: true, preservelastmodified: true)
-			mergediff << "diff -u /dev/null $newfile".execute().in.getText('UTF-8')
+			mergediff << "diff -u /dev/null $newfile".execute().in.getText(l10n1.unique[filekey]['*info'].filetype.encoding)
 		}
 	}
 }
@@ -174,7 +181,7 @@ if (l10n2.unique) {
 		if (mode.clean && !mode.onlyentity) {
 			ant.echo "Removing obsolate file: $filekey"
 			ant.move(taskname: 'merge', file: l10n2.unique[filekey]['*info'].file, tofile: "${l10n2.unique[filekey]['*info'].file}~", overwrite: true, preservelastmodified: true)
-			mergediff << "diff -u ${l10n2.unique[filekey]['*info'].file} /dev/null".execute().in.getText('UTF-8')
+			mergediff << "diff -u ${l10n2.unique[filekey]['*info'].file} /dev/null".execute().in.getText(l10n2.unique[filekey]['*info'].filetype.encoding)
 		}
 	}
 }
@@ -221,7 +228,10 @@ l10n1.common.each { filekey, allentities1 ->
 				entities1.unique.sort{ l,r -> l.value.index <=> r.value.index }.each { key,block ->
 					if (!mode.onlyaccesskey || isaccesskey(key)) {
 						mergelog << "new entity $key will be inserted to: $filekey:\n"
+						mergecomment = mode.withcomment ? "${l10n2.common[filekey]['*info'].filetype.commentheader}MERGE NOTE: ${properties.'merge.comment'}${l10n2.common[filekey]['*info'].filetype.commentfooter}\n" : ""
 						l10n.merged[filekey][key] = block
+						l10n.merged[filekey][key].mergecomment = mergecomment
+						l10n.merged[filekey][key].block = block.prespace+block.precomment+mergecomment+block.definition+block.postcomment
 						idx1 = block.index
 						idx2 = -1
 						while (--idx1 >= 0 && idx2 < 0) {
@@ -252,6 +262,8 @@ l10n1.common.each { filekey, allentities1 ->
 	// Phase 3-2: Common Entities
 	entities1.common.each { key,block1 ->
 		block2 = entities2.common[key]
+		// count changed (translated) entities
+		if (block1.value == block2.value) samekeys++
 		// Check Accesskey Entities
 		if (isaccesskey(key) && block1.value != block2.value) {
 			accesskeymsg << "Accesskey(s) in this file don't match: $filekey:\n"
@@ -260,7 +272,7 @@ l10n1.common.each { filekey, allentities1 ->
 			if (mode.resetaccesskey && !mode.onlyfile) {
 				if (!l10n.merged[filekey]) l10n.merged[filekey] = allentities2
 				mergelog << "$key accesskey in this file will be reset: $filekey:\n"
-				// better to replace only value part, not whole definition
+				// todo: better to replace only value part, not whole definition
 				l10n.merged[filekey][key].definition = block1.definition
 				l10n.merged[filekey][key].block = block2.prespace+block2.precomment+block1.definition+block2.postcomment
 			}
@@ -290,9 +302,9 @@ l10n1.common.each { filekey, allentities1 ->
 			l10n.merged[filekey].each { k,v -> if (k[0] != '*') blocklist[v.index] = v.block }
 			blocklist.each { content << it }
 			content << l10n.merged[filekey]['*footer'].block
-			new File(l10n.merged[filekey]['*info'].file).write(content.toString(), 'UTF-8')
+			new File(l10n.merged[filekey]['*info'].file).write(content.toString(), l10n.merged[filekey]['*info'].filetype.encoding)
 			// output diff of original/merged files
-			mergediff << "diff -u ${l10n.merged[filekey]['*info'].file}~ ${l10n.merged[filekey]['*info'].file}".execute().in.getText('UTF-8')
+			mergediff << "diff -u ${l10n.merged[filekey]['*info'].file}~ ${l10n.merged[filekey]['*info'].file}".execute().in.getText(l10n.merged[filekey]['*info'].filetype.encoding)
 			//ant.exec(executable:'diff', output: , append: true) { arg(line: "-u ${l10n.merged[filekey]['*info'].file}~ ${l10n.merged[filekey]['*info'].file}") }
 		}
 	}
@@ -310,6 +322,10 @@ infomsg << "Total Number of entities in the $dir1 directory:\n"
 infomsg << "  total: ${commonkeys+uniquekeys1}, common: $commonkeys, unique: $uniquekeys1\n\n"
 infomsg << "Total Number of entities in the $dir2 directory:\n"
 infomsg << "  total: ${commonkeys+uniquekeys2}, common: $commonkeys, unique: $uniquekeys2\n\n"
+infomsg << "Total Number of same/different entities in the two directory:\n"
+infomsg << "  same: $samekeys (${Math.round(samekeys/commonkeys*100)}% of common keys), different: ${uniquekeys1+uniquekeys2+commonkeys-samekeys}\n\n"
 
 ant.errorlog(type: 'compare', file: output, fail: failonerror && (fileerrmsg || entityerrmsg), 
 	message: "Compare Locales Result:\n$infomsg\n\n$fileerrmsg\n\n$entityerrmsg\n\n$accesskeymsg\n\n$mergelog")
+
+
