@@ -26,14 +26,12 @@ output      = args[6]
 // format = text, xml, html
 format      = args[7]
 failonerror = args[8] == 'true'
-propfilepattern   = /${properties.'RE.properties.file'}/
-propentitypattern = /${properties.'RE.properties.entityblock'}/
-dtdfilepattern    = /${properties.'RE.dtd.file'}/
-dtdentitypattern  = /${properties.'RE.dtd.anyentityblock'}/
-incfilepattern    = /${properties.'RE.inc.file'}/
-incentitypattern  = /${properties.'RE.inc.entityblock'}/
-inifilepattern    = /${properties.'RE.ini.file'}/
-inientitypattern  = /${properties.'RE.ini.entityblock'}/
+pattern = [
+	properties: [header: /${properties.'RE.properties.header'}/, entityblock: /${properties.'RE.properties.entityblock'}/, footer: /${properties.'RE.properties.footer'}/, file: /${properties.'RE.properties.file'}/],
+	dtd: [header: /${properties.'RE.dtd.header'}/, entityblock: /${properties.'RE.dtd.anyentityblock'}/, footer: /${properties.'RE.dtd.footer'}/, file: /${properties.'RE.dtd.file'}/],
+	inc: [header: /${properties.'RE.inc.header'}/, entityblock: /${properties.'RE.inc.entityblock'}/, footer: /${properties.'RE.inc.footer'}/, file: /${properties.'RE.inc.file'}/],
+	ini: [header: /${properties.'RE.ini.header'}/, entityblock: /${properties.'RE.ini.entityblock'}/, footer: /${properties.'RE.ini.footer'}/, file: /${properties.'RE.ini.file'}/]
+]
 //l10n[basedir][filekey][entitykey] = [index, block, prespace:, precomment:, definition:, key:, value:, postcomment:]
 l10n = [(dir1): [:], (dir2): [:], merged: [:]]
 infomsg      = new StringBuilder()
@@ -49,39 +47,52 @@ def isaccesskey(key) {
 	key =~ properties.'compare.accesskey.pattern' && !(key =~ properties.'compare.accesskey.except')
 }
 
-def parse(dir, file, encoding, filepattern, entitypattern, preprocess, postprocess) {
+def parse(dir, file, encoding, pattern, preprocess, postprocess) {
 	filekey  = file.toString().replaceAll("\\\\", "/").replaceAll("$dir/","").replaceAll("/$locale1|$locale2","/*")
 	l10n[dir][filekey] = ['*info':[dir:dir, file:file.toString().replaceAll("\\\\", "/"), encoding:encoding],
-		'*header':[index:-1,key:'*header'], '*footer':[index:-1,key:'*footer']]
+		'*header':[index:-1,key:'*header',block:''], '*footer':[index:-1,key:'*footer',block:'']]
 	content = file.getFile().getText(encoding)
 	if (content.contains("\r\n")) {
 		infomsg << "\\r\\n found and replaced with \\n in:$dir/$filekey\n"
 		content = content.replaceAll(/\r\n/, "\n")
 	}
+	original = content
 	if (preprocess) content = preprocess(content)
-	matcher = content =~ filepattern
-	if (matcher.count > 0) {
-		//assert content.length() == matcher[0][1].length() + matcher[0][2].length() + matcher[0][matcher.groupCount()].length()
-		//assert content == matcher[0][1]+matcher[0][2]+matcher[0][matcher.groupCount()]
-		content = matcher[0][2]
-		l10n[dir][filekey]['*header'].block = matcher[0][1]
-		l10n[dir][filekey]['*footer'].block = matcher[0][matcher.groupCount()]
+	content.find(pattern.header) {
+		l10n[dir][filekey]['*header'].block = it
+		content = content[it.size()..<content.size()]
 	}
-	else {
-		ant.echo "$file don't match with file pattern (syntax error?)"
-		l10n[dir][filekey]['*info'].isnotstrict = true // set flag not to edit this file
-	}
-	
-	index = 0
-	content.eachMatch(entitypattern) {
+	index = start = end = 0
+	content.eachMatch(pattern.entityblock) {
 		block, prespace, precomment, definition, key, value, postcomment ->
+		start = end
+		if (content[end..<end+block.size()] == block) {
+			end += block.size()
+		}
+		else {
+			content[end..<content.size()].find(/^((?s:.+?))($pattern.entityblock)/) {
+				assert it[2] == block
+				ant.echo "Ignoring invalid string in $dir/$filekey:\n${it[1]}"
+				end += it[0].size()
+			}
+			l10n[dir][filekey]['*info'].isnotstrict = true // set flag not to edit this file
+		}
 		if (l10n[dir][filekey][key]) {
-			entityerrmsg << "Duplicate Entities found in: $filekey:\n"
+			entityerrmsg << "Duplicate Entities found in: $dir/$filekey:\n"
 			entityerrmsg << "  ${l10n[dir][filekey][key].definition}\n  $definition\n\n"
 			l10n[dir][filekey]["~$key"] = l10n[dir][filekey][key]
 		}
 		l10n[dir][filekey][key] = [index:index++, block:block, prespace:prespace, prebbcomment:precomment, definition:definition, key:key, value:value, postcomment:postcomment]
 		if (postprocess) l10n[dir][filekey][key] = postprocess(l10n[dir][filekey][key])
+	}
+	content = content[end..<content.size()]
+	content.find(/^${pattern.footer}$/) {
+		l10n[dir][filekey]['*footer'].block = it
+		content = ''
+	}
+	if (content != '')  {
+		ant.echo "Ignoring invalid footer in $dir/$file:\n$content"
+		l10n[dir][filekey]['*info'].isnotstrict = true // set flag not to edit this file
 	}
 	if (debug) {
 		temp = new StringBuilder()
@@ -91,37 +102,38 @@ def parse(dir, file, encoding, filepattern, entitypattern, preprocess, postproce
 			if (e) temp << e.value.block
 		}
 		temp << l10n[dir][filekey]['*footer'].block
-		if (content != temp.toString()) {
+		if (original != temp.toString()) {
 			ant.echo "parse error on: $file\n"
-			ant.echo "[$content]\n\n[$temp]"
+			ant.echo "[$original]\n\n[$temp]"
+			ant.fail "parse error on: $file\n"
 		}
 	}
 }
 
 // Phase 1: Parse L10N Files
-ant.fileset(dir: "$dir1", includes:'**/*.properties', excludes:excludes).each {
-	parse(dir1, it, 'UTF-8', propfilepattern, propentitypattern, null, null)
+ant.fileset(dir:"$dir1", includes:'**/*.properties', excludes:excludes).each {
+	parse(dir1, it, 'UTF-8', pattern.properties, null, null)
 }
-ant.fileset(dir: "$dir2", includes:'**/*.properties', excludes:excludes).each {
-	parse(dir2, it, 'UTF-8', propfilepattern, propentitypattern, null, null)
+ant.fileset(dir:"$dir2", includes:'**/*.properties', excludes:excludes).each {
+	parse(dir2, it, 'UTF-8', pattern.properties, null, null)
 }
-ant.fileset(dir: "$dir1", includes:'**/*.dtd', excludes:excludes).each {
-	parse(dir1, it, 'UTF-8', dtdfilepattern, dtdentitypattern, null, null)
+ant.fileset(dir:"$dir1", includes:'**/*.dtd', excludes:excludes).each {
+	parse(dir1, it, 'UTF-8', pattern.dtd, null, null)
 }
-ant.fileset(dir: "$dir2", includes:'**/*.dtd', excludes:excludes).each {
-	parse(dir2, it, 'UTF-8', dtdfilepattern, dtdentitypattern, null, null)
+ant.fileset(dir:"$dir2", includes:'**/*.dtd', excludes:excludes).each {
+	parse(dir2, it, 'UTF-8', pattern.dtd, null, null)
 }
-ant.fileset(dir: "$dir1", includes:'**/*.inc', excludes:excludes).each {
-	parse(dir1, it, 'UTF-8', incfilepattern, incentitypattern, null, null)
+ant.fileset(dir:"$dir1", includes:'**/*.inc', excludes:excludes).each {
+	parse(dir1, it, 'UTF-8', pattern.inc, null, null)
 }
-ant.fileset(dir: "$dir2", includes:'**/*.inc', excludes:excludes).each {
-	parse(dir2, it, 'UTF-8', incfilepattern, incentitypattern, null, null)
+ant.fileset(dir:"$dir2", includes:'**/*.inc', excludes:excludes).each {
+	parse(dir2, it, 'UTF-8', pattern.inc, null, null)
 }
-ant.fileset(dir: "$dir1", includes:'**/*.ini', excludes:excludes).each {
-	parse(dir1, it, 'UTF-8', inifilepattern, inientitypattern, null, null)
+ant.fileset(dir:"$dir1", includes:'**/*.ini', excludes:excludes).each {
+	parse(dir1, it, 'UTF-8', pattern.ini, null, null)
 }
-ant.fileset(dir: "$dir2", includes:'**/*.ini', excludes:excludes).each {
-	parse(dir2, it, 'UTF-8', inifilepattern, inientitypattern, null, null)
+ant.fileset(dir:"$dir2", includes:'**/*.ini', excludes:excludes).each {
+	parse(dir2, it, 'UTF-8', pattern.ini, null, null)
 }
 
 // to avoid ignoring existing blank file, check if it is null
