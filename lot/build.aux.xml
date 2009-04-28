@@ -6,14 +6,30 @@
 
 <!-- start working with lot -->
 <target name="genconf">
-	<fail message="user.conf file already exists">
-		<condition><available file="${config.dir}/user.conf"/></condition>
+	<property name="genconf.output" value="${config.dir}/user.conf"/>
+	<fail message="${genconf.output} file already exists">
+		<condition><available file="${genconf.output}"/></condition>
 	</fail>
+	<if>
+		<istrue value="${genconf.noinput}"/>
+		<then>
+			<property name="locale" value="${lot.locale.default}"/>
+			<property name="genconf.lot.user.name" value="${lot.user.name}"/>
+			<property name="genconf.lot.user.homepageURL" value="${lot.user.homepageURL}"/>
+			<property name="genconf.firefox.langpack.guid" value="langpack-${locale}@firefox.l10n.jp"/>
+			<property name="genconf.thunderbird.langpack.guid" value="langpack-${locale}@thunderbird.l10n.jp"/>
+			<property name="genconf.fennec.langpack.guid" value="langpack-${locale}@fennec.l10n.jp"/>
+		</then>
+		<else>
+			<echo message="Please answer some quetions to generate your user.conf file."/>
+			<echo message="If you type enter without any input, default value will be used."/>
+		</else>
+	</if>
 	<input addproperty="locale" defaultvalue="${lot.locale.default}"
 		message="input your locale code (default: ${lot.locale.default})"/>
 	<equals arg1="${locale}" arg2="ja" property="genconf.lot.lang" value="japanese" else="english"/>
 	<input addproperty="genconf.lot.user.name" defaultvalue="${lot.user.name}"
-		message="input your name (default: ${lot.user.name})"/>
+		message="input your l10n community name (default: ${lot.user.name})"/>
 	<input addproperty="genconf.lot.user.homepageURL" defaultvalue="${lot.user.homepageURL}"
 		message="input your homepage url (default: ${lot.user.homepageURL})"/>
 	<input addproperty="genconf.firefox.langpack.guid" defaultvalue="langpack-${locale}@firefox.l10n.jp"
@@ -30,9 +46,11 @@
 		value="#nosuspectedwordcheck		= true" else="nosuspectedwordcheck		= true"/>
 	<equals arg1="${locale}" arg2="ja" property="genconf.nocharcheck"
 		value="#nocharcheck			= true"			else="nocharcheck			= true"/>
-	<copy file="${lot.res.dir}/template/user.conf" tofile="config/user.conf">
+	<copy file="${lot.res.dir}/template/user.conf" tofile="${genconf.output}">
 		<filterchain><expandproperties/></filterchain>
 	</copy>
+	<echo message="${genconf.output} file is generated according to your input."/>
+	<echo message="You can edit any setting anytime. See the file for more information."/>
 </target>
 
 <target name="remove-en-US">
@@ -48,12 +66,36 @@
 	<unzip src="${lot.temp.dir}/en-US.zip" dest="${lot.l10n.dir}"/>
 </target>
 
-<target name="clone-locale" depends="load-mainconf">
+<target name="clone-locale" depends="load-mainconf"
+	description="clone l10n mercurial repogitory from hg.mozilla.org">
 	<property name="locale" value="${lot.locale.default}"/>
+	<fail message="${lot.l10n.dir}/${locale} directory already exists">
+		<condition><available file="${lot.l10n.dir}/${locale}"/></condition>
+	</fail>
 	<echo message="executing hg clone command:${N}hg clone http://hg.mozilla.org/releases/l10n-mozilla-1.9.1/${locale} ${lot.l10n.dir}/${locale}"/>
 	<exec executable="hg" taskname="hg">
 		<arg line="clone http://hg.mozilla.org/releases/l10n-mozilla-1.9.1/${locale} ${lot.l10n.dir}/${locale}"/>
 	</exec>
+	<if>
+		<equals arg1="${locale}" arg2="ja"/>
+		<then>
+			<echo message="executing hg clone command:${N}hg clone http://hg.mozilla.org/releases/l10n-mozilla-1.9.1/ja-JP-mac ${lot.l10n.dir}/ja-JP-mac"/>
+			<exec executable="hg" taskname="hg">
+				<arg line="clone http://hg.mozilla.org/releases/l10n-mozilla-1.9.1/ja-JP-mac ${lot.l10n.dir}/ja-JP-mac"/>
+			</exec>
+		</then>
+	</if>
+</target>
+
+<target name="newlocale" depends="load-mainconf"
+	description="copy en-US files to your new locale">
+	<property name="locale" value="${lot.locale.default}"/>
+	<fail message="${lot.l10n.dir}/${locale} directory already exists">
+		<condition><available dir="${lot.l10n.dir}/${locale}"/></condition>
+	</fail>
+	<copy todir="${lot.l10n.dir}/${locale}" preservelastmodified="true">
+		<fileset dir="${lot.l10n.dir}/en-US"/>
+	</copy>
 </target>
 
 <target name="checkout-src" depends="load-mainconf"
@@ -72,7 +114,11 @@
 	</if>
 </target>
 
-<target name="start-l10n" depends="genconf, download-en-US, clone-locale, checkout-src"/>
+<target name="setupl10n" depends="genconf, download-en-US, clone-locale, checkout-src"
+	description="generate config file and get l10n files for your locale"/>
+<target name="setupnewl10n" depends="genconf, download-en-US, newlocale"
+	description="generate config file and get en-US files for your new locale"/>
+
 
 <!-- * update and commit lot itself * -->
 <target name="update-src" depends="load-mainconf"

@@ -50,7 +50,7 @@
 		errormsg = new StringBuilder()
 		def syntaxchecker(file, encoding, validpattern) {
 			content = new StringBuilder()
-			file.getFile().getText(encoding).eachLine{ line,n -> content << "@line ${n+1}: $line\n" }
+			file.getFile().getText(encoding).replaceFirst(/^\ufeff/, '').eachLine{ line,n -> content << "@line ${n+1}: $line\n" }
 			content = content.toString().replaceAll(validpattern, '')
 			if (content) errormsg << "Syntax Error Found in $file:\n$content\n\n"
 		}

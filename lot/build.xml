@@ -271,7 +271,7 @@
 	<property name="nosuspectedwordcheck" value="YES"/>
 	<property name="nocharcheck" value="YES"/>
 </target>
-<target name="nocompare" description="exec following targets without compare">
+<target name="nocompare" description="exec following targets without compare locale">
 	<property name="nocompare" value="YES"/>
 </target>
 
@@ -295,30 +295,45 @@
 <target name="examples">
 <echo taskname=" ">ant -p
 ant help
-</echo><echo/>
-<echo taskname=" ">ant auto build
-ant auto noerrorcheck build
-</echo><echo/>
+</echo><echo taskname=" "/>
+<echo taskname=" ">ant setupl10n
+ant genconf
+ant download-en-US
+ant clone-locale
+ant auto build
+ant auto noerrorcheck nocompare build
+</echo><echo taskname=" "/>
 <echo taskname=" ">ant auto convert
-ant compare-locales
 ant auto pack
 ant auto pack -Dtargetapp=fennec
-</echo><echo/>
+</echo><echo taskname=" "/>
+<echo taskname=" ">ant compare
+ant merge
+ant insertnew
+ant mergeonlyfile
+ant mergeonlyaccesskey
+ant resetaccesskey
+ant merge -Dmerge.mode=merge-onlyentity
+ant merge -Dmerge.mode=merge-onlyentity-withcomment
+ant merge -Dmerge.mode=merge-onlyaccesskey
+ant merge -Dmerge.mode=merge-onlyaccesskey+resetaccesskey
+ant merge -Dmerge.excludes="calender/, suite/"
+ant merge -Ddir1=l10n/en-US/browser -Ddir2=l10n/ja/browser
+</echo><echo taskname=" "/>
 <echo taskname=" ">ant auto buildfx
 ant auto buildtb
 ant auto buildfxtb
-ant auto buildsb
 ant auto buildfe
 ant auto buildall
-</echo><echo/>
+</echo><echo taskname=" "/>
 <echo taskname=" ">ant escape -Dfromdir=native -Dtodir=escaped
 ant unescape -Dfromdir=escaped -Dtodir=native
-</echo><echo/>
+</echo><echo taskname=" "/>
 <echo taskname=" ">ant backuplot
 ant backupsrc
 ant restoresrc
 ant restoresrc -Dfile=backup/src-mozilla1.8-2005081813.zip
-</echo><echo/>
+</echo><echo taskname=" "/>
 </target>
 
 

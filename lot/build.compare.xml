@@ -62,7 +62,7 @@
 	<attribute name="excludes"			default=""/>
 	<attribute name="output"			default="${compare.output}"/>
 	<attribute name="format"			default="text"/>
-	<attribute name="failonerror"		default="false"/>
+	<attribute name="failonerror"		default="true"/>
 	<sequential>
 	<groovy taskname="compare" src="compare.groovy">
 		<!-- pass attributes using args to avoid being interprited as groovy code -->
@@ -82,39 +82,46 @@
 <target name="compare" depends="load-conf" unless="nocompare"
 	description="compare l10n files and check new/obsolate files/entities etc">
 	<property name="compare.mode" value="compare"/>
-	<compare locale2="${locale}" dir2="${compare.dir}" excludes="${compare.excludes}"
-		mode="${compare.mode}" failonerror="false"/>
+	<compare mode="${compare.mode}" locale2="${locale}" failonerror="false"
+		dir1="${compare.dir1}" dir2="${compare.dir2}" excludes="${compare.excludes}"/>
 </target>
 
 <target name="merge" depends="load-conf" unless="nomerge"
 	description="compare l10n files and merge new/obsolate files/entities">
 	<istrue arg="${merge.withcomment}" property="merge.mode" value="merge+withcomment" else="merge"/>
 	<confirm message="${lot.l10n.dir}/en-US ディレクトリのファイルと ${merge.dir} ディレクトリのファイルを比較し、新しいファイルやエンティティを追加、古いものは削除します。実行してもよろしいですか？ (Y/N)${N}次のファイルやディレクトリは除外されます: ${merge.excludes}${N}注: 古いものを削除せず残したい場合は merge ではなく insertnew ターゲットを使用してください。"/>
-	<compare locale2="${locale}" dir2="${merge.dir}" excludes="${merge.excludes}"
-		mode="${merge.mode}" output="${merge.output}" failonerror="true"/>
+	<compare mode="${merge.mode}" locale2="${locale}" output="${merge.output}"
+		dir1="${merge.dir1}" dir2="${merge.dir2}" excludes="${merge.excludes}"/>
 	<echo message="ブロック最初のエンティティが削除される場合、ブロックに対するコメントがそのエンティティ単体のものとして削除されることがあります(現時点での仕様)。必ず処理結果を差分ファイルで確認し、必要に応じて修正してください。"/>
-</target>
-
-<target name="mergeonlyfile" depends="load-conf" unless="nomerge"
-	description="compare l10n files and merge new/obsolate files (not merge entities)">
-	<confirm message="${lot.l10n.dir}/en-US ディレクトリのファイルと ${merge.dir} ディレクトリのファイルを比較し、新しいファイルを追加、古いものは削除します。実行してもよろしいですか？ (Y/N)${N}次のファイルやディレクトリは除外されます: ${merge.excludes}"/>
-	<compare locale2="${locale}" dir2="${merge.dir}" excludes="${merge.excludes}"
-		mode="merge+onlyfile" output="${merge.output}" failonerror="true"/>
 </target>
 
 <target name="insertnew" depends="load-conf" unless="nomerge"
 	description="compare l10n files and merge new files/entities (not remove obsolate ones)">
 	<istrue arg="${merge.withcomment}" property="insertnew.mode" value="insert+withcomment" else="insert"/>
 	<confirm message="${lot.l10n.dir}/en-US ディレクトリのファイルを ${merge.dir} ディレクトリのファイルを比較し、新しいファイルやエンティティを追加します。実行してもよろしいですか？ (Y/N)${N}次のファイルやディレクトリは除外されます: ${merge.excludes}"/>
-	<compare locale2="${locale}" dir2="${merge.dir}" excludes="${merge.excludes}"
-		mode="${insertnew.mode}" output="${merge.output}" failonerror="true"/>
+	<compare mode="${insertnew.mode}" locale2="${locale}" output="${merge.output}"
+		dir1="${merge.dir1}" dir2="${merge.dir2}" excludes="${merge.excludes}"/>
+</target>
+
+<target name="merge-onlyfile" depends="load-conf" unless="nomerge"
+	description="compare l10n files and merge new/obsolate files (not merge entities)">
+	<confirm message="${lot.l10n.dir}/en-US ディレクトリのファイルと ${merge.dir} ディレクトリのファイルを比較し、新しいファイルを追加、古いものは削除します。実行してもよろしいですか？ (Y/N)${N}次のファイルやディレクトリは除外されます: ${merge.excludes}"/>
+	<compare mode="merge-onlyfile" locale2="${locale}" output="${merge.output}"
+		dir1="${merge.dir1}" dir2="${merge.dir2}" excludes="${merge.excludes}"/>
+</target>
+
+<target name="merge-onlyaccesskey" depends="load-conf" unless="nomerge"
+	description="compare l10n files and merge new/obsolate accesskeys (only in common files)">
+	<confirm message="${lot.l10n.dir}/en-US ディレクトリのファイルと ${merge.dir} ディレクトリのファイルを比較し、新しいアクセスキーを追加、古いものは削除します。実行してもよろしいですか？ (Y/N)${N}次のファイルやディレクトリは除外されます: ${merge.excludes}"/>
+	<compare mode="merge-onlyaccesskey" locale2="${locale}" output="${merge.output}"
+		dir1="${merge.dir1}" dir2="${merge.dir2}" excludes="${merge.excludes}"/>
 </target>
 
 <target name="resetaccesskey" depends="load-conf" unless="nomerge"
-	description="compare l10n files and reset accesskeys">
+	description="compare l10n files and reset accesskeys (only in common files)">
 	<confirm message="${lot.l10n.dir}/en-US ディレクトリと ${merge.dir} ディレクトリのファイルのアクセスキーを比較し、異なるものは前者の定義に書き換えます。実行してもよろしいですか？ (Y/N)${N}次のファイルやディレクトリは除外されます: ${resetaccesskey.excludes}"/>
-	<compare locale2="${locale}" dir2="${resetaccesskey.dir}" excludes="${resetaccesskey.excludes}"
-		mode="resetaccesskey" output="${resetaccesskey.output}" failonerror="true"/>
+	<compare mode="resetaccesskey" locale2="${locale}" output="${resetaccesskey.output}"
+		dir1="${resetaccesskey.dir1}" dir2="${resetaccesskey.dir2}" excludes="${resetaccesskey.excludes}"/>
 </target>
 
 
