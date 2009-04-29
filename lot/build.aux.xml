@@ -72,16 +72,16 @@
 	<fail message="${lot.l10n.dir}/${locale} directory already exists">
 		<condition><available file="${lot.l10n.dir}/${locale}"/></condition>
 	</fail>
-	<echo message="executing hg clone command:${N}hg clone http://hg.mozilla.org/releases/l10n-mozilla-1.9.1/${locale} ${lot.l10n.dir}/${locale}"/>
+	<echo message="executing hg clone command:${N}hg clone ${l10n.repo.base}/${locale} ${lot.l10n.dir}/${locale}"/>
 	<exec executable="hg" taskname="hg">
-		<arg line="clone http://hg.mozilla.org/releases/l10n-mozilla-1.9.1/${locale} ${lot.l10n.dir}/${locale}"/>
+		<arg line="clone ${l10n.repo.base}/${locale} ${lot.l10n.dir}/${locale}"/>
 	</exec>
 	<if>
 		<equals arg1="${locale}" arg2="ja"/>
 		<then>
-			<echo message="executing hg clone command:${N}hg clone http://hg.mozilla.org/releases/l10n-mozilla-1.9.1/ja-JP-mac ${lot.l10n.dir}/ja-JP-mac"/>
+			<echo message="executing hg clone command:${N}hg clone ${l10n.repo.base}/ja-JP-mac ${lot.l10n.dir}/ja-JP-mac"/>
 			<exec executable="hg" taskname="hg">
-				<arg line="clone http://hg.mozilla.org/releases/l10n-mozilla-1.9.1/ja-JP-mac ${lot.l10n.dir}/ja-JP-mac"/>
+				<arg line="clone ${l10n.repo.base}/ja-JP-mac ${lot.l10n.dir}/ja-JP-mac"/>
 			</exec>
 		</then>
 	</if>
@@ -99,7 +99,7 @@
 </target>
 
 <target name="checkout-src" depends="load-mainconf"
-	description="checkout src files from l10n svn server (for ja only)">
+	description="checkout src files from l10n svn server (only for ja locale)">
 	<property name="locale" value="${lot.locale.default}"/>
 	<if>
 		<equals arg1="${locale}" arg2="ja"/>
