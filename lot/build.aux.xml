@@ -119,6 +119,44 @@
 <target name="setupnewl10n" depends="genconf, download-en-US, newlocale"
 	description="generate config file and get en-US files for your new locale"/>
 
+<target name="genconf-alllocale" depends="load-mainconf">
+	<groovy><![CDATA[
+		properties.'alllocale.list'.eachMatch(/([a-zA-Z-]+)[\s,]*/) { a,locale ->
+			ant.antcall(target:'genconf') {
+				param(name: 'genconf.noinput', value: true)
+				param(name: 'locale', value: locale)
+				param(name: 'output', value: "${properties.'alllocale.config.dir'}/user.${locale}.conf")
+			}
+		}
+	]]></groovy>
+</target>
+<target name="clone-alllocale" depends="load-mainconf">
+	<groovy><![CDATA[
+		properties.'alllocale.list'.eachMatch(/([a-zA-Z-]+)[\s,]*/) { a,locale ->
+			ant.antcall(target:'clone-locale') { param(name: 'locale', value: locale) }
+		}
+	]]></groovy>
+</target>
+<target name="errorcheck-alllocale" depends="load-mainconf">
+	<groovy><![CDATA[
+		// to avoid OutOfMemoryError without ANT_OPTS, folk with java task (not ant/subant)
+		properties.'alllocale.list'.eachMatch(/([a-zA-Z-]+)[\s,]*/) { a,locale ->
+			ant.java(classname: "org.apache.tools.ant.Main", fork: true, clonevm: true) {
+				arg(line: "errorcheck -Dconfig.user.file='${properties.'alllocale.config.dir'}/user.${locale}.conf' -Dlot.log.dir='log/locales'")
+			}
+		}
+	]]></groovy>
+</target>
+<target name="compare-alllocale" depends="load-mainconf">
+	<groovy><![CDATA[
+		properties.'alllocale.list'.eachMatch(/([a-zA-Z-]+)[\s,]*/) { a,locale ->
+			ant.java(classname: "org.apache.tools.ant.Main", fork: true, clonevm: true) {
+				arg(line: "compare -Dconfig.user.file='${properties.'alllocale.config.dir'}/user.${locale}.conf' -Dlot.log.dir='log/locales'")
+			}
+		}
+	]]></groovy>
+</target>
+
 
 <!-- * update and commit lot itself * -->
 <target name="update-src" depends="load-mainconf"

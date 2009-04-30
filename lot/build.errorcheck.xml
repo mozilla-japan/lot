@@ -61,13 +61,12 @@
 		ant.fileset(dir: properties.'syntaxcheck.dir', includes:'**/*.dtd').each {
 			syntaxchecker(it, 'UTF-8', /${properties.'RE.dtd.validblock'}\n/)
 		}
-		// need to support *.ini, *.inc files too...
-		//ant.fileset(dir: properties.'syntaxcheck.dir', includes:'**/*.ini').each {
-		//	syntaxchecker(it, 'UTF-8', /${properties.'RE.ini.validblock'}\n/)
-		//}
-		//ant.fileset(dir: properties.'syntaxcheck.dir', includes:'**/*.inc').each {
-		//	syntaxchecker(it, 'UTF-8', /${properties.'RE.inc.validblock'}\n/)
-		//}
+		ant.fileset(dir: properties.'syntaxcheck.dir', includes:'**/*.ini').each {
+			syntaxchecker(it, 'UTF-8', /${properties.'RE.ini.validline'}\n/)
+		}
+		ant.fileset(dir: properties.'syntaxcheck.dir', includes:'**/*.inc', excludes:'**/installer/installer.inc').each {
+			syntaxchecker(it, 'UTF-8', /${properties.'RE.inc.validline'}\n/)
+		}
 		
 		if (errormsg) {
 			ant.errorlog(type: 'syntaxerror', file: properties.'syntaxcheck.output', fail: true,
