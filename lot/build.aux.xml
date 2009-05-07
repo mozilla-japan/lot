@@ -72,9 +72,10 @@
 	<fail message="${lot.l10n.dir}/${locale} directory already exists">
 		<condition><available file="${lot.l10n.dir}/${locale}"/></condition>
 	</fail>
-	<echo message="executing hg clone command:${N}hg clone ${l10n.repo.base}/${locale} ${lot.l10n.dir}/${locale}"/>
+	<mkdir dir="${lot.l10n.dir}"/>
+	<echo message="executing hg clone command:${N}hg clone ${l10n.repo.base}${locale} ${lot.l10n.dir}/${locale}"/>
 	<exec executable="hg" taskname="hg">
-		<arg line="clone ${l10n.repo.base}/${locale} ${lot.l10n.dir}/${locale}"/>
+		<arg line="clone ${l10n.repo.base}${locale} ${lot.l10n.dir}/${locale}"/>
 	</exec>
 	<if>
 		<equals arg1="${locale}" arg2="ja"/>
@@ -139,8 +140,9 @@
 </target>
 <target name="errorcheck-alllocale" depends="load-mainconf">
 	<groovy><![CDATA[
-		// to avoid OutOfMemoryError without ANT_OPTS, folk with java task (not ant/subant)
 		properties.'alllocale.list'.eachMatch(/([a-zA-Z-]+)[\s,]*/) { a,locale ->
+			println "error checking $locale locale files..."
+			// to avoid OutOfMemoryError without ANT_OPTS, folk with java task (not ant/subant)
 			ant.java(classname: "org.apache.tools.ant.Main", fork: true, clonevm: true) {
 				arg(line: "errorcheck -Dconfig.user.file='${properties.'alllocale.config.dir'}/user.${locale}.conf' -Dlot.log.dir='log/locales'")
 			}
@@ -150,6 +152,8 @@
 <target name="compare-alllocale" depends="load-mainconf">
 	<groovy><![CDATA[
 		properties.'alllocale.list'.eachMatch(/([a-zA-Z-]+)[\s,]*/) { a,locale ->
+			println "comparing en-US and $locale locale files..."
+			// to avoid OutOfMemoryError without ANT_OPTS, folk with java task (not ant/subant)
 			ant.java(classname: "org.apache.tools.ant.Main", fork: true, clonevm: true) {
 				arg(line: "compare -Dconfig.user.file='${properties.'alllocale.config.dir'}/user.${locale}.conf' -Dlot.log.dir='log/locales'")
 			}

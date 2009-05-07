@@ -164,7 +164,7 @@
 			denypattern_	= ~denypattern
 			replacement		= args[2]
 			dir				= args[3]
-			output			= args[4]
+			outputfile		= new File(args[4])
 			excludes		= args[5]
 			regexpengine	= args[6]
 			xmlcommentpattern  = /${properties.'RE.xml.comment'}/
@@ -224,7 +224,10 @@
 			ant.fileset(dir:dir, includes:'${sjisfiles}', excludes:excludes).each {
 				wordchecker(it, 'Shift_JIS', allowpattern, denypattern, null)
 			}
-			if (errormsg) new File(output).append(errormsg, 'UTF-8')
+			if (errormsg) {
+				ant.mkdir(dir:outputfile.getParent())
+				outputfile.append(errormsg, 'UTF-8')
+			}
 		]]></groovy>
 	</sequential>
 </macrodef>

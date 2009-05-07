@@ -18,6 +18,7 @@
 	<antcall>
 		<target name="prepare"/><target name="clean-pre-convert"/>
 		<target name="apply-filters"/><target name="modify"/>
+		<target name="errorcheck"/>
 	</antcall>
 </presetdef>
 <target name="convert"
