@@ -25,6 +25,7 @@
 			<echo message="If you type enter without any input, default value will be used."/>
 		</else>
 	</if>
+	<!-- ask common user dependent config -->
 	<input addproperty="locale" defaultvalue="${lot.locale.default}"
 		message="input your locale code (default: ${lot.locale.default})"/>
 	<equals arg1="${locale}" arg2="ja" property="genconf.lot.lang" value="japanese" else="english"/>
@@ -38,14 +39,17 @@
 		message="input your thunderbird langpack guid (default: langpack-${locale}@thunderbird.l10n.jp)"/>
 	<input addproperty="genconf.fennec.langpack.guid" defaultvalue="langpack-${locale}@fennec.l10n.jp"
 		message="input your fennec langpack guid (default: langpack-${locale}@fennec.l10n.jp)"/>
-	<equals arg1="${locale}" arg2="ja" property="genconf.nopluralcheck"
-		value="#nopluralcheck			= true"		else="nopluralcheck			= true"/>
-	<equals arg1="${locale}" arg2="ja" property="genconf.nowordcheck"
-		value="#nowordcheck			= true"			else="nowordcheck			= true"/>
-	<equals arg1="${locale}" arg2="ja" property="genconf.nosuspectedwordcheck"
-		value="#nosuspectedwordcheck		= true" else="nosuspectedwordcheck		= true"/>
-	<equals arg1="${locale}" arg2="ja" property="genconf.nocharcheck"
-		value="#nocharcheck			= true"			else="nocharcheck			= true"/>
+	<!-- ja locale specific configs -->
+	<equals arg1="${locale}" arg2="ja" property="genconf.nopluralcheck.onoff"			value="#" else=""/>
+	<equals arg1="${locale}" arg2="ja" property="genconf.nowordcheck.onoff"				value="#" else=""/>
+	<equals arg1="${locale}" arg2="ja" property="genconf.nosuspectedwordcheck.onoff"	value="#" else=""/>
+	<equals arg1="${locale}" arg2="ja" property="genconf.nocharcheck.onoff"				value="#" else=""/>
+	<!-- childbrowser specific configs -->
+	<equals arg1="${genconf.type}" arg2="childbrowser" property="genconf.doreplace.onoff"		value="" else="#"/>
+	<equals arg1="${genconf.type}" arg2="childbrowser" property="genconf.replace.file.6.onoff"	value="" else="#"/>
+	<equals arg1="${genconf.type}" arg2="childbrowser" property="genconf.replace.file.ja.onoff"	value="#" else=""/>
+	<equals arg1="${genconf.type}" arg2="childbrowser" property="genconf.charcheck.deny.onoff"	value="" else="#"/>
+	<!-- generate user.conf -->
 	<copy file="${lot.res.dir}/template/user.conf" tofile="${genconf.output}">
 		<filterchain><expandproperties/></filterchain>
 	</copy>
@@ -111,6 +115,16 @@
 			<exec executable="svn" taskname="svn">
 				<arg line="checkout ${svn.repo} ${lot.src.dir}/l10n"/>
 			</exec>
+			<if>
+				<equals arg1="${genconf.type}" arg2="childbrowser"/>
+				<then>
+					<property name="svn.childbrowser.repo" value="mailto:svn+ssh://${svn.username}@svn.mozilla.l10n.jp/usr/local/var/svn/l10n/branches/childbrowser"/>
+					<confirm message="次の SVN コマンドを実行してもよろしいですか？(Y/N)${N}svn checkout ${svn.childbrowser.repo} ${lot.src.dir}/l10n"/>
+					<exec executable="svn" taskname="svn">
+						<arg line="checkout ${svn.childbrowser.repo} ${lot.src.dir}/childbrowser"/>
+					</exec>
+				</then>
+			</if>
 		</then>
 	</if>
 </target>
@@ -119,7 +133,12 @@
 	description="generate config file and get l10n files for your locale"/>
 <target name="setupnewl10n" depends="genconf, download-en-US, newlocale"
 	description="generate config file and get en-US files for your new locale"/>
-
+<target name="setupchildbrowser">
+	<antcall target="setupl10n">
+		<param name="genconf.type" value="childbrowser"/>
+	</antcall>
+</target>
+	
 <target name="genconf-alllocale" depends="load-mainconf">
 	<groovy><![CDATA[
 		properties.'alllocale.list'.eachMatch(/([a-zA-Z-]+)[\s,]*/) { a,locale ->
