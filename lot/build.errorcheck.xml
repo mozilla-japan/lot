@@ -272,7 +272,7 @@
 	<loadfile property="wordcheck.error" srcfile="${wordcheck.output}" encoding="UTF-8"
 		failonerror="false" quiet="true"/>
 	<if>
-		<istrue arg="${wordcheck.failonerror}"/>
+		<istrue value="${wordcheck.failonerror}"/>
 		<then><fail message="${N}${wordcheck.error}${vmsg.wordcheck.found}" if="wordcheck.error"/></then>
 		<else><echo message="${N}${wordcheck.error}${vmsg.wordcheck.found}" if="wordcheck.error"/></else>
 	</if>
