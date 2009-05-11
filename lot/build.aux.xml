@@ -144,7 +144,7 @@
 			println "error checking $locale locale files..."
 			// to avoid OutOfMemoryError without ANT_OPTS, folk with java task (not ant/subant)
 			ant.java(classname: "org.apache.tools.ant.Main", fork: true, clonevm: true) {
-				arg(line: "errorcheck -Dconfig.user.file='${properties.'alllocale.config.dir'}/user.${locale}.conf' -Dlot.log.dir='log/locales'")
+				arg(line: "errorcheck -Dconfig.user.file='${properties.'alllocale.config.dir'}/user.${locale}.conf' -Dlot.log.dir='log/locales' -Dsyntaxcheck.failonerror=false -Dplaceholdercheck.failonerror=false -Dpluralcheck.failonerror=false")
 			}
 		}
 	]]></groovy>
@@ -160,6 +160,7 @@
 		}
 	]]></groovy>
 </target>
+<target name="checksuite-alllocale" depends="errorcheck-alllocale, compare-alllocale"/>
 
 
 <!-- * update and commit lot itself * -->

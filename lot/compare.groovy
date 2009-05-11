@@ -3,19 +3,26 @@ assert ant && project && properties && target && task && args
 
 // Phase 0: Prepare Variables
 debug = false
-// mode = compare, merge (insert+clean), onlyfile, onlyentity, onlyaccesskey,
+// mode = compare, merge (insert+remove), onlyfile, onlyentity, onlyaccesskey,
 //        resetorder, resetheader, resetfooter, resetcomment, resetaccesskey
 mode = [compare:args[0].contains('compare'),
+	// add new files/entities
 	insert:args[0].contains('insert') || args[0].contains('merge'),
-	clean:args[0].contains('clean')   || args[0].contains('merge'),
+	// delete obsolate files/entities
+	remove:args[0].contains('remove')   || args[0].contains('merge'),
+	// insert comments adding new entities
 	withcomment:args[0].contains('withcomment'),
+	// insert/remove only files/entities/accesskeys
 	onlyfile:args[0].contains('onlyfile'),
 	onlyentity:args[0].contains('onlyentity') || args[0].contains('onlyaccesskey'),
 	onlyaccesskey:args[0].contains('onlyaccesskey'),
+	// reset entity order
 	resetorder:args[0].contains('resetorder'),
+	// reset header/footer/entity comments
 	resetheader:args[0].contains('resetheader'),
 	resetfooter:args[0].contains('resetfooter'),
 	resetcomment:args[0].contains('resetcomment'),
+	// reset accesskey entity values
 	resetaccesskey:args[0].contains('resetaccesskey')]
 if (mode.resetorder || mode.resetheader || mode.resetfooter || mode.resetcomment) ant.fail "Sorry, requested mode hasn't implemented yet."
 locale1     = args[1]
@@ -43,6 +50,7 @@ filetype = [
 l10n = [(dir1): [:], (dir2): [:], merged: [:]]
 infomsg      = new StringBuilder()
 fileerrmsg   = new StringBuilder()
+duperrmsg    = new StringBuilder()
 entityerrmsg = new StringBuilder()
 accesskeymsg = new StringBuilder()
 mergelog     = new StringBuilder()
@@ -85,8 +93,8 @@ def parse(dir, file, filetype, preprocess, postprocess) {
 			l10n[dir][filekey]['*info'].isnotstrict = true // set flag not to edit this file
 		}
 		if (l10n[dir][filekey][key]) {
-			entityerrmsg << "Duplicate Entities found in: $dir/$filekey:\n"
-			entityerrmsg << "  ${l10n[dir][filekey][key].definition}\n  $definition\n\n"
+			duperrmsg << "Duplicate Entities found in: $dir/$filekey:\n"
+			duperrmsg << "  ${l10n[dir][filekey][key].definition}\n  $definition\n\n"
 			l10n[dir][filekey]["~$key"] = l10n[dir][filekey][key]
 		}
 		l10n[dir][filekey][key] = [index:index++, block:block, prespace:prespace, precomment:precomment, definition:definition, key:key, value:value, postcomment:postcomment]
@@ -178,7 +186,7 @@ if (l10n2.unique) {
 		uniquekeys2 += entities.size()-metakeys // don't count header/footer
 		fileerrmsg << "  $filekey \t(${entities.size()-metakeys} entities)\n"
 		// Merge: remove obsolate files
-		if (mode.clean && !mode.onlyentity) {
+		if (mode.remove && !mode.onlyentity) {
 			ant.echo "Removing obsolate file: $filekey"
 			ant.move(taskname: 'merge', file: l10n2.unique[filekey]['*info'].file, tofile: "${l10n2.unique[filekey]['*info'].file}~", overwrite: true, preservelastmodified: true)
 			mergediff << "diff -u ${l10n2.unique[filekey]['*info'].file} /dev/null".execute().in.getText(l10n2.unique[filekey]['*info'].filetype.encoding)
@@ -214,7 +222,7 @@ l10n1.common.each { filekey, allentities1 ->
 		entityerrmsg << "\n"
 		
 		// Pre-Merge: Insert New / Remove Obsolate Entities
-		if (((entities1.unique && mode.insert) || (entities2.unique && mode.clean)) && !mode.onlyfile) {
+		if (((entities1.unique && mode.insert) || (entities2.unique && mode.remove)) && !mode.onlyfile) {
 			if (!l10n.merged[filekey]) l10n.merged[filekey] = allentities2
 			// prepare list to keep the order of entities
 			keylist = []
@@ -244,7 +252,7 @@ l10n1.common.each { filekey, allentities1 ->
 					}
 				}
 			}
-			if (entities2.unique && mode.clean) {
+			if (entities2.unique && mode.remove) {
 				// just remove from map and list
 				entities2.unique.each { key,block ->
 					if (!mode.onlyaccesskey || isaccesskey(key)) {
@@ -314,6 +322,10 @@ l10n1.common.each { filekey, allentities1 ->
 
 // Phase 4: Output Log/Diff etc
 
+if (duperrmsg) {
+	ant.mkdir(dir:new File(properties.'errorsummary.output').getParent())
+	ant.echo(message: duperrmsg, file: properties.'errorsummary.output', append: true)	
+}
 if (mergediff) {
 	mergelog << "See ${output}.diff file to check merge diff.\n"
 	new File("${output}.diff").append("$mergediff\n", 'UTF-8')
@@ -327,7 +339,7 @@ infomsg << "  total: ${commonkeys+uniquekeys2}, common: $commonkeys, unique: $un
 infomsg << "Total Number of same/different/unique entities in the two directory:\n"
 infomsg << "  same: $samekeys (${Math.round(commonkeys?samekeys/commonkeys*100:0)}%), different: ${commonkeys-samekeys}, unique: ${uniquekeys1+uniquekeys2}\n\n"
 
-ant.errorlog(type: 'compare', file: output, fail: failonerror && (fileerrmsg || entityerrmsg), 
-	message: "Compare Locales Result:\n$infomsg\n\n$fileerrmsg\n\n$entityerrmsg\n\n$accesskeymsg\n\n$mergelog")
+ant.errorlog(type: 'compare', file: output, fail: failonerror && (fileerrmsg || duperrmsg || entityerrmsg), 
+	message: "Compare Locales Result:\n$infomsg\n\n$fileerrmsg\n\n$duperrmsg\n\n$entityerrmsg\n\n$accesskeymsg\n\n$mergelog")
 
 

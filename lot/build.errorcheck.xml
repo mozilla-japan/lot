@@ -52,7 +52,7 @@
 			content = new StringBuilder()
 			file.getFile().getText(encoding).replaceFirst(/^\ufeff/, '').eachLine{ line,n -> content << "@line ${n+1}: $line\n" }
 			content = content.toString().replaceAll(validpattern, '')
-			if (content) errormsg << "Syntax Error Found in $file:\n$content\n\n"
+			if (content) errormsg << "Syntax Error Found in $file:\n$content\n"
 		}
 		
 		ant.fileset(dir: properties.'syntaxcheck.dir', includes:'**/*.properties').each {
@@ -69,8 +69,10 @@
 		}
 		
 		if (errormsg) {
-			ant.errorlog(type: 'syntaxerror', file: properties.'syntaxcheck.output', fail: true,
-				message: "$errormsg${properties.'vmsg.syntaxcheck.found'}")
+			ant.mkdir(dir:new File(properties.'errorsummary.output').getParent())
+			ant.echo(message: errormsg, file: properties.'errorsummary.output', append: true)
+			ant.errorlog(type: 'syntaxerror', , fail: properties.'syntaxcheck.failonerror',
+				file: properties.'syntaxcheck.output', message: "$errormsg${properties.'vmsg.syntaxcheck.found'}")
 		}
 	]]></groovy>
 </target>
@@ -103,11 +105,13 @@
 				}
 				if (err) errorlines << "@line ${n+1}: $line\n"
 			}
-			if (errorlines) errormsg << "Placeholder Error Found in $it:\n$errorlines\n\n"
+			if (errorlines) errormsg << "Placeholder Error Found in $it:\n$errorlines\n"
 		}
 		if (errormsg) {
-			ant.errorlog(type: 'placeholdererror', file: properties.'placeholdercheck.output', fail: true,
-				message: "$errormsg${properties.'vmsg.placeholdercheck.found'}")
+			ant.mkdir(dir:new File(properties.'errorsummary.output').getParent())
+			ant.echo(message: errormsg, file: properties.'errorsummary.output', append: true)
+			ant.errorlog(type: 'placeholdererror', fail: properties.'placeholdererror.failonerror',
+				file: properties.'placeholdercheck.output', message: "$errormsg${properties.'vmsg.placeholdercheck.found'}")
 		}
 	]]></groovy>
 </target>
@@ -131,8 +135,10 @@
 			if (errorlines) errormsg << "Plural Form Error Found in $it:\n$errorlines\n\n"
 		}
 		if (errormsg) {
-			ant.errorlog(type: 'pluralformerror', file: properties.'pluralcheck.output',
-				message: "$errormsg${properties.'vmsg.pluralcheck.found'}")
+			ant.mkdir(dir:new File(properties.'errorsummary.output').getParent())
+			ant.echo(message: errormsg, file: properties.'errorsummary.output', append: true)
+			ant.errorlog(type: 'pluralformerror', fail: properties.'pluralcheck.failonerror',
+				file: properties.'pluralcheck.output', message: "$errormsg${properties.'vmsg.pluralcheck.found'}")
 		}
 	]]></groovy>
 </target>
@@ -265,7 +271,11 @@
 	
 	<loadfile property="wordcheck.error" srcfile="${wordcheck.output}" encoding="UTF-8"
 		failonerror="false" quiet="true"/>
-	<fail message="${N}${wordcheck.error}${vmsg.wordcheck.found}" if="wordcheck.error"/>
+	<if>
+		<istrue arg="${wordcheck.failonerror}"/>
+		<then><fail message="${N}${wordcheck.error}${vmsg.wordcheck.found}" if="wordcheck.error"/></then>
+		<else><echo message="${N}${wordcheck.error}${vmsg.wordcheck.found}" if="wordcheck.error"/></else>
+	</if>
 </target>
 
 <target name="suspectedwordcheck" depends="load-conf" unless="nosuspectedwordcheck" if="dosuspectedwordcheck">

@@ -53,7 +53,6 @@
 
 <!-- * compare/merge locales * -->
 <macrodef name="compare">
-	<!-- mode = compare, merge (insert+clean), resetorder, resetcomment, resetaccesskey -->
 	<attribute name="mode"				default="compare"/>
 	<attribute name="locale1"			default="en-US"/>
 	<attribute name="locale2"			default="ja"/>
