@@ -39,16 +39,17 @@
 		message="input your thunderbird langpack guid (default: langpack-${locale}@thunderbird.l10n.jp)"/>
 	<input addproperty="genconf.fennec.langpack.guid" defaultvalue="langpack-${locale}@fennec.l10n.jp"
 		message="input your fennec langpack guid (default: langpack-${locale}@fennec.l10n.jp)"/>
-	<!-- ja locale specific configs -->
-	<equals arg1="${locale}" arg2="ja" property="genconf.nopluralcheck.onoff"			value="#" else=""/>
-	<equals arg1="${locale}" arg2="ja" property="genconf.nowordcheck.onoff"				value="#" else=""/>
-	<equals arg1="${locale}" arg2="ja" property="genconf.nosuspectedwordcheck.onoff"	value="#" else=""/>
-	<equals arg1="${locale}" arg2="ja" property="genconf.nocharcheck.onoff"				value="#" else=""/>
 	<!-- childbrowser specific configs -->
 	<equals arg1="${genconf.type}" arg2="childbrowser" property="genconf.doreplace.onoff"		value="" else="#"/>
 	<equals arg1="${genconf.type}" arg2="childbrowser" property="genconf.replace.file.6.onoff"	value="" else="#"/>
 	<equals arg1="${genconf.type}" arg2="childbrowser" property="genconf.replace.file.ja.onoff"	value="#" else=""/>
 	<equals arg1="${genconf.type}" arg2="childbrowser" property="genconf.charcheck.deny.onoff"	value="" else="#"/>
+	<equals arg1="${genconf.type}" arg2="childbrowser" property="genconf.nowordcheck.onoff"		value="#"/>
+	<!-- ja locale specific configs -->
+	<equals arg1="${locale}" arg2="ja" property="genconf.nopluralcheck.onoff"			value="#" else=""/>
+	<equals arg1="${locale}" arg2="ja" property="genconf.nowordcheck.onoff"				value="#" else=""/>
+	<equals arg1="${locale}" arg2="ja" property="genconf.nosuspectedwordcheck.onoff"	value="#" else=""/>
+	<equals arg1="${locale}" arg2="ja" property="genconf.nocharcheck.onoff"				value="#" else=""/>
 	<!-- generate user.conf -->
 	<copy file="${lot.res.dir}/template/user.conf" tofile="${genconf.output}">
 		<filterchain><expandproperties/></filterchain>
