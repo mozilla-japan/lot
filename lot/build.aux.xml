@@ -134,7 +134,7 @@
 <target name="setupnewl10n" depends="genconf, download-en-US, newlocale"
 	description="generate config file and get en-US files for your new locale"/>
 <target name="setupchildbrowser">
-	<antcall target="setupl10n">
+	<antcall>
 		<target name="genconf"/><target name="download-en-US"/><target name="checkout-src"/>
 		<param name="genconf.type" value="childbrowser"/>
 	</antcall>
