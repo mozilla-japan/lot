@@ -118,7 +118,7 @@
 			<if>
 				<equals arg1="${genconf.type}" arg2="childbrowser"/>
 				<then>
-					<property name="svn.childbrowser.repo" value="mailto:svn+ssh://${svn.username}@svn.mozilla.l10n.jp/usr/local/var/svn/l10n/branches/childbrowser"/>
+					<property name="svn.childbrowser.repo" value="svn+ssh://${svn.username}@svn.mozilla.l10n.jp/usr/local/var/svn/l10n/branches/childbrowser"/>
 					<confirm message="次の SVN コマンドを実行してもよろしいですか？(Y/N)${N}svn checkout ${svn.childbrowser.repo} ${lot.src.dir}/l10n"/>
 					<exec executable="svn" taskname="svn">
 						<arg line="checkout ${svn.childbrowser.repo} ${lot.src.dir}/childbrowser"/>
