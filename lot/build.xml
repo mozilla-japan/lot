@@ -39,7 +39,7 @@
 <condition property="package.is.valid" value="yes">
 	<or>
 		<equals arg1="${package}" arg2="langpack"/>
-		<equals arg1="${package}" arg2="repackage"/>
+		<equals arg1="${package}" arg2="repack"/>
 		<equals arg1="${package}" arg2="venkman"/>
 		<equals arg1="${package}" arg2="chatzilla"/>
 	</or>

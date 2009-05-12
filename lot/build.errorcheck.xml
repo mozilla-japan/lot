@@ -305,7 +305,7 @@
 	
 	<loadfile property="charcheck.error" srcfile="${charcheck.output}" encoding="UTF-8"
 		failonerror="false" quiet="true"/>
-	<fail if="charcheck.error">${N}${charcheck.error}${vmsg.charcheck.found}{$}使用不可と検出された文字のリストを取得したい場合は次の(一行の)コマンドを実行してください:${N}cat ${charcheck.output} | perl -pe 'use utf8; use encoding ("utf-8"); s/^[^\[\]]*(\[CHARERROR\[([^\]]+)\]CHARERROR\])?[^\[\]]*|[^\[\]]*|^Error.+/$1\n/g; s/CHARERROR|[\[\]\s]//g; s/(.)/$1\n/g;' | sort | uniq</fail>
+	<fail if="charcheck.error">${N}${charcheck.error}${vmsg.charcheck.found}${N}使用不可と検出された文字のリストを取得したい場合は次の(一行の)コマンドを実行してください:${N}cat ${charcheck.output} | perl -pe 'use utf8; use encoding ("utf-8"); s/^[^\[\]]*(\[CHARERROR\[([^\]]+)\]CHARERROR\])?[^\[\]]*|[^\[\]]*|^Error.+/$1\n/g; s/CHARERROR|[\[\]\s]//g; s/(.)/$1\n/g;' | sort | uniq</fail>
 </target>
 
 
