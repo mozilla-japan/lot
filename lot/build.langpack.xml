@@ -81,15 +81,21 @@
 	<groovy><![CDATA[
 		replacelist = []
 		new File("${properties.'lot.src.dir'}/${properties.'replace.file'}").getText('UTF-8').readLines().each {
-			if (it.matches(/\s*[^#].*,.*/)) replacelist.push(it.split(','))
+			if (it.matches(/\s*[^#][^,]*,.*/)) replacelist.push(it.split(','))
 		}
 		ant.fileset(dir: properties.'replace.src.dir', includes: properties.'replace.utf8.includes', excludes: properties.'replace.utf8.excludes').each {
 			file = it.getFile()
-			before = after = file.getText('UTF-8')
-			replacelist.each { after = after.replaceAll(it[0], it[1]) }
+			before = file.getText('UTF-8')
+			after = new StringBuilder(before)
+			replacelist.each {
+				i = 0
+				while ((i = after.indexOf(it[0],i)) >= 0) {
+					after.replace(i, i+it[0].length(), it[1])
+				}
+			}
 			if (before != after) {
 				timestamp = file.lastModified()
-				file.write(after, 'UTF-8')
+				file.write(after.toString(), 'UTF-8')
 				file.setLastModified(timestamp)
 			}
 		}
