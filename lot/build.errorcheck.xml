@@ -180,11 +180,12 @@
 				errorlines = new StringBuilder()
 				content = new StringBuilder()
 				file.getFile().getText(encoding).eachLine{ line,n -> content << "@line ${n+1}: $line\n" }
+				content = content.toString()
 				if (commentpattern) {
-					content = content.toString().replaceAll(commentpattern, '')
+					content = content.replaceAll(commentpattern, '')
 				}
 				if (allowpattern) {
-					content = content.toString().replaceAll(allowpattern, properties.'wordcheck.allow.replace')
+					content = content.replaceAll(allowpattern, properties.'wordcheck.allow.replace')
 				}
 				
 				if (regexpengine == 'jakartaoro') {
@@ -200,7 +201,7 @@
 				else {
 					content.eachLine { line, n ->
 						if (line =~ denypattern_) {
-							errorlines << line.toString().replaceAll("($denypattern)", replacement) + "\n"
+							errorlines << line.replaceAll("($denypattern)", replacement) + "\n"
 						}
 					}
 				}
