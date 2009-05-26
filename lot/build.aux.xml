@@ -79,15 +79,13 @@
 	</fail>
 	<mkdir dir="${lot.l10n.dir}"/>
 	<echo message="executing hg clone command:${N}hg clone ${l10n.repo.base}${locale} ${lot.l10n.dir}/${locale}"/>
-	<exec executable="hg" taskname="hg">
-		<arg line="clone ${l10n.repo.base}${locale} ${lot.l10n.dir}/${locale}"/>
-	</exec>
+	<hg><arg line="clone ${l10n.repo.base}${locale} ${lot.l10n.dir}/${locale}"/></hg>
 	<if>
 		<equals arg1="${locale}" arg2="ja"/>
 		<then>
-			<echo message="executing hg clone command:${N}hg clone ${l10n.repo.base}/ja-JP-mac ${lot.l10n.dir}/ja-JP-mac"/>
+			<echo message="executing hg clone command:${N}hg clone ${l10n.repo.base}ja-JP-mac ${lot.l10n.dir}/ja-JP-mac"/>
 			<exec executable="hg" taskname="hg">
-				<arg line="clone ${l10n.repo.base}/ja-JP-mac ${lot.l10n.dir}/ja-JP-mac"/>
+				<arg line="clone ${l10n.repo.base}ja-JP-mac ${lot.l10n.dir}/ja-JP-mac"/>
 			</exec>
 		</then>
 	</if>
