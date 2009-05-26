@@ -234,7 +234,7 @@
 	<update-jar dir="${jar.src.dir}/other-licenses/branding/thunderbird"	prefix="locale/${langpack.locale}/branding"/>
 </target>
 
-<target name="-jar-fennec-" depends="-jar-fennec-content-" if="targetapp.is.fennec">
+<target name="-jar-fennec-" if="targetapp.is.fennec">
 	<!-- <mkdir dir="${jar.dest.dir}/chrome"/>
 	<zip taskname="packaging ${jar.filename}" compress="false" update="false" whenempty="create"
 		destfile="${jar.dest.dir}/chrome/${jar.filename}">
@@ -253,7 +253,6 @@
 		includes="*" excludes=""/>
 	<update-jar dir="${jar.src.dir}/mobile/chrome/overrides"				prefix="locale/${langpack.locale}/browser"/>
 	<update-jar dir="${jar.src.dir}/mobile/chrome/brand"					prefix="locale/${langpack.locale}/branding"/>
-	<update-jar dir="${jar.src.dir}/mobile/chrome/firstrun"					prefix="locale/${langpack.locale}/firstrun"/>
 	
 	<!-- mobile-l10n.js は @AB_CD@ を置き換えて defaults ディレクトリにコピーする必要あり -->
 	<copy file="${jar.src.dir}/mobile/mobile-l10n.js"
@@ -267,9 +266,6 @@
 	<copy todir="${xpi.src.dir}/searchplugins" preservelastmodified="true" overwrite="true">
 		<fileset dir="${jar.src.dir}/mobile/searchplugins" excludes="list.txt"/>
 	</copy> -->
-</target>
-<target name="-jar-fennec-content-" if="targetapp.is.fennec" unless="nocontent">
-	<!-- <update-jar dir="${jar.src.dir}/mobile/content/firstrun"				prefix="content/firstrun"/> -->
 </target>
 
 <target name="-jar-sunbird-" if="targetapp.is.sunbird">

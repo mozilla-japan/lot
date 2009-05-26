@@ -29,22 +29,23 @@ locale1     = args[1]
 locale2     = args[2]
 dir1        = new File(args[3]).getCanonicalPath().replaceAll("\\\\", "/")
 dir2        = new File(args[4]).getCanonicalPath().replaceAll("\\\\", "/")
-excludes    = args[5]
-output      = args[6]
+includes    = args[5]
+excludes    = args[6]
+output      = args[7]
 // format = text, xml, html
-format      = args[7]
-failonerror = args[8] == 'true'
-pattern = [
+format      = args[8]
+failonerror = args[9] == 'true'
+patternset = [
 	properties: [header: properties.'RE.properties.header', entityblock: properties.'RE.properties.entityblock', footer: properties.'RE.properties.footer', l10ncomment: properties.'RE.properties.l10ncomment'],
 	dtd: [header: properties.'RE.dtd.header', entityblock: properties.'RE.dtd.anyentityblock', footer: properties.'RE.dtd.footer', l10ncomment: properties.'RE.dtd.l10ncomment'],
 	inc: [header: properties.'RE.inc.header', entityblock: properties.'RE.inc.entityblock', footer: properties.'RE.inc.footer', l10ncomment: properties.'RE.inc.l10ncomment'],
 	ini: [header: properties.'RE.ini.header', entityblock: properties.'RE.ini.entityblock', footer: properties.'RE.ini.footer', l10ncomment: properties.'RE.ini.l10ncomment']
 ]
-filetype = [
-	properties: [encoding: 'UTF-8', pattern:pattern.properties, commentheader: "# ", commentfooter: ""],
-	dtd: [encoding: 'UTF-8', pattern:pattern.dtd, commentheader: "<!-- ", commentfooter: " -->"],
-	inc: [encoding: 'UTF-8', pattern:pattern.inc, commentheader: "#", commentfooter: ""],
-	ini: [encoding: 'UTF-8', pattern:pattern.ini, commentheader: "#", commentfooter: ""]
+filetypeset = [
+	properties: [encoding: 'UTF-8', pattern:patternset.properties, commentheader: "# ", commentfooter: ""],
+	dtd: [encoding: 'UTF-8', pattern:patternset.dtd, commentheader: "<!-- ", commentfooter: " -->"],
+	inc: [encoding: 'UTF-8', pattern:patternset.inc, commentheader: "#", commentfooter: ""],
+	ini: [encoding: 'UTF-8', pattern:patternset.ini, commentheader: "#", commentfooter: ""]
 ]	
 //l10n[basedir][filekey][entitykey] = [index, block, prespace:, precomment:, definition:, key:, value:, postcomment:]
 l10n = [(dir1): [:], (dir2): [:], merged: [:]]
@@ -59,11 +60,19 @@ metakeys = 3 // *info, *header, *footer
 commonkeys = samekeys = uniquekeys1 = uniquekeys2 = 0
 
 def isaccesskey(key) {
-	key =~ properties.'compare.accesskey.pattern' && !(key =~ properties.'compare.accesskey.except')
+	key =~ properties.'compare.accesskey.pattern' && !(key =~ properties.'compare.accesskey.ignore')
+}
+def isnotignored(key) {
+	!(key =~ properties.'compare.entity.ignore')
 }
 
-def parse(dir, file, filetype, preprocess, postprocess) {
+def parse(dir, file, preprocess, postprocess) {
 	filekey  = file.toString().replaceAll("\\\\", "/").replaceAll("$dir/","").replaceAll("/$locale1|$locale2","/*")
+	if (filekey =~ /\.properties$/) filetype = filetypeset.properties
+	else if (filekey =~ /\.dtd$/)   filetype = filetypeset.dtd
+	else if (filekey =~ /\.inc$/)   filetype = filetypeset.inc
+	else if (filekey =~ /\.ini$/)   filetype = filetypeset.ini
+	else return
 	l10n[dir][filekey] = ['*info':[dir:dir, file:file.toString().replaceAll("\\\\", "/"), filetype:filetype],
 		'*header':[index:-1,key:'*header',block:''], '*footer':[index:-1,key:'*footer',block:'']]
 	content = file.getFile().getText(filetype.encoding)
@@ -80,6 +89,7 @@ def parse(dir, file, filetype, preprocess, postprocess) {
 	index = start = end = 0
 	content.eachMatch(filetype.pattern.entityblock) { // don't use matcher to keep parser fast
 		block, prespace, precomment, definition, key, value, postcomment ->
+		// check and skip invalid strings between entityblock
 		start = end
 		if (content[end..<end+block.size()] == block) {
 			end += block.size()
@@ -92,12 +102,14 @@ def parse(dir, file, filetype, preprocess, postprocess) {
 			}
 			l10n[dir][filekey]['*info'].isnotstrict = true // set flag not to edit this file
 		}
+		// check duplicate entity
 		if (l10n[dir][filekey][key]) {
 			duperrmsg << "Duplicate Entities found in: $dir/$filekey:\n"
 			duperrmsg << "  ${l10n[dir][filekey][key].definition}\n  $definition\n\n"
 			l10n[dir][filekey]["~$key"] = l10n[dir][filekey][key]
 		}
-		l10n[dir][filekey][key] = [index:index++, block:block, prespace:prespace, precomment:precomment, definition:definition, key:key, value:value, postcomment:postcomment]
+		// set parsed entity
+		if (isnotignored(key)) l10n[dir][filekey][key] = [index:index++, block:block, prespace:prespace, precomment:precomment, definition:definition, key:key, value:value, postcomment:postcomment]
 		if (postprocess) l10n[dir][filekey][key] = postprocess(l10n[dir][filekey][key])
 	}
 	content = content[end..<content.size()]
@@ -126,30 +138,8 @@ def parse(dir, file, filetype, preprocess, postprocess) {
 }
 
 // Phase 1: Parse L10N Files
-ant.fileset(dir:"$dir1", includes:'**/*.properties', excludes:excludes).each {
-	parse(dir1, it, filetype.properties, null, null)
-}
-ant.fileset(dir:"$dir2", includes:'**/*.properties', excludes:excludes).each {
-	parse(dir2, it, filetype.properties, null, null)
-}
-ant.fileset(dir:"$dir1", includes:'**/*.dtd', excludes:excludes).each {
-	parse(dir1, it, filetype.dtd, null, null)
-}
-ant.fileset(dir:"$dir2", includes:'**/*.dtd', excludes:excludes).each {
-	parse(dir2, it, filetype.dtd, null, null)
-}
-ant.fileset(dir:"$dir1", includes:'**/*.inc', excludes:excludes).each {
-	parse(dir1, it, filetype.inc, null, null)
-}
-ant.fileset(dir:"$dir2", includes:'**/*.inc', excludes:excludes).each {
-	parse(dir2, it, filetype.inc, null, null)
-}
-ant.fileset(dir:"$dir1", includes:'**/*.ini', excludes:excludes).each {
-	parse(dir1, it, filetype.ini, null, null)
-}
-ant.fileset(dir:"$dir2", includes:'**/*.ini', excludes:excludes).each {
-	parse(dir2, it, filetype.ini, null, null)
-}
+ant.fileset(dir:"$dir1", includes:includes, excludes:excludes).each { parse(dir1, it, null, null) }
+ant.fileset(dir:"$dir2", includes:includes, excludes:excludes).each { parse(dir2, it, null, null) }
 
 // to avoid ignoring existing blank file, check if it is null
 l10n1 = l10n[dir1].groupBy { k,v -> l10n[dir2][k] != null ? 'common' : 'unique' }

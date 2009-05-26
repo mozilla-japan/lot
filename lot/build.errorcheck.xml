@@ -48,26 +48,19 @@
 	
 	<groovy><![CDATA[
 		errormsg = new StringBuilder()
-		def syntaxchecker(file, encoding, validpattern) {
+		includes = properties.'syntaxcheck.includes' ?: '**'
+		excludes = properties.'syntaxcheck.excludes' ?: ''
+		ant.fileset(dir:properties.'syntaxcheck.dir', includes:includes, excludes:excludes).each { file ->
+			if (file =~ /\.properties$/) validpattern = /${properties.'RE.properties.validline'}\n/
+			else if (file =~ /\.dtd$/)   validpattern = /${properties.'RE.dtd.validblock'}\n/
+			else if (file =~ /\.inc$/)   validpattern = /${properties.'RE.inc.validline'}\n/
+			else if (file =~ /\.ini$/)   validpattern = /${properties.'RE.ini.validline'}\n/
+			else return
 			content = new StringBuilder()
-			file.getFile().getText(encoding).replaceFirst(/^\ufeff/, '').eachLine{ line,n -> content << "@line ${n+1}: $line\n" }
+			file.getFile().getText('UTF-8').replaceFirst(/^\ufeff/, '').eachLine{ line,n -> content << "@line ${n+1}: $line\n" }
 			content = content.toString().replaceAll(validpattern, '')
 			if (content) errormsg << "Syntax Error Found in $file:\n$content\n"
 		}
-		
-		ant.fileset(dir: properties.'syntaxcheck.dir', includes:'**/*.properties').each {
-			syntaxchecker(it, 'UTF-8', /${properties.'RE.properties.validline'}\n/)
-		}
-		ant.fileset(dir: properties.'syntaxcheck.dir', includes:'**/*.dtd').each {
-			syntaxchecker(it, 'UTF-8', /${properties.'RE.dtd.validblock'}\n/)
-		}
-		ant.fileset(dir: properties.'syntaxcheck.dir', includes:'**/*.ini').each {
-			syntaxchecker(it, 'UTF-8', /${properties.'RE.ini.validline'}\n/)
-		}
-		ant.fileset(dir: properties.'syntaxcheck.dir', includes:'**/*.inc', excludes:'**/installer/installer.inc').each {
-			syntaxchecker(it, 'UTF-8', /${properties.'RE.inc.validline'}\n/)
-		}
-		
 		if (errormsg) {
 			ant.mkdir(dir:new File(properties.'errorsummary.output').getParent())
 			ant.echo(message: errormsg, file: properties.'errorsummary.output', append: true)
@@ -92,7 +85,9 @@
 	<groovy><![CDATA[
 		max = 5
 		errormsg = new StringBuilder()
-		ant.fileset(dir: properties.'placeholdercheck.dir', includes:'**/*.properties').each {
+		includes = properties.'placeholdercheck.includes' ?: '**/*.properties'
+		excludes = properties.'placeholdercheck.excludes' ?: ''
+		ant.fileset(dir:properties.'placeholdercheck.dir', includes:includes, excludes:excludes).each {
 			errorlines = new StringBuilder()
 			it.getFile().getText('UTF-8').eachLine { line, n ->
 				err = false
@@ -125,7 +120,9 @@
 	
 	<groovy><![CDATA[
 		errormsg = new StringBuilder()
-		ant.fileset(dir: properties.'pluralcheck.dir', includes:'**/*.properties').each {
+		includes = properties.'pluralcheck.includes' ?: '**/*.properties'
+		excludes = properties.'pluralcheck.excludes' ?: ''
+		ant.fileset(dir:properties.'pluralcheck.dir', includes:includes, excludes:excludes).each {
 			errorlines = new StringBuilder()
 			it.getFile().getText('UTF-8').replaceAll(/(?ms)${properties.'pluralcheck.allow'}/, properties.'pluralcheck.allow.replace').eachLine { line, n ->
 				if (line =~ /^\s*[-0-9a-zA-Z_.?{@}]+\s*=.+;.+/) {

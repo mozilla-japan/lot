@@ -79,7 +79,7 @@
 	</fail>
 	<mkdir dir="${lot.l10n.dir}"/>
 	<echo message="executing hg clone command:${N}hg clone ${l10n.repo.base}${locale} ${lot.l10n.dir}/${locale}"/>
-	<hg><arg line="clone ${l10n.repo.base}${locale} ${lot.l10n.dir}/${locale}"/></hg>
+	<hg><arg line="clone ${l10n.repo.base}${locale} ${lot.l10n.dir}/${locale}"/></hg> 
 	<if>
 		<equals arg1="${locale}" arg2="ja"/>
 		<then>
@@ -87,6 +87,18 @@
 			<exec executable="hg" taskname="hg">
 				<arg line="clone ${l10n.repo.base}ja-JP-mac ${lot.l10n.dir}/ja-JP-mac"/>
 			</exec>
+		</then>
+	</if>
+</target>
+
+<target name="pull-locale" depends="load-mainconf"
+	description="pull l10n mercurial repogitory from hg.mozilla.org">
+	<property name="locale" value="${lot.locale.default}"/>
+	<hg dir="${lot.l10n.dir}/${locale}"><arg line="pull -u"/></hg>
+	<if>
+		<equals arg1="${locale}" arg2="ja"/>
+		<then>
+			<hg dir="${lot.l10n.dir}/ja-JP-mac"><arg line="pull -u"/></hg>
 		</then>
 	</if>
 </target>
@@ -154,6 +166,13 @@
 	<groovy><![CDATA[
 		properties.'alllocale.list'.eachMatch(/([a-zA-Z-]+)[\s,]*/) { a,locale ->
 			ant.antcall(target:'clone-locale') { param(name: 'locale', value: locale) }
+		}
+	]]></groovy>
+</target>
+<target name="pull-alllocale" depends="load-mainconf">
+	<groovy><![CDATA[
+		properties.'alllocale.list'.eachMatch(/([a-zA-Z-]+)[\s,]*/) { a,locale ->
+			ant.antcall(target:'pull-locale') { param(name: 'locale', value: locale) }
 		}
 	]]></groovy>
 </target>
