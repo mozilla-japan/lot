@@ -150,7 +150,49 @@
 		<param name="genconf.type" value="childbrowser"/>
 	</antcall>
 </target>
-	
+
+
+<!-- common errorcheck for each applications -->
+<macrodef name="commoncheckapp">
+	<attribute name="app"/>
+	<sequential>
+		<antcall target="commoncheck">
+			<param name="syntaxcheck.includes"		value="${@{app}.l10n.includes}"/>
+			<param name="placeholdercheck.includes"	value="${@{app}.l10n.includes}"/>
+			<param name="pluralcheck.includes"		value="${@{app}.l10n.includes}"/>
+			<param name="errorsummary.output"		value="${lot.log.dir}/@{app}/${locale}.${tstamp.yyyyMMddHH}.errorsummary"/>
+			<param name="syntaxcheck.output"		value="${lot.log.dir}/@{app}/${locale}.${tstamp.yyyyMMddHH}.syntaxerror"/>
+			<param name="placeholdercheck.includes"	value="${lot.log.dir}/@{app}/${locale}.${tstamp.yyyyMMddHH}.placeholdererror"/>
+			<param name="pluralcheck.includes"		value="${lot.log.dir}/@{app}/${locale}.${tstamp.yyyyMMddHH}.pluralerror"/>
+		</antcall>
+	</sequential>
+</macrodef>
+<target name="commoncheckfx"><commoncheckapp app="firefox"/></target>
+<target name="commonchecktb"><commoncheckapp app="thunderbird"/></target>
+<target name="commoncheckfe"><commoncheckapp app="fennec"/></target>
+<target name="commonchecksb"><commoncheckapp app="sunbird"/></target>
+<target name="commonchecksm"><commoncheckapp app="seamonkey"/></target>
+<target name="commoncheck-eachapp" depends="commoncheckfx, commonchecktb, commoncheckfe, commonchecksb, commonchecksm"/>
+
+<macrodef name="compareapp">
+	<attribute name="app"/>
+	<sequential>
+		<antcall target="compare">
+			<param name="compare.includes"		value="${@{app}.l10n.includes}"/>
+			<param name="compare.excludes"		value=".hg/"/>
+			<param name="errorsummary.output"	value="${lot.log.dir}/@{app}/${locale}.${tstamp.yyyyMMddHH}.errorsummary"/>
+			<param name="compare.output"		value="${lot.log.dir}/@{app}/${locale}.${tstamp.yyyyMMddHH}.compare"/>
+		</antcall>
+	</sequential>
+</macrodef>
+<target name="comparefx"><compareapp app="firefox"/></target>
+<target name="comparetb"><compareapp app="thunderbird"/></target>
+<target name="comparefe"><compareapp app="fennec"/></target>
+<target name="comparesb"><compareapp app="sunbird"/></target>
+<target name="comparesm"><compareapp app="seamonkey"/></target>
+<target name="compare-eachapp" depends="comparefx, comparetb, comparefe, comparesb, comparesm"/>
+
+<!-- for all locales -->
 <target name="genconf-alllocale" depends="load-mainconf">
 	<groovy><![CDATA[
 		properties.'alllocale.list'.eachMatch(/([a-zA-Z-]+)[\s,]*/) { a,locale ->
@@ -176,13 +218,23 @@
 		}
 	]]></groovy>
 </target>
-<target name="errorcheck-alllocale" depends="load-mainconf">
+<target name="commoncheck-alllocale" depends="load-mainconf">
 	<groovy><![CDATA[
 		properties.'alllocale.list'.eachMatch(/([a-zA-Z-]+)[\s,]*/) { a,locale ->
 			println "error checking $locale locale files..."
 			// to avoid OutOfMemoryError without ANT_OPTS, folk with java task (not ant/subant)
 			ant.java(classname: "org.apache.tools.ant.Main", fork: true, clonevm: true) {
-				arg(line: "errorcheck -Dconfig.user.file='${properties.'alllocale.config.dir'}/user.${locale}.conf' -Dlot.log.dir='log/locales' -Dsyntaxcheck.failonerror=false -Dplaceholdercheck.failonerror=false -Dpluralcheck.failonerror=false")
+				arg(line: "commoncheck -Dconfig.user.file='${properties.'alllocale.config.dir'}/user.${locale}.conf' -Dlot.log.dir='log/locales' -Dsyntaxcheck.failonerror=false -Dplaceholdercheck.failonerror=false -Dpluralcheck.failonerror=false")
+			}
+		}
+	]]></groovy>
+</target>
+<target name="commoncheck-eachapp-alllocale" depends="load-mainconf">
+	<groovy><![CDATA[
+		properties.'alllocale.list'.eachMatch(/([a-zA-Z-]+)[\s,]*/) { a,locale ->
+			println "error checking $locale locale files..."
+			ant.java(classname: "org.apache.tools.ant.Main", fork: true, clonevm: true) {
+				arg(line: "commoncheck-eachapp -Dconfig.user.file='${properties.'alllocale.config.dir'}/user.${locale}.conf' -Dlot.log.dir='log/locales' -Dsyntaxcheck.failonerror=false -Dplaceholdercheck.failonerror=false -Dpluralcheck.failonerror=false")
 			}
 		}
 	]]></groovy>
@@ -198,7 +250,18 @@
 		}
 	]]></groovy>
 </target>
-<target name="checksuite-alllocale" depends="errorcheck-alllocale, compare-alllocale"/>
+<target name="compare-eachapp-alllocale" depends="load-mainconf">
+	<groovy><![CDATA[
+		properties.'alllocale.list'.eachMatch(/([a-zA-Z-]+)[\s,]*/) { a,locale ->
+			println "comparing en-US and $locale locale files..."
+			ant.java(classname: "org.apache.tools.ant.Main", fork: true, clonevm: true) {
+				arg(line: "compare-eachapp -Dconfig.user.file='${properties.'alllocale.config.dir'}/user.${locale}.conf' -Dlot.log.dir='log/locales'")
+			}
+		}
+	]]></groovy>
+</target>
+<target name="checksuite-alllocale" depends="commoncheck-alllocale, compare-alllocale"/>
+<target name="checksuite-eachapp-alllocale" depends="commoncheck-eachapp-alllocale, compare-eachapp-alllocale"/>
 
 
 <!-- * update and commit lot itself * -->

@@ -5,6 +5,7 @@
 
 
 <target name="errorcheck" depends="syntaxcheck, placeholdercheck, pluralcheck, wordcheck, suspectedwordcheck, charcheck"/>
+<target name="commoncheck" depends="syntaxcheck, placeholdercheck, pluralcheck"/>
 
 
 <macrodef name="errorlog">

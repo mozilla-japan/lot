@@ -330,6 +330,6 @@ infomsg << "Total Number of same/different/unique entities in the two directory:
 infomsg << "  same: $samekeys (${Math.round(commonkeys?samekeys/commonkeys*100:0)}%), different: ${commonkeys-samekeys}, unique: ${uniquekeys1+uniquekeys2}\n\n"
 
 ant.errorlog(type: 'compare', file: output, fail: failonerror && (fileerrmsg || duperrmsg || entityerrmsg), 
-	message: "Compare Locales Result:\n$infomsg\n\n$fileerrmsg\n\n$duperrmsg\n\n$entityerrmsg\n\n$accesskeymsg\n\n$mergelog")
+	message: "Compare Locales Result:\n  includes: $includes\n  excludes: $excludes\n\n$infomsg\n\n$fileerrmsg\n\n$duperrmsg\n\n$entityerrmsg\n\n$accesskeymsg\n\n$mergelog")
 
 
