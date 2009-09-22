@@ -1,0 +1,21 @@
+# fennec part
+locale	browser		${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/browser/
+locale	branding	${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/branding/
+#locale	firstrun	${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/firstrun/
+#content	firstrun	jar:chrome/${langpack.locale}.jar!/content/firstrun/ contentaccessible=yes
+
+override chrome://global/locale/netErrorApp.dtd chrome://browser/locale/netError.dtd
+
+# xulrunner part
+locale	alerts		${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/alerts/
+locale	autoconfig	${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/autoconfig/
+locale	cookie		${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/cookie/
+locale	global		${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/global/
+locale	global-region	${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/global-region/
+locale	global-platform	${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/global-platform/
+locale	mozapps		${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/mozapps/
+locale	necko		${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/necko/
+locale	passwordmgr	${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/passwordmgr/
+locale	places		${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/places/
+locale	pipnss		${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/pipnss/
+locale	pippki		${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/pippki/

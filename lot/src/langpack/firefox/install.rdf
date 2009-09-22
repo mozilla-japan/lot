@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+	xmlns:em="http://www.mozilla.org/2004/em-rdf#">
+
+<!-- http://hg.mozilla.org/mozilla-central/file/tip/browser/locales/generic/install.rdf -->
+
+<Description about="urn:mozilla:install-manifest">
+	<em:id>${firefox.langpack.guid}</em:id>
+	<em:name>${firefox.langpack.name}</em:name>
+	<em:version>${firefox.langpack.revision}</em:version>
+	<em:type>${package.type}</em:type>
+	
+	<em:targetApplication>
+		<Description>
+			<em:id>{${firefox.guid}}</em:id>
+			<em:minVersion>${firefox.minVersion}</em:minVersion>
+			<em:maxVersion>${firefox.maxVersion}</em:maxVersion>
+		</Description>
+	</em:targetApplication>
+	
+	${package.description.em}
+	${package.creator.em}
+	${package.contributor.em}
+	${package.developer.em}
+	${package.translator.em}
+	${package.homepageURL.em}
+	${package.updateURL.em}
+</Description>
+</RDF>

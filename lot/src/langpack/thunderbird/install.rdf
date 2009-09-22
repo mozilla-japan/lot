@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+	xmlns:em="http://www.mozilla.org/2004/em-rdf#">
+
+<!-- http://hg.mozilla.org/comm-central/file/tip/mail/locales/generic/install.rdf -->
+
+<Description about="urn:mozilla:install-manifest">
+	<em:id>${thunderbird.langpack.guid}</em:id>
+	<em:name>${thunderbird.langpack.name}</em:name>
+	<em:version>${thunderbird.langpack.revision}</em:version>
+	<em:type>${package.type}</em:type>
+
+	<em:targetApplication>
+		<Description>
+			<em:id>{${thunderbird.guid}}</em:id>
+			<em:minVersion>${thunderbird.minVersion}</em:minVersion>
+			<em:maxVersion>${thunderbird.maxVersion}</em:maxVersion>
+		</Description>
+	</em:targetApplication>
+
+	${package.description.em}
+	${package.creator.em}
+	${package.contributor.em}
+	${package.developer.em}
+	${package.translator.em}
+	${package.homepageURL.em}
+	${package.updateURL.em}
+</Description>
+</RDF>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="shorthand" default="" basedir=".">
+<description>make it easy to specify properties from command line with shorthands</description>
+
+<propertyalias property="lang"			alias="lot.lang"/>
+
+<propertyalias property="docheck"		alias="dosuspectedwordcheck"/>
+
+<propertyalias property="nocheck"		alias="noerrorcheck"/>
+<propertyalias property="noerrorcheck"	alias="nosyntaxcheck"/>
+<propertyalias property="noerrorcheck"	alias="noplaceholdercheck"/>
+<propertyalias property="noerrorcheck"	alias="nopluralcheck"/>
+<propertyalias property="noerrorcheck"	alias="nowordcheck"/>
+<propertyalias property="noerrorcheck"	alias="nosuspectedwordcheck"/>
+<propertyalias property="noerrorcheck"	alias="nocharcheck"/>
+
+<propertyalias property="dir1"			alias="compare.dir1"/>
+<propertyalias property="dir1"			alias="merge.dir1"/>
+<propertyalias property="dir1"			alias="resetaccesskey.dir1"/>
+<propertyalias property="dir2"			alias="compare.dir2"/>
+<propertyalias property="dir2"			alias="merge.dir2"/>
+<propertyalias property="dir2"			alias="resetaccesskey.dir2"/>
+
+<propertyalias property="fromdir"		alias="escape.fromdir"/>
+<propertyalias property="fromdir"		alias="unescape.fromdir"/>
+<propertyalias property="todir"			alias="escape.todir"/>
+<propertyalias property="todir"			alias="unescape.todir"/>
+
+<propertyalias property="output"		alias="genconf.output"/>
+
+
+</project>

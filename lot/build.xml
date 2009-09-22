@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="lot" default="build" basedir=".">
+<description>Localization Tools for Mozilla Products</description>
+
+
+		<!-- *** Phase 1: Initialization *** -->
+
+
+<!-- * import common library and set property aliases * -->
+<import file="build.library.xml"	optional="false"/>
+<import file="build.shorthand.xml"	optional="true"/>
+
+<!-- * prepare and check basic settings * -->
+<property name="config.dir"				value="config"/>
+<property name="config.main.file"		value="${config.dir}/lot.conf"/>
+<condition property="config.user.file"	value="${config.dir}/user.conf" else="${config.dir}/dummy.conf">
+	<available file="${config.dir}/user.conf" type="file"/>
+</condition>
+<available property="config.user.file.exists" type="file" file="${config.user.file}"/>
+
+<!-- load basic settings from user.conf first to override lot.conf -->
+<loadconf file="${config.user.file}" pattern="^((lot|hg)\.[^=\s]+|package)\s*="/>
+<!-- load basic settings from lot.conf next -->
+<loadconf file="${config.main.file}" pattern="^((lot|hg)\.[^=\s]+|package)\s*="/>
+<!-- set default basic settings in case is is not set in user/main.conf -->
+<property name="lot.lang"		value="english"/>
+<property name="lot.src.dir"	value="src"/>
+<property name="lot.l10n.dir"	value="l10n"/>
+<property name="lot.dest.dir"	value="dest"/>
+<property name="lot.res.dir"	value="res"/>
+<property name="lot.temp.dir"	value="temp"/>
+
+<!-- load constants -->
+<loadconf file="${lot.res.dir}/const.conf"/>
+<loadmessage pattern="^(cmsg\.|\t\t)"/>
+
+<!-- assertion for some properties -->
+<fail unless="package"		message="${cmsg.noprop.package}"/>
+<condition property="package.is.valid" value="yes">
+	<or>
+		<equals arg1="${package}" arg2="langpack"/>
+		<equals arg1="${package}" arg2="repack"/>
+		<equals arg1="${package}" arg2="venkman"/>
+		<equals arg1="${package}" arg2="chatzilla"/>
+	</or>
+</condition>
+<fail unless="package.is.valid" message="${cmsg.invalidprop.package}"/>
+
+
+
+<!-- * import targets * -->
+<!-- import package specific targets, which imports other targets -->
+<property name="package.buildfile" value="build.${package}.xml"/>
+<import file="${package.buildfile}" optional="false"/>
+
+
+
+		<!-- *** Phase 2: Prepare to Build *** -->
+
+<!-- * load configuration files * -->
+<target name="load-userconf" if="config.user.file.exists" unless="userconf.loaded">
+	<loadconf file="${config.user.file}"/><!-- user specific configuration file -->
+	<property name="userconf.loaded" value="yes"/>
+</target>
+<target name="load-mainconf" depends="load-userconf" unless="mainconf.loaded">
+	<!-- load main config except package dependent part -->
+	<loadconf file="${config.main.file}">
+		<morefilters>
+			<replaceregex pattern="^PACKAGE#.+$" replace="" flags="i"/>
+		</morefilters>
+	</loadconf>
+	<property name="mainconf.loaded" value="yes"/>
+</target>
+<target name="load-packageconf" depends="load-mainconf" unless="packageconf.loaded">
+	<fail unless="mainconf.loaded"/>
+	<property name="config.package.file" value="config//${config.package.filename}"/>
+	<property name="locale" value="${lot.locale.default}"/>
+	<loadconf file="${config.package.file}">
+		<morefilters>
+			<replaceregex pattern="^(${targetapp}\\.${locale}|${targetapp}|${locale})#" replace="" flags="i"/>
+		</morefilters>
+	</loadconf>
+	<!-- package depending part of mainconf -->
+	<loadconf file="${config.main.file}" pattern="^PACKAGE#">
+		<morefilters>
+			<replaceregex pattern="^PACKAGE#" replace="" flags="i"/>
+		</morefilters>
+	</loadconf>
+	<property name="packageconf.loaded" value="yes"/>
+</target>
+
+
+<target name="load-conf" depends="load-userconf, load-mainconf, load-packageconf" unless="conf.loaded">
+	<property name="conf.loaded" value="yes"/>
+</target>
+
+
+<!-- * escaping filters * -->
+<target name="escape-filters" depends="load-conf" unless="filters.escaped">
+	<!-- set filename for temporary -->
+	<condition property="filters.file" value="${lot.temp.dir}/${package}.${locale}.filters" else="${lot.temp.dir}/${package}.filters">
+		<isset property="locale"/>
+	</condition>
+	<!-- select accesskey filters (empty by default) -->
+	<condition property="filters.accesskey.filename" value="accesskey.print.filters" else="accesskey.empty.filters">
+		<istrue value="${filters.printaccesskeys}"/>
+	</condition>
+	<concat destfile="${filters.file}" encoding="${lot.encoding.filters}" fixlastline="yes">
+		<filelist dir="${lot.src.dir}" files="${filters.filelist}"/>
+		<filelist dir="${lot.res.dir}" files="${filters.accesskey.filename}"/>
+		<filterchain>
+			<replaceregex pattern="^(${filters.stripprefix})\." replace="" flags="i"/>
+			<expandproperties/>
+			<escapeunicode/>
+		</filterchain>
+		<!-- set some filters from properties -->
+		<footer trimleading="true" filtering="no">
+			locale							= ${locale}
+			package.creator					= ${package.creator}
+			firefox.l10n.contributor.em		= ${firefox.l10n.contributor.em}
+			thunderbird.l10n.contributor.em	= ${thunderbird.l10n.contributor.em}
+			fennec.l10n.contributor.em		= ${fennec.l10n.contributor.em}
+			sunbird.l10n.contributor.em		= ${sunbird.l10n.contributor.em}
+			seamonkey.l10n.contributor.em	= ${seamonkey.l10n.contributor.em}
+			venkman.l10n.contributor.em		= ${venkman.l10n.contributor.em}
+			chatzilla.l10n.contributor.em	= ${chatzilla.l10n.contributor.em}
+			alwaysappendaccesskeys			= ${filters.alwaysappendaccesskeys}
+		</footer>
+	</concat>
+	
+	<!-- As workaround of Ant 1.7.0 bug (spec change?), define after ${filters.file} property set...  -->
+	<presetdef name="filtering-copy">
+		<copy taskname="filtering-copy" encoding="${lot.encoding.filters}" preservelastmodified="true" overwrite="true">
+			<filterset begintoken="${lib.filters.begintoken}" endtoken="${lib.filters.endtoken}">
+				<filtersfile file="${filters.file}"/>
+			</filterset>
+		</copy>
+	</presetdef>
+
+	<property name="filters.escaped" value="yes"/>
+</target>
+
+
+<!-- * prepare phase interface * -->
+<target name="prepare" depends="load-conf, escape-filters" unless="prepare.done">
+	<equals property="targetapp.is.firefox"		value="true" arg1="${targetapp}" arg2="firefox"/>
+	<equals property="targetapp.is.thunderbird"	value="true" arg1="${targetapp}" arg2="thunderbird"/>
+	<equals property="targetapp.is.fennec"		value="true" arg1="${targetapp}" arg2="fennec"/>
+	<equals property="targetapp.is.sunbird"		value="true" arg1="${targetapp}" arg2="sunbird"/>
+	<equals property="targetapp.is.seamonkey"	value="true" arg1="${targetapp}" arg2="seamonkey"/>
+	<property name="prepare.done" value="yes"/>
+</target>
+
+
+
+		<!-- *** Phase 3: Build *** -->
+
+<!-- * Build Interface * -->
+<!-- general packaging process according to properties -->
+<target name="build" depends="intro, clean, convert, check, pack"
+	description="make xpi package from src files">
+	<antcall target="clean">
+		<param name="noconfirm" value="YES"/>
+	</antcall>
+</target>
+
+<!-- shorthand to build langpack(s) -->
+<target name="buildfx">
+	<antcall target="build">
+		<param name="package" value="langpack"/>
+		<param name="targetapp" value="firefox"/>
+	</antcall>
+</target>
+<target name="buildtb">
+	<antcall target="build">
+		<param name="package" value="langpack"/>
+		<param name="targetapp" value="thunderbird"/>
+	</antcall>
+</target>
+<target name="buildfe">
+	<antcall target="build">
+		<param name="package" value="langpack"/>
+		<param name="targetapp" value="fennec"/>
+	</antcall>
+</target>
+<target name="buildsb">
+	<antcall target="build">
+		<param name="package" value="langpack"/>
+		<param name="targetapp" value="sunbird"/>
+	</antcall>
+</target>
+<target name="buildsm">
+	<antcall target="build">
+		<param name="package" value="langpack"/>
+		<param name="targetapp" value="seamonkey"/>
+	</antcall>
+</target>
+<target name="buildfxtb">
+	<!-- exec common part only once -->
+	<antcall>
+		<param name="package" value="langpack"/>
+		<target name="intro"/><target name="clean"/><target name="convert"/>
+	</antcall>
+	<!-- targetapp dependent part -->
+	<antcall target="pack">
+		<param name="package" value="langpack"/>
+		<param name="targetapp" value="firefox"/>
+	</antcall>
+	<antcall target="pack">
+		<param name="package" value="langpack"/>
+		<param name="targetapp" value="thunderbird"/>
+	</antcall>
+</target>
+<target name="buildall">
+	<!-- exec common part only once -->
+	<antcall>
+		<param name="package" value="langpack"/>
+		<target name="intro"/><target name="clean"/><target name="convert"/>
+	</antcall>
+	<!-- targetapp dependent part -->
+	<antcall target="pack">
+		<param name="package" value="langpack"/>
+		<param name="targetapp" value="firefox"/>
+	</antcall>
+	<antcall target="pack">
+		<param name="package" value="langpack"/>
+		<param name="targetapp" value="thunderbird"/>
+	</antcall>
+	<antcall target="pack">
+		<param name="package" value="langpack"/>
+		<param name="targetapp" value="fennec"/>
+	</antcall>
+	<antcall target="pack">
+		<param name="package" value="langpack"/>
+		<param name="targetapp" value="sunbird"/>
+	</antcall>
+	<antcall target="pack">
+		<param name="package" value="langpack"/>
+		<param name="targetapp" value="seamonkey"/>
+	</antcall>
+</target>
+
+
+		<!-- *** Targets for Build Interface *** -->
+
+
+
+<!-- defined in ${package.buildfile} -->
+
+
+
+		<!-- *** Other Interface *** -->
+
+<target name="clean" unless="noclean"
+	description="clean (delete) temporary files">
+	<available property="temp.dir.exists" file="${lot.temp.dir}" type="dir"/>
+	<confirm message="${cmsg.clean.confirm}" failmessage="${cmsg.clean.aborted}" if="temp.dir.exists"/>
+	<delete dir="${lot.temp.dir}"/>
+</target>
+
+<target name="auto" description="exec following targets without any confirming">
+	<property name="nointro" value="YES"/>
+	<property name="noconfirm" value="YES"/>
+</target>
+
+<target name="noerrorcheck" description="exec following targets without any errorcheck">
+	<property name="nosyntaxcheck" value="YES"/>
+	<property name="noplaceholdercheck" value="YES"/>
+	<property name="nopluralcheck" value="YES"/>
+	<property name="nowordcheck" value="YES"/>
+	<property name="nosuspectedwordcheck" value="YES"/>
+	<property name="nocharcheck" value="YES"/>
+</target>
+<target name="nocompare" description="exec following targets without compare locale">
+	<property name="nocompare" value="YES"/>
+</target>
+
+<target name="forcentral" description="exec following targets for central files">
+	<updateproperty name="lot.mozilla.dir"		value="${lot.mozilla-central.dir}"/>
+	<updateproperty name="lot.comm.dir"			value="${lot.comm-central.dir}"/>
+	<updateproperty name="lot.src.l10n.dir"		value="${lot.src.l10n-central.dir}"/>
+	<updateproperty name="lot.dest.dir"			value="${lot.dest-central.dir}"/>
+	<updateproperty name="lot.l10n.dir"			value="${lot.l10n-central.dir}"/>
+	<updateproperty name="hg.mozilla.repo"		value="${hg.mozilla-central.repo}"/>
+	<updateproperty name="hg.comm.repo"			value="${hg.comm-central.repo}"/>
+	<updateproperty name="hg.l10n.repo.base"	value="${hg.l10n-central.repo.base}"/>
+</target>
+<target name="for191" description="exec following targets for central files">
+	<updateproperty name="lot.mozilla.dir"		value="${lot.mozilla-1.9.1.dir}"/>
+	<updateproperty name="lot.comm.dir"			value="${lot.comm-1.9.1.dir}"/>
+	<updateproperty name="lot.src.l10n.dir"		value="${lot.src.l10n-1.9.1.dir}"/>
+	<updateproperty name="lot.dest.dir"			value="${lot.dest-1.9.1.dir}"/>
+	<updateproperty name="lot.l10n.dir"			value="${lot.l10n-1.9.1.dir}"/>
+	<updateproperty name="hg.mozilla.repo"		value="${hg.mozilla-1.9.1.repo}"/>
+	<updateproperty name="hg.comm.repo"			value="${hg.comm-1.9.1.repo}"/>
+	<updateproperty name="hg.l10n.repo.base"	value="${hg.l10n-1.9.1.repo.base}"/>
+</target>
+
+<target name="version" description="display lot version">
+	<echo taskname="version" message="${lot.fullname} ${lot.version}"/>
+</target>
+
+<target name="help" description="show usage help">
+	<property name="usage.file" value="${lot.lang.dir}/${lot.lang}.usage"/>
+	<loadfile property="usage.message" srcfile="${usage.file}" encoding="UTF-8"/>
+	<echo taskname="usage" message="${usage.message}"/>
+	<loadmessage pattern="^vmsg\.help\."/>
+	<echo taskname="usage" message="${vmsg.help.usagefile}"/>
+</target>
+
+<target name="intro" unless="nointro">
+	<loadmessage/>
+	<input taskname="intro" message="${cmsg.intro}"/>
+</target>
+
+<target name="examples">
+<echo taskname=" ">ant -p
+ant help
+</echo><echo taskname=" "/>
+<echo taskname=" ">ant setupl10n
+ant genconf
+ant download-en-US
+ant clone-locale
+ant auto build
+ant auto noerrorcheck nocompare build
+</echo><echo taskname=" "/>
+<echo taskname=" ">ant auto convert
+ant auto pack
+ant auto pack -Dtargetapp=fennec
+</echo><echo taskname=" "/>
+<echo taskname=" ">ant compare
+ant merge
+ant insertnew
+ant mergeonlyfile
+ant mergeonlyaccesskey
+ant resetaccesskey
+ant merge -Dmerge.mode=merge-onlyentity
+ant merge -Dmerge.mode=merge-onlyentity-withcomment
+ant merge -Dmerge.mode=merge-onlyaccesskey
+ant merge -Dmerge.mode=merge-onlyaccesskey+resetaccesskey
+ant merge -Dmerge.excludes="calender/, suite/"
+ant merge -Ddir1=l10n/en-US/browser -Ddir2=l10n/ja/browser
+</echo><echo taskname=" "/>
+<echo taskname=" ">ant auto buildfx
+ant auto buildtb
+ant auto buildfxtb
+ant auto buildfe
+ant auto buildall
+</echo><echo taskname=" "/>
+<echo taskname=" ">ant escape -Dfromdir=native -Dtodir=escaped
+ant unescape -Dfromdir=escaped -Dtodir=native
+</echo><echo taskname=" "/>
+<echo taskname=" ">ant backuplot
+ant backupsrc
+ant restoresrc
+ant restoresrc -Dfile=backup/src-mozilla1.8-2005081813.zip
+</echo><echo taskname=" "/>
+</target>
+
+
+
+</project>

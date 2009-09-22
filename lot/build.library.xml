@@ -1,0 +1,462 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="library" default="" basedir=".">
+<description>presetdef and macrodef library</description>
+<property name="buildfile.library.loaded" value="true"/>
+
+
+<!-- * library settings * -->
+<property name="lib.encoding.conf"			value="UTF-8"/>
+<property name="lib.encoding.message"		value="UTF-8"/>
+<property name="lib.encoding.usage"			value="UTF-8"/>
+<property name="lib.encoding.filters"		value="UTF-8"/>
+<property name="lib.encoding.dtd"			value="UTF-8"/>
+<property name="lib.encoding.properties"	value="UTF-8"/>
+<property name="lib.encoding.rdf"			value="UTF-8"/>
+<property name="lib.filters.begintoken"		value="@@"/>
+<property name="lib.filters.endtoken"		value="@@"/>
+
+
+<!-- * test targets * -->
+<target name="echo-japanese">
+	<echo message="Japanese Message: 日本語メッセージ"/>
+</target>
+<target name="echoproperties">
+	<!-- <echoproperties prefix="prefix"/> -->
+	<echoproperties/>
+</target>
+<target name="jstest">
+	<script language="javascript" classpathref="path.antlib">
+		<![CDATA[
+			echo = project.createTask("echo");
+			echo.setMessage("JavaScript is Running Correctly!");
+			echo.perform();
+		]]>
+	</script>
+</target>
+<target name="groovytest">
+	<property name="groovytest" value="Before"/>
+	<echo message="${groovytest}"/><!-- Before -->
+	<updateproperty name="groovytest" value="After"/>
+	<echo message="${groovytest}"/><!-- After -->
+	<groovy>
+		<![CDATA[
+			ant.echo 'Groovy is Running Correctly!'
+			properties.groovytest = 'Groovy!'
+		]]>
+	</groovy>
+	<echo message="${groovytest}"/><!-- Groovy! -->
+</target>
+
+
+<!-- * common settings * -->
+<defaultexcludes add="**/*~/**"/>
+<tstamp><format property="tstamp.yyyyMMdd"		pattern="yyyyMMdd"/></tstamp>
+<tstamp><format property="tstamp.yyyyMMddHH"	pattern="yyyyMMddHH"/></tstamp>
+<tstamp><format property="tstamp.yyyyMMddHHmm"	pattern="yyyyMMddHHmm"/></tstamp>
+<tstamp><format property="tstamp.MMddHHmm"		pattern="MMddHHmm"/></tstamp>
+<tstamp><format property="tstamp.yyyy-MM-dd"	pattern="yyyy-MM-dd"/></tstamp>
+
+<tstamp><format property="tstamp.yesterday.yyyy-MM-dd"	pattern="yyyy-MM-dd" offset="-1" unit="day"/></tstamp>
+<tstamp><format property="tstamp.lastweek.yyyy-MM-dd"	pattern="yyyy-MM-dd" offset="-1" unit="week"/></tstamp>
+<tstamp><format property="tstamp.2weekago.yyyy-MM-dd"	pattern="yyyy-MM-dd" offset="-2" unit="week"/></tstamp>
+<tstamp><format property="tstamp.lastmonth.yyyy-MM-dd"	pattern="yyyy-MM-dd" offset="-1" unit="month"/></tstamp>
+
+<path id="path.antlib"><fileset dir="antlib" includes="*.jar"/></path>
+<taskdef resource="net/sf/antcontrib/antlib.xml" classpathref="path.antlib"/>
+
+<path id="path.groovy"><fileset dir="antlib" includes="groovy-all-*.jar"/></path>
+<path id="path.groovy"><fileset dir="antlib" includes="groovy-all-*.jar, jakarta-oro-*.jar"/></path>
+<taskdef name="groovy" classname="org.codehaus.groovy.ant.Groovy" classpathref="path.antlib"/>
+<taskdef name="groovyc" classname="org.codehaus.groovy.ant.Groovyc" classpathref="path.groovy"/>
+<if><!-- Set file.encoding system property to load groovy script written in UTF-8 in any platform -->
+	<not><isset property="lib.groovy.encoding.set"/></not>
+	<then>
+		<groovy>
+			System.setProperty("file.encoding","UTF8")
+			properties.'lib.groovy.encoding.set' = true
+		</groovy>
+	</then>
+</if>
+
+
+<!-- * general macrodef * -->
+<macrodef name="istrue">
+	<attribute name="arg"/>
+	<attribute name="property"/>
+	<attribute name="value" default="true"/>
+	<attribute name="else" default="##KEEP_THE_PROPERTY_UNSET##"/>
+	<sequential>
+		<condition property="@{property}" value="@{value}">
+			<or>
+				<istrue value="@{arg}"/><!-- "true", "yes", "on" -->
+				<equals arg1="@{arg}" arg2="y" casesensitive="no" trim="yes"/>
+				<equals arg1="@{arg}" arg2="t" casesensitive="no" trim="yes"/>
+			</or>
+		</condition>
+		<condition property="@{property}" value="@{else}">
+			<not><equals arg1="@{else}" arg2="##KEEP_THE_PROPERTY_UNSET##"/></not>
+		</condition>
+	</sequential>
+</macrodef>
+<macrodef name="isfalse">
+	<attribute name="arg"/>
+	<attribute name="property"/>
+	<attribute name="value" default="true"/>
+	<attribute name="else" default="##KEEP_THE_PROPERTY_UNSET##"/>
+	<sequential>
+		<condition property="@{property}" value="@{value}">
+			<and>
+				<isfalse value="@{arg}"/><!-- not "true", "yes", "on" -->
+				<not><or>
+					<equals arg1="@{arg}" arg2="y" casesensitive="no" trim="yes"/>
+					<equals arg1="@{arg}" arg2="t" casesensitive="no" trim="yes"/>
+				</or></not>
+			</and>
+		</condition>
+		<condition property="@{property}" value="@{else}">
+			<not><equals arg1="@{else}" arg2="##KEEP_THE_PROPERTY_UNSET##"/></not>
+		</condition>
+	</sequential>
+</macrodef>
+
+<macrodef name="equals">
+	<attribute name="arg1"/>
+	<attribute name="arg2"/>
+	<attribute name="property"/>
+	<attribute name="value" default="true"/>
+	<attribute name="else" default="##KEEP_THE_PROPERTY_UNSET##"/>
+	<attribute name="casesensitive" default="true"/>
+	<attribute name="trim" default="false"/>
+	<sequential>
+		<condition property="@{property}" value="@{value}">
+			<equals arg1="@{arg1}" arg2="@{arg2}" casesensitive="@{casesensitive}" trim="@{trim}"/>
+		</condition>
+		<condition property="@{property}" value="@{else}">
+			<not><equals arg1="@{else}" arg2="##KEEP_THE_PROPERTY_UNSET##"/></not>
+		</condition>
+	</sequential>
+</macrodef>
+
+<macrodef name="isset">
+	<attribute name="arg"/>
+	<attribute name="property"/>
+	<attribute name="value" default="true"/>
+	<attribute name="else" default="##KEEP_THE_PROPERTY_UNSET##"/>
+	<sequential>
+		<condition property="@{property}" value="@{value}">
+			<isset property="@{arg}"/>
+		</condition>
+		<condition property="@{property}" value="@{else}">
+			<not><equals arg1="@{else}" arg2="##KEEP_THE_PROPERTY_UNSET##"/></not>
+		</condition>
+	</sequential>
+</macrodef>
+
+<macrodef name="isnotempty">
+	<!-- this macro depends the order to expand property and attribule
+		 we can use ${@{foo}} but cannot use @{${foo}} so far (expansion order is not documented) -->
+	<attribute name="arg"/>
+	<attribute name="property"/>
+	<attribute name="value" default="true"/>
+	<attribute name="trim" default="false"/>
+	<sequential>
+		<condition property="@{property}" value="@{value}">
+			<and>
+				<isset property="@{arg}"/>
+				<not><equals arg1="${@{arg}}" arg2="" trim="@{trim}"/></not>
+			</and>
+		</condition>
+	</sequential>
+</macrodef>
+
+<macrodef name="propertyalias">
+	<!-- this macro depends on the order to expand @{attribute} and ${property}
+		 we can use ${@{foo}} but cannot use @{${foo}} (undocumented implementation) -->
+	<attribute name="property"/>
+	<attribute name="alias"/>
+	<sequential>
+		<condition property="@{alias}" value="${@{property}}">
+			<isset property="@{property}"/>
+		</condition>
+	</sequential>
+</macrodef>
+
+<macrodef name="updateproperty">
+	<!-- groovy 要素中のテキストに直接 @{attribute} を埋め込むと展開後の文字列が groovy ソースとして解釈され、どうやっても何らかのエスケープが必要になる。それを回避するため Ant 上で解釈される arg 要素中で @{attribute} を展開した上で groovy に渡す。 -->
+	<attribute name="name"/>
+	<attribute name="value"/>
+	<sequential>
+		<groovy>
+			<arg value="@{name}"/>
+			<arg value="@{value}"/>
+			properties[args[0]] = args[1]
+		</groovy>
+	</sequential>
+</macrodef>
+
+
+<!-- * load config/message * -->
+<macrodef name="loadconf">
+	<attribute name="file"/>
+	<attribute name="pattern" default="."/>
+	<element name="morefilters" optional="true"/>
+	<sequential>
+		<loadproperties srcfile="@{file}" encoding="${lib.encoding.conf}">
+			<filterchain>
+				<escapeunicode/>
+				<linecontainsregexp>
+					<regexp pattern="@{pattern}"/>
+				</linecontainsregexp>
+				<morefilters/>
+			</filterchain>
+		</loadproperties>
+		<!-- <echoproperties destfile="debug.loadconf.properties"/> -->
+	</sequential>
+</macrodef>
+
+<macrodef name="loadmessage">
+	<attribute name="file" default="${lib.message.file}"/>
+	<attribute name="pattern" default="^(cmsg\.|\t\t)"/><!-- only constant messages by default -->
+	<sequential>
+		<condition property="lib.message.file" value="${lot.lang.file}" else="res/lang/english.message">
+			<available file="${lot.lang.file}" type="file"/>
+		</condition>
+		<loadproperties srcfile="@{file}" encoding="${lib.encoding.message}">
+			<filterchain>
+				<escapeunicode/>
+				<linecontainsregexp>
+					<regexp pattern="@{pattern}"/>
+				</linecontainsregexp>
+			</filterchain>
+		</loadproperties>
+		<!-- <echoproperties prefix="vmsg."/> -->
+	</sequential>
+</macrodef>
+
+
+
+<!-- * confirm to continue or not * -->
+<macrodef name="confirm">
+	<attribute name="message"/>
+	<attribute name="failmessage"	default="${cmsg.confirm.failmessage}"/>
+	<attribute name="if"			default=""/>
+	<attribute name="unless"		default=""/>
+	<sequential>
+		<groovy>
+			<arg value="@{message}"/>
+			<arg value="@{failmessage}"/>
+			<arg value="@{if}"/>
+			<arg value="@{unless}"/>
+			<![CDATA[
+				if ( !properties.containsKey('noconfirm') &&
+					( properties.containsKey(args[2]) || args[2] == '') &&
+					(!properties.containsKey(args[3]) || args[3] == '') ) {
+						answerproperty = 'confirm.answer'
+						abortproperty  = 'confirm.doabort'
+						while (properties.containsKey(answerproperty)) answerproperty += '_'
+						while (properties.containsKey(abortproperty)) abortproperty += '_'
+						ant.input(taskname:'confirm', addproperty:answerproperty, message:args[0])
+						ant.isfalse(property:abortproperty, arg:properties[answerproperty])
+						if (properties[abortproperty] == "true") ant.fail args[1]
+				}
+			]]>
+		</groovy>
+	</sequential>
+</macrodef>
+
+
+<!-- * delete with confirm * -->
+<target name="--safedelete--">
+	<available property="file.exists" file="${file}" type="file" value="true"/>
+	<available property="dir.exists"  file="${dir}"  type="dir"  value="true"/>
+	<available property="file.invalidtype" file="${file}" type="dir"  value="true"/><!-- don't use this so far -->
+	<available property="dir.invalidtype"  file="${dir}"  type="file" value="true"/><!-- don't use this so far -->
+	<loadmessage pattern="^vmsg\.safedelete\."/>
+	<confirm message="${vmsg.safedelete.file.confirm}" failmessage="${vmsg.safedelete.file.aborted}" if="file.exists"/>
+	<confirm message="${vmsg.safedelete.dir.confirm}" failmessage="${vmsg.safedelete.dir.aborted}" if="dir.exists"/>
+	<delete file="${file}" dir="${dir}" failonerror="${failonerror}" verbose="${verbose}"/>
+</target>
+<macrodef name="safedelete">
+	<attribute name="file" default="???"/>
+	<attribute name="dir" default="???"/><!-- dummy invalid value for default -->
+	<attribute name="failonerror" default="false"/>
+	<attribute name="verbose" default="false"/>
+	<sequential>
+		<antcall target="--safedelete--" inheritall="false">
+			<param name="file" value="@{file}"/>
+			<param name="dir" value="@{dir}"/>
+			<param name="failonerror" value="@{failonerror}"/>
+			<param name="verbose" value="@{verbose}"/>
+			<propertyset>
+				<propertyref name="noconfirm"/>
+			</propertyset>
+		</antcall>
+	</sequential>
+</macrodef>
+
+
+<!-- * escaped-unicode * -->
+<presetdef name="escapeunicoding-copy">
+	<copy taskname="escapeunicoding-copy" encoding="UTF-8" preservelastmodified="yes" overwrite="true">
+		<filterchain><escapeunicode/></filterchain>
+	</copy><!-- copy task with escapeunicode filterchain is more flexible than native2ascii task -->
+</presetdef>
+
+<macrodef name="escapeunicode-copy">
+	<attribute name="fromdir"/>
+	<attribute name="todir"/>
+	<attribute name="includes" default="**"/><!-- select total set of files to be copied -->
+	<attribute name="excludes" default=""/>
+	<attribute name="escapeincludes" default="**/*.properties"/><!-- select subset of files to be converted and copied -->
+	<attribute name="escapeexcludes" default=""/>
+	<attribute name="encoding" default="${lib.encoding.properties}"/>
+	<attribute name="preservelastmodified" default="yes"/>
+	<attribute name="overwrite" default="true"/>
+	<sequential>
+		<copy todir="@{todir}" preservelastmodified="@{preservelastmodified}" overwrite="@{overwrite}">
+			<fileset dir="@{fromdir}" includes="@{includes}" excludes="@{excludes}">
+				<not><and><!-- patternset (includes/excludes) don't support complementary set and using selector -->
+					<filename name="@{escapeincludes}" negate="false"/>
+					<filename name="@{escapeexcludes}" negate="true"/>
+				</and></not>
+			</fileset>
+		</copy>
+		<copy todir="@{todir}" preservelastmodified="@{preservelastmodified}" overwrite="@{overwrite}" encoding="@{encoding}">
+			<fileset dir="@{fromdir}" includes="@{includes}" excludes="@{excludes}">
+				<filename name="@{escapeincludes}" negate="false"/>
+				<filename name="@{escapeexcludes}" negate="true"/>
+			</fileset>
+			<filterchain><escapeunicode/></filterchain>
+		</copy><!-- copy task with escapeunicode filterchain is more flexible than native2ascii task -->
+	</sequential>
+</macrodef>
+
+<macrodef name="unescapeunicode-copy">
+	<attribute name="fromdir"/>
+	<attribute name="todir"/>
+	<attribute name="includes" default="**"/><!-- select total set of files to be copied -->
+	<attribute name="excludes" default=""/>
+	<attribute name="unescapeincludes" default="**/*.properties"/><!-- select subset files to be converted and copied -->
+	<attribute name="unescapeexcludes" default=""/>
+	<attribute name="encoding" default="${lib.encoding.properties}"/>
+	<attribute name="preservelastmodified" default="yes"/>
+	<attribute name="overwrite" default="true"/>
+	<sequential>
+		<copy todir="@{todir}" preservelastmodified="@{preservelastmodified}" overwrite="@{overwrite}">
+			<fileset dir="@{fromdir}" includes="@{includes}" excludes="@{excludes}">
+				<not><and><!-- patternset (includes/excludes) don't support complementary set and using selector -->
+					<filename name="@{unescapeincludes}" negate="false"/>
+					<filename name="@{unescapeexcludes}" negate="true"/>
+				</and></not>
+			</fileset>
+		</copy>
+		<!-- unescpe can be done only by native2ascii but it doesn't support preservelastmodified nor overwrite setting... -->
+		<native2ascii src="@{fromdir}" dest="@{todir}" reverse="true" encoding="@{encoding}"
+			includes="@{includes}" excludes="@{excludes}">
+			<filename name="@{unescapeincludes}" negate="false"/>
+			<filename name="@{unescapeexcludes}" negate="true"/>
+		</native2ascii>
+	</sequential>
+</macrodef>
+
+<macrodef name="escapeunicode-unjar">
+	<attribute name="src"/>
+	<attribute name="dest"/>
+	<attribute name="escapeincludes" default="**/*.properties"/><!-- pass through to unescapeunicode-copy -->
+	<attribute name="escapeexcludes" default=""/>
+	<sequential>
+		<condition property="lib.temp.dir" value="${lot.temp.dir}" else="temp">
+			<isset property="${lot.temp.dir}"/>
+		</condition>
+		<unjar src="@{src}" dest="@{dest}">
+			<patternset excludes="**/*.properties"/>
+		</unjar>
+		<unjar src="@{src}" dest="${lib.temp.dir}/escape/@{dest}">
+			<patternset includes="**/*.properties"/>
+		</unjar>
+		<escapeunicode-copy fromdir="${lib.temp.dir}/escape/@{dest}" todir="@{dest}"
+			escapeincludes="@{escapeincludes}" escapeexcludes="@{escapeexcludes}"/>
+	</sequential>
+</macrodef>
+
+<macrodef name="unescapeunicode-unjar">
+	<attribute name="src"/>
+	<attribute name="dest"/>
+	<attribute name="unescapeincludes" default="**/*.properties"/><!-- pass through to unescapeunicode-copy -->
+	<attribute name="unescapeexcludes" default=""/>
+	<sequential>
+		<condition property="lib.temp.dir" value="${lot.temp.dir}" else="temp">
+			<isset property="${lot.temp.dir}"/>
+		</condition>
+		<unjar src="@{src}" dest="@{dest}">
+			<patternset excludes="**/*.properties"/>
+		</unjar>
+		<unjar src="@{src}" dest="${lib.temp.dir}/unescape/@{dest}">
+			<patternset includes="**/*.properties"/>
+		</unjar>
+		<unescapeunicode-copy fromdir="${lib.temp.dir}/unescape/@{dest}" todir="@{dest}"
+			unescapeincludes="@{unescapeincludes}" unescapeexcludes="@{unescapeexcludes}"/>
+	</sequential>
+</macrodef>
+
+
+<!-- * filtering * -->
+<!-- Properties within presetdef should be resolved when the presetdef is used but actually, in some context, ant 1.7.0 will not resolve ${filters.file} when this presetdef is used... (bug of Ant 1.7.0 or spec changed or just miss usage?)
+<presetdef name="filtering-copy">
+	<copy taskname="filtering-copy" encoding="UTF-8" preservelastmodified="true" overwrite="true">
+		<filterset begintoken="${lib.filters.begintoken}" endtoken="${lib.filters.endtoken}">
+			<filtersfile file="${filters.file}"/>
+		</filterset>
+	</copy>
+</presetdef> -->
+
+<!-- * diff/lpdiff * -->
+<macrodef name="diff">
+	<attribute name="dir" default="."/>
+	<attribute name="from"/><!-- file|dir -->
+	<attribute name="to"/><!-- file|dir -->
+	<attribute name="output"/>
+	<attribute name="append" default="false"/>
+	<attribute name="option" default="-r -u"/>
+	<sequential>
+		<exec dir="@{dir}" executable="diff" output="@{output}" append="@{append}">
+			<arg line="@{option}"/>
+			<arg value="@{from}"/>
+			<arg value="@{to}"/>
+		</exec>
+	</sequential>
+</macrodef>
+
+<macrodef name="lpdiff">
+	<attribute name="from"/><!-- dir -->
+	<attribute name="to"/><!-- dir -->
+	<attribute name="output"/>
+	<attribute name="mode" default="diff"/><!-- 'all' or 'diff' -->
+	<sequential>
+		<java jar="LpDiff.jar" fork="true">
+			<arg value="-@{mode}"/>
+			<arg value="@{from}"/>
+			<arg value="@{to}"/>
+			<arg value="@{output}"/><!-- note: lpdiff don't have overwrite mode... -->
+		</java>
+	</sequential>
+</macrodef>
+
+<!-- hg wrapper -->
+<macrodef name="hg">
+	<attribute name="dir" default="."/>
+	<element name="children" implicit="true"/>
+	<sequential>
+		<if>
+			<os family="windows"/>
+			<then><!-- need to use cmd.exe to run hg.cmd -->
+				<exec taskname="hg" dir="@{dir}" executable="cmd.exe"><arg line="/c hg"/><children/></exec>
+			</then>
+			<else>
+				<exec taskname="hg" dir="@{dir}" executable="hg"><children/></exec>
+			</else>
+		</if>
+	</sequential>
+</macrodef>
+
+</project>
