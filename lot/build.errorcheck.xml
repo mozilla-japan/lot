@@ -3,11 +3,11 @@
 <description>errorcheck targets</description>
 <property name="buildfile.errorcheck.loaded" value="true"/>
 
-
+<!-- * basic interface * -->
 <target name="errorcheck" depends="syntaxcheck, placeholdercheck, pluralcheck, wordcheck, suspectedwordcheck, charcheck"/>
 <target name="commoncheck" depends="syntaxcheck, placeholdercheck, pluralcheck"/>
 
-
+<!-- * common macro * -->
 <macrodef name="errorlog">
 	<attribute name="file"/>
 	<attribute name="message"	default=""/>
@@ -71,6 +71,7 @@
 	]]></groovy>
 </target>
 
+
 <!-- * Placeholder Check * -->
 <target name="placeholdercheck" depends="load-conf" unless="noplaceholdercheck"
 	description="placeholder usage error check of converted properties files">
@@ -111,6 +112,7 @@
 		}
 	]]></groovy>
 </target>
+
 
 <!-- * Plural Form Usage Check * -->
 <target name="pluralcheck" depends="load-conf" unless="nopluralcheck"

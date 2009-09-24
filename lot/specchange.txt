@@ -1,0 +1,12 @@
+	spec change memo
+
+property change
+lot.src.l10n.dir	-> svn.l10n.dir
+lot.comm.dir		-> hg.comm.dir
+lot.mozilla.dir		-> hg.mozilla.dir
+lot.mobile.dir		-> hg.mobile.dir
+
+lot.l10n.dir		-> hg.l10n.dir / l10n.dir
+lot.dest.dir		-> dest.dir
+
+

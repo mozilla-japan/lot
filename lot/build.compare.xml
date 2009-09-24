@@ -9,12 +9,8 @@
 <target name="diff" depends="load-mainconf"
 	description="make patch file to send it as a feedback">
 	<loadmessage pattern="^vmsg\.diff\."/>
-	<fail message="${vmsg.diff.no.fromdir}">
-		<condition><not><available file="${diff.fromdir}" type="dir"/></not></condition>
-	</fail>
-	<fail message="${vmsg.diff.no.todir}">
-		<condition><not><available file="${diff.todir}" type="dir"/></not></condition>
-	</fail>
+	<availableassert file="${diff.fromdir}" type="dir" message="${vmsg.diff.no.fromdir}"/>
+	<availableassert file="${diff.todir}"   type="dir" message="${vmsg.diff.no.todir}"/>
 	
 	<mkdir dir="${diff.output.dir}"/>
 	<diff dir="." from="${diff.fromdir}" to="${diff.todir}" option="${diff.option}" output="${diff.output}" append="false"/>
@@ -24,9 +20,7 @@
 <target name="patch" depends="load-mainconf"
 	description="apply patch file to src locale files">
 	<loadmessage pattern="^vmsg\.patch\."/>
-	<fail message="${vmsg.patch.no.patchfile}">
-		<condition><not><available file="${patch.file}" type="file"/></not></condition>
-	</fail>
+	<availableassert file="${patch.file}" type="file" message="${vmsg.patch.no.patchfile}"/>
 	
 	<property name="patch.strip" value="3"/>
 	<property name="patch.locale" value="ja"/>
@@ -49,6 +43,37 @@
 	<!-- patch - -dry-run -p3 -d ${lot.src.dir}/${mode}/${patch.locale} < ${patch.file} -->
 </target>
 
+<target name="diff-revisions" depends="load-mainconf">
+	<!-- check and get revision ids -->
+	<issetassert property="diff.mozilla.rev1"/>
+	<issetassert property="diff.comm.rev1"/>
+	<hg outputproperty="diff.mozilla.rev2"	failonerror="true"><arg line="-R ${hg.mozilla.dir} id -i"/></hg>
+	<hg outputproperty="diff.comm.rev2"		failonerror="true"><arg line="-R ${hg.comm.dir} id -i"/></hg>
+	<!-- get revision numbers -->
+	<hg outputproperty="diff.mozilla.revn1"	failonerror="true"><arg line="-R ${hg.mozilla.dir} id --rev ${diff.mozilla.rev1} -n"/></hg>
+	<hg outputproperty="diff.mozilla.revn2"	failonerror="true"><arg line="-R ${hg.mozilla.dir} id --rev ${diff.mozilla.rev2} -n"/></hg>
+	<hg outputproperty="diff.comm.revn1"	failonerror="true"><arg line="-R ${hg.comm.dir} id --rev ${diff.comm.rev1} -n"/></hg>
+	<hg outputproperty="diff.comm.revn2"	failonerror="true"><arg line="-R ${hg.comm.dir} id --rev ${diff.comm.rev2} -n"/></hg>
+	<echo message="mozilla repo1 = ${diff.mozilla.revn1}:${diff.mozilla.rev1} comm repo1 = ${diff.comm.revn1}:${diff.comm.rev1}"/>
+	<echo message="mozilla repo2 = ${diff.mozilla.revn2}:${diff.mozilla.rev2} comm repo2 = ${diff.comm.revn2}:${diff.comm.rev2}"/>
+	<issetassert property="diff.en-US.dir1"/><expandproperty name="diff.en-US.dir1"/>
+	<issetassert property="diff.en-US.dir2"/><expandproperty name="diff.en-US.dir2"/>
+	<issetassert property="diff.revisions.output"/><expandproperty name="diff.revisions.output"/>
+	<antcall target="get-en-US">
+		<param name="en-US.dir" value="${diff.en-US.dir1}"/>
+		<param name="mozillatol10n.rev" value="${diff.mozilla.rev1}"/>
+		<param name="commtol10n.rev" value="${diff.comm.rev1}"/>
+	</antcall>
+	<antcall target="get-en-US">
+		<param name="en-US.dir" value="${diff.en-US.dir2}"/>
+		<param name="mozillatol10n.rev" value="${diff.mozilla.rev2}"/>
+		<param name="commtol10n.rev" value="${diff.comm.rev2}"/>
+	</antcall>
+	<diff dir="." from="${diff.en-US.dir1}" to="${diff.en-US.dir2}" option="${diff.option}" output="${diff.revisions.output}"/>
+</target>
+<target name="diff-branches" depends="load-mainconf">
+	
+</target>
 
 
 <!-- * compare/merge locales * -->
@@ -56,8 +81,8 @@
 	<attribute name="mode"				default="compare"/>
 	<attribute name="locale1"			default="en-US"/>
 	<attribute name="locale2"			default="ja"/>
-	<attribute name="dir1"				default="${lot.l10n.dir}/@{locale1}"/>
-	<attribute name="dir2"				default="${lot.l10n.dir}/@{locale2}"/>
+	<attribute name="dir1"				default="${l10n.dir}/@{locale1}"/>
+	<attribute name="dir2"				default="${l10n.dir}/@{locale2}"/>
 	<attribute name="includes"			default="**"/>
 	<attribute name="excludes"			default=""/>
 	<attribute name="output"			default="${compare.output}"/>

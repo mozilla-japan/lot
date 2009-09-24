@@ -194,6 +194,127 @@
 	</sequential>
 </macrodef>
 
+<macrodef name="expandproperty">
+	<!-- 受け取った value 属性の値を Ant 上で updateproperty に渡そうとすると @{value} 展開して受け取った値のままになるが、groovy 経由で value 属性に渡すことで、updateproperty 実行時に値に含まれる ${property} が再展開される -->
+	<attribute name="name"/>
+	<attribute name="value" default="${@{name}}"/>
+	<sequential>
+		<groovy>
+			<arg value="@{name}"/>
+			<arg value="@{value}"/>
+			ant.updateproperty(name: args[0], value: args[1]);
+		</groovy>
+	</sequential>
+</macrodef>
+
+<macrodef name="availableassert">
+	<attribute name="file"/>
+	<attribute name="filepath" default="."/>
+	<attribute name="type" default=""/>
+	<attribute name="searchparents" default="false"/>
+	<attribute name="message" default="assertion failed: @{file} file does not exist"/>
+	<sequential>
+		<if>
+			<equals arg1="@{type}" arg2=""/>
+			<then>
+				<fail message="@{message}"><condition><not><available file="@{file}" filepath="@{filepath}" searchparents="@{searchparents}"/></not></condition></fail>
+			</then>
+			<else>
+				<fail message="@{message}"><condition><not><available file="@{file}" filepath="@{filepath}" type="@{type}" searchparents="@{searchparents}"/></not></condition></fail>
+			</else>
+		</if>
+	</sequential>
+</macrodef>
+<macrodef name="notavailableassert">
+	<attribute name="file"/>
+	<attribute name="filepath" default=""/>
+	<attribute name="type" default=""/>
+	<attribute name="searchparents" default="false"/>
+	<attribute name="message" default="assertion failed: @{property} file already exists"/>
+	<sequential>
+		<if>
+			<equals arg1="@{type}" arg2=""/>
+			<then>
+				<fail message="@{message}"><condition><available file="@{file}" filepath="@{filepath}" searchparents="@{searchparents}"/></condition></fail>
+			</then>
+			<else>
+				<fail message="@{message}"><condition><available file="@{file}" filepath="@{filepath}" type="@{type}" searchparents="@{searchparents}"/></condition></fail>
+			</else>
+		</if>
+	</sequential>
+</macrodef>
+
+<macrodef name="equalsassert">
+	<attribute name="arg1"/>
+	<attribute name="arg2"/>
+	<attribute name="casesensitive" default="true"/>
+	<attribute name="trim" default="false"/>
+	<attribute name="message" default="assertion failed: @{arg1} != @{arg2}"/>
+	<sequential>
+		<fail message="@{message}">
+			<condition><not><equals arg1="@{arg1}" arg2="@{arg2}" casesensitive="@{casesensitive}" trim="@{trim}"/></not></condition>
+		</fail>
+	</sequential>
+</macrodef>
+<macrodef name="notequalsassert">
+	<attribute name="arg1"/>
+	<attribute name="arg2"/>
+	<attribute name="casesensitive" default="true"/>
+	<attribute name="trim" default="false"/>
+	<attribute name="message" default="assertion failed: @{arg1} == @{arg2}"/>
+	<sequential>
+		<fail message="@{message}">
+			<condition><equals arg1="@{arg1}" arg2="@{arg2}" casesensitive="@{casesensitive}" trim="@{trim}"/></condition>
+		</fail>
+	</sequential>
+</macrodef>
+
+<macrodef name="issetassert">
+	<attribute name="property"/>
+	<attribute name="message" default="assertion failed: @{property} property is not set yet"/>
+	<sequential>
+		<fail message="@{message}">
+			<condition><not><isset property="@{property}"/></not></condition>
+		</fail>
+	</sequential>
+</macrodef>
+<macrodef name="isnotsetassert">
+	<attribute name="property"/>
+	<attribute name="message" default="assertion failed: @{property} property is already set"/>
+	<sequential>
+		<fail message="@{message}">
+			<condition><isset property="@{property}"/></condition>
+		</fail>
+	</sequential>
+</macrodef>
+
+<macrodef name="matchesassert">
+	<attribute name="string"/>
+	<attribute name="pattern"/>
+	<attribute name="casesensitive" default="true"/>
+	<attribute name="multiline" default="false"/>
+	<attribute name="singleline" default="false"/>
+	<attribute name="message" default="assertion failed: @{string} !~= @{pattern}"/>
+	<sequential>
+		<fail message="@{message}">
+			<condition><not><matches string="@{string}" pattern="@{pattern}" casesensitive="@{casesensitive}" multiline="@{multiline}" singleline="@{singleline}"/></not></condition>
+		</fail>
+	</sequential>
+</macrodef>
+<macrodef name="notmatchesassert">
+	<attribute name="string"/>
+	<attribute name="pattern"/>
+	<attribute name="casesensitive" default="true"/>
+	<attribute name="multiline" default="false"/>
+	<attribute name="singleline" default="false"/>
+	<attribute name="message" default="assertion failed: @{string} ~= @{pattern}"/>
+	<sequential>
+		<fail message="@{message}">
+			<condition><matches string="@{string}" pattern="@{pattern}" casesensitive="@{casesensitive}" multiline="@{multiline}" singleline="@{singleline}"/></condition>
+		</fail>
+	</sequential>
+</macrodef>
+
 
 <!-- * load config/message * -->
 <macrodef name="loadconf">
@@ -410,7 +531,7 @@
 	</copy>
 </presetdef> -->
 
-<!-- * diff/lpdiff * -->
+<!-- * diff/lpdiff simple interface * -->
 <macrodef name="diff">
 	<attribute name="dir" default="."/>
 	<attribute name="from"/><!-- file|dir -->
@@ -442,20 +563,30 @@
 	</sequential>
 </macrodef>
 
-<!-- hg wrapper -->
+<!-- hg/svn simple wrapper -->
 <macrodef name="hg">
 	<attribute name="dir" default="."/>
+	<attribute name="failonerror" default="false"/>
+	<attribute name="outputproperty" default="hg.invalid.outputproperty"/>
 	<element name="children" implicit="true"/>
 	<sequential>
 		<if>
 			<os family="windows"/>
-			<then><!-- need to use cmd.exe to run hg.cmd -->
-				<exec taskname="hg" dir="@{dir}" executable="cmd.exe"><arg line="/c hg"/><children/></exec>
+			<then><!-- need to use cmd.exe to run hg.cmd in windows -->
+				<exec taskname="hg" dir="@{dir}" executable="cmd.exe" failonerror="@{failonerror}" outputproperty="@{outputproperty}"><arg line="/c hg"/><children/></exec>
 			</then>
 			<else>
-				<exec taskname="hg" dir="@{dir}" executable="hg"><children/></exec>
+				<exec taskname="hg" dir="@{dir}" executable="hg" failonerror="@{failonerror}" outputproperty="@{outputproperty}"><children/></exec>
 			</else>
 		</if>
+	</sequential>
+</macrodef>
+<macrodef name="svn">
+	<attribute name="dir" default="."/>
+	<attribute name="failonerror" default="false"/>
+	<element name="children" implicit="true"/>
+	<sequential>
+		<exec taskname="svn" dir="@{dir}" executable="svn" failonerror="@{failonerror}"><children/></exec>
 	</sequential>
 </macrodef>
 

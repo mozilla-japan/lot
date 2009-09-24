@@ -2,9 +2,7 @@
 <project name="lot" default="build" basedir=".">
 <description>Localization Tools for Mozilla Products</description>
 
-
 		<!-- *** Phase 1: Initialization *** -->
-
 
 <!-- * import common library and set property aliases * -->
 <import file="build.library.xml"	optional="false"/>
@@ -18,39 +16,33 @@
 </condition>
 <available property="config.user.file.exists" type="file" file="${config.user.file}"/>
 
-<!-- load basic settings from user.conf first to override lot.conf -->
-<loadconf file="${config.user.file}" pattern="^((lot|hg)\.[^=\s]+|package)\s*="/>
-<!-- load basic settings from lot.conf next -->
-<loadconf file="${config.main.file}" pattern="^((lot|hg)\.[^=\s]+|package)\s*="/>
-<!-- set default basic settings in case is is not set in user/main.conf -->
-<property name="lot.lang"		value="english"/>
-<property name="lot.src.dir"	value="src"/>
-<property name="lot.l10n.dir"	value="l10n"/>
-<property name="lot.dest.dir"	value="dest"/>
-<property name="lot.res.dir"	value="res"/>
-<property name="lot.temp.dir"	value="temp"/>
+<!-- load preload settings from user.conf first to override lot.conf -->
+<loadconf file="${config.user.file}" pattern="^((default|lot)\.[^=\s]+)\s*="/>
+<!-- load preload settings from lot.conf next -->
+<loadconf file="${config.main.file}" pattern="^((default|lot)\.[^=\s]+)\s*="/>
+
+<!-- default settings and config check -->
+<issetassert property="lot.temp.dir"/>
+<availableassert file="${lot.res.dir}" type="dir"/>
+<availableassert file="${lot.lang.dir}" type="dir"/>
+<matchesassert string="${lot.lang}" pattern="^(english|japanese)$"/>
+
+<propertyalias property="default.package" alias="package"/>
+<propertyalias property="default.targetbranch" alias="targetbranch"/>
+<issetassert property="package"/>
+<issetassert property="targetbranch"/>
+<matchesassert string="${package}" pattern="^(langpack|repack|venkman|chatzilla)$"/>
+<matchesassert string="${targetbranch}" pattern="^(trunk|1.9.1|1.9.2)$"/>
+
 
 <!-- load constants -->
 <loadconf file="${lot.res.dir}/const.conf"/>
 <loadmessage pattern="^(cmsg\.|\t\t)"/>
 
-<!-- assertion for some properties -->
-<fail unless="package"		message="${cmsg.noprop.package}"/>
-<condition property="package.is.valid" value="yes">
-	<or>
-		<equals arg1="${package}" arg2="langpack"/>
-		<equals arg1="${package}" arg2="repack"/>
-		<equals arg1="${package}" arg2="venkman"/>
-		<equals arg1="${package}" arg2="chatzilla"/>
-	</or>
-</condition>
-<fail unless="package.is.valid" message="${cmsg.invalidprop.package}"/>
-
-
 
 <!-- * import targets * -->
 <!-- import package specific targets, which imports other targets -->
-<property name="package.buildfile" value="build.${package}.xml"/>
+<propertyalias property="default.package.buildfile" alias="package.buildfile"/>
 <import file="${package.buildfile}" optional="false"/>
 
 
@@ -59,31 +51,32 @@
 
 <!-- * load configuration files * -->
 <target name="load-userconf" if="config.user.file.exists" unless="userconf.loaded">
-	<loadconf file="${config.user.file}"/><!-- user specific configuration file -->
+	<loadconf file="${config.user.file}">
+		<morefilters>
+			<replaceregex pattern="^(${package}|${targetbranch})#" replace="" flags="i"/>
+		</morefilters>
+	</loadconf>
 	<property name="userconf.loaded" value="yes"/>
 </target>
 <target name="load-mainconf" depends="load-userconf" unless="mainconf.loaded">
-	<!-- load main config except package dependent part -->
 	<loadconf file="${config.main.file}">
 		<morefilters>
-			<replaceregex pattern="^PACKAGE#.+$" replace="" flags="i"/>
+			<replaceregex pattern="^(${package}|${targetbranch})#" replace="" flags="i"/>
 		</morefilters>
 	</loadconf>
 	<property name="mainconf.loaded" value="yes"/>
 </target>
 <target name="load-packageconf" depends="load-mainconf" unless="packageconf.loaded">
 	<fail unless="mainconf.loaded"/>
-	<property name="config.package.file" value="config//${config.package.filename}"/>
-	<property name="locale" value="${lot.locale.default}"/>
+	<property name="config.package.file" value="config/${config.package.filename}"/>
+	<propertyalias property="default.targetapp" alias="targetapp"/>
+	<propertyalias property="default.locale" alias="locale"/>
+	<issetassert property="targetapp"/>
+	<issetassert property="locale"/>
+	<matchesassert string="${targetapp}" pattern="^firefox|thunderbird|fennec|sunbird|seamonkey$"/>
 	<loadconf file="${config.package.file}">
 		<morefilters>
 			<replaceregex pattern="^(${targetapp}\\.${locale}|${targetapp}|${locale})#" replace="" flags="i"/>
-		</morefilters>
-	</loadconf>
-	<!-- package depending part of mainconf -->
-	<loadconf file="${config.main.file}" pattern="^PACKAGE#">
-		<morefilters>
-			<replaceregex pattern="^PACKAGE#" replace="" flags="i"/>
 		</morefilters>
 	</loadconf>
 	<property name="packageconf.loaded" value="yes"/>
@@ -241,14 +234,6 @@
 </target>
 
 
-		<!-- *** Targets for Build Interface *** -->
-
-
-
-<!-- defined in ${package.buildfile} -->
-
-
-
 		<!-- *** Other Interface *** -->
 
 <target name="clean" unless="noclean"
@@ -275,25 +260,20 @@
 	<property name="nocompare" value="YES"/>
 </target>
 
-<target name="forcentral" description="exec following targets for central files">
-	<updateproperty name="lot.mozilla.dir"		value="${lot.mozilla-central.dir}"/>
-	<updateproperty name="lot.comm.dir"			value="${lot.comm-central.dir}"/>
-	<updateproperty name="lot.src.l10n.dir"		value="${lot.src.l10n-central.dir}"/>
-	<updateproperty name="lot.dest.dir"			value="${lot.dest-central.dir}"/>
-	<updateproperty name="lot.l10n.dir"			value="${lot.l10n-central.dir}"/>
-	<updateproperty name="hg.mozilla.repo"		value="${hg.mozilla-central.repo}"/>
-	<updateproperty name="hg.comm.repo"			value="${hg.comm-central.repo}"/>
-	<updateproperty name="hg.l10n.repo.base"	value="${hg.l10n-central.repo.base}"/>
+<target name="for1.9.1" depends="for191"/>
+<target name="for191" description="exec following targets for mozilla-1.9.1 files">
+	<fail if="userconf.loaded" message="this target must be used before 'load-userconf' target"/>
+	<updateproperty name="targetbranch" value="1.9.1"/>
 </target>
-<target name="for191" description="exec following targets for central files">
-	<updateproperty name="lot.mozilla.dir"		value="${lot.mozilla-1.9.1.dir}"/>
-	<updateproperty name="lot.comm.dir"			value="${lot.comm-1.9.1.dir}"/>
-	<updateproperty name="lot.src.l10n.dir"		value="${lot.src.l10n-1.9.1.dir}"/>
-	<updateproperty name="lot.dest.dir"			value="${lot.dest-1.9.1.dir}"/>
-	<updateproperty name="lot.l10n.dir"			value="${lot.l10n-1.9.1.dir}"/>
-	<updateproperty name="hg.mozilla.repo"		value="${hg.mozilla-1.9.1.repo}"/>
-	<updateproperty name="hg.comm.repo"			value="${hg.comm-1.9.1.repo}"/>
-	<updateproperty name="hg.l10n.repo.base"	value="${hg.l10n-1.9.1.repo.base}"/>
+<target name="for1.9.2" depends="for192"/>
+<target name="for192" description="exec following targets for mozilla-1.9.2 files">
+	<fail if="userconf.loaded" message="this target must be used before 'load-userconf' target"/>
+	<updateproperty name="targetbranch" value="1.9.2"/>
+</target>
+<target name="forcentral" depends="fortrunk"/>
+<target name="fortrunk" description="exec following targets for mozilla-central files">
+	<fail if="userconf.loaded" message="this target must be used before 'load-userconf' target"/>
+	<updateproperty name="targetbranch" value="trunk"/>
 </target>
 
 <target name="version" description="display lot version">

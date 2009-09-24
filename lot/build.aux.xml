@@ -3,17 +3,14 @@
 <description>auxiliary targets</description>
 <property name="buildfile.aux.loaded" value="true"/>
 
-
-<!-- start working with lot -->
-<target name="genconf">
+<!-- * Setup and Update Targets * -->
+<target name="genconf" unless="nogenconf">
 	<property name="genconf.output" value="${config.dir}/user.conf"/>
-	<fail message="${genconf.output} file already exists">
-		<condition><available file="${genconf.output}"/></condition>
-	</fail>
+	<notavailableassert file="${genconf.output}"/>
 	<if>
 		<istrue value="${genconf.noinput}"/>
 		<then>
-			<property name="locale" value="${lot.locale.default}"/>
+			<property name="default.locale" alias="${locale}"/>
 			<property name="genconf.lot.user.name" value="${lot.user.name}"/>
 			<property name="genconf.lot.user.homepageURL" value="${lot.user.homepageURL}"/>
 			<property name="genconf.firefox.langpack.guid" value="langpack-${locale}@firefox.l10n.jp"/>
@@ -26,8 +23,8 @@
 		</else>
 	</if>
 	<!-- ask common user dependent config -->
-	<input addproperty="locale" defaultvalue="${lot.locale.default}"
-		message="input your locale code (default: ${lot.locale.default})"/>
+	<input addproperty="locale" defaultvalue="${default.locale}"
+		message="input your locale code (default: ${default.locale})"/>
 	<equals arg1="${locale}" arg2="ja" property="genconf.lot.lang" value="japanese" else="english"/>
 	<input addproperty="genconf.lot.user.name" defaultvalue="${lot.user.name}"
 		message="input your l10n community name (default: ${lot.user.name})"/>
@@ -58,50 +55,49 @@
 	<echo message="You can edit any setting anytime. See the file for more information."/>
 </target>
 
-<target name="remove-en-US">
-	<available property="en-US.dir.exists" file="${lot.l10n.dir}/en-US" type="dir"/>
-	<confirm message="${lot.l10n.dir}/en-US ディレクトリを削除してもよろしいですか？(Y/N)" if="en-US.dir.exists"/>
-	<delete dir="${lot.l10n.dir}/en-US"/>
+<target name="remove-en-US" depends="load-mainconf">
+	<available property="en-US.dir.exists" file="${en-US.dir}" type="dir"/>
+	<confirm message="${en-US.dir} ディレクトリを削除してもよろしいですか？(Y/N)" if="en-US.dir.exists"/>
+	<delete dir="${en-US.dir}"/>
 </target>
 
 <target name="download-en-US" depends="load-mainconf, remove-en-US"
 	description="downlaod and expand en-US l10n zip file">
 	<mkdir dir="${lot.temp.dir}"/>
 	<get src="${download.en-US.url}" dest="${lot.temp.dir}/en-US.zip"/>
-	<unzip src="${lot.temp.dir}/en-US.zip" dest="${lot.l10n.dir}"/>
+	<unzip src="${lot.temp.dir}/en-US.zip" dest="${l10n.dir}"/>
 </target>
 
 <target name="newlocale" depends="load-mainconf"
 	description="copy en-US files to your new locale">
-	<property name="locale" value="${lot.locale.default}"/>
-	<fail message="${lot.l10n.dir}/${locale} directory already exists">
-		<condition><available dir="${lot.l10n.dir}/${locale}"/></condition>
-	</fail>
-	<copy todir="${lot.l10n.dir}/${locale}" preservelastmodified="true">
-		<fileset dir="${lot.l10n.dir}/en-US"/>
+	<propertyalias property="default.locale" alias="locale"/>
+	<notavailableassert file="${l10n.dir}/${locale}" type="dir"
+		message="${l10n.dir}/${locale} directory already exists"/>
+	<copy todir="${l10n.dir}/${locale}" preservelastmodified="true">
+		<fileset dir="${en-US.dir}"/>
 	</copy>
 </target>
 
 <target name="checkout-src" depends="load-mainconf"
 	description="checkout src files from l10n svn server (only for ja locale)">
-	<property name="locale" value="${lot.locale.default}"/>
+	<propertyalias property="default.locale" alias="locale"/>
 	<if>
 		<equals arg1="${locale}" arg2="ja"/>
 		<then>
 			<input message="Japanese L10N SVN サーバのアカウント名を入力してください。アカウントを持っていないか、サーバにコミットする予定もない場合は何も入力しないでください。" addproperty="svn.username"/>
-			<equals arg1="${svn.username}" arg2="" trim="true" property="svn.repo" value="http://svn.mozilla.l10n.jp/trunk/" else="svn+ssh://${svn.username}@svn.mozilla.l10n.jp/usr/local/var/svn/l10n/trunk/"/>
-			<confirm message="次の SVN コマンドを実行してもよろしいですか？(Y/N)${N}svn checkout ${svn.repo} ${lot.src.dir}/l10n"/>
-			<exec executable="svn" taskname="svn">
-				<arg line="checkout ${svn.repo} ${lot.src.dir}/l10n"/>
-			</exec>
+			<expandproperty name="svn.l10n.userssh.repo"/>
+			<equals arg1="${svn.username}" arg2="" trim="true" property="svn.repo"
+				value="${svn.l10n.repo}" else="${svn.l10n.userssh.repo}"/>
+			<property name="svn.l10n.checkout.arg" value="checkout ${svn.repo} ${svn.l10n.dir}"/>
+			<confirm message="次の SVN コマンドを実行してもよろしいですか？(Y/N)${N}svn ${svn.l10n.checkout.arg}"/>
+			<svn failonerror="true"><arg line="${svn.l10n.checkout.arg}"/></svn>
 			<if>
 				<equals arg1="${genconf.type}" arg2="childbrowser"/>
 				<then>
-					<property name="svn.childbrowser.repo" value="svn+ssh://${svn.username}@svn.mozilla.l10n.jp/usr/local/var/svn/l10n/branches/childbrowser"/>
-					<confirm message="次の SVN コマンドを実行してもよろしいですか？(Y/N)${N}svn checkout ${svn.childbrowser.repo} ${lot.src.dir}/l10n"/>
-					<exec executable="svn" taskname="svn">
-						<arg line="checkout ${svn.childbrowser.repo} ${lot.src.dir}/childbrowser"/>
-					</exec>
+					<property name="svn.childbrowser.checkout.arg"
+						value="checkout ${svn.childbrowser.userssh.repo} ${svn.childbrowser.dir}"/>
+					<confirm message="次の SVN コマンドを実行してもよろしいですか？(Y/N)${N}svn ${svn.childbrowser.checkout.arg}"/>
+					<svn failonerror="true"><arg line="${svn.childbrowser.checkout.arg}"/></svn>
 				</then>
 			</if>
 		</then>
@@ -120,59 +116,176 @@
 </target>
 
 
-<!-- mercurial tasks -->
+<!-- * Work with Mercurial * -->
 <target name="clone-mozilla" depends="load-mainconf"
-	description="clone mozilla-central and comm-central mercurial repogitory from hg.mozilla.org">
-	<echo message="executing hg clone command:${N}hg clone ${hg.comm.repo} ${lot.comm.dir}"/>
-	<hg><arg line="clone ${hg.comm.repo} ${lot.comm.dir}"/></hg>
-	<echo message="running client.py script:${N}python ${lot.comm.dir}/client.py --comm-repo=${hg.comm.repo} --mozilla-repo=${hg.mozilla.repo} checkout"/>
-	<exec executable="python" taskname="client.py">
-		<arg line="${lot.comm.dir}/client.py --comm-repo=${hg.comm.repo} --mozilla-repo=${hg.mozilla.repo} checkout"/>
+	description="clone comm and mozilla mercurial repogitory from hg.mozilla.org">
+	<mkdir dir="${lot.hg.dir}"/>
+	<echo message="executing hg clone command:${N}hg clone ${hg.comm.repo} ${hg.comm.dir}"/>
+	<hg failonerror="true"><arg line="clone ${hg.comm.repo} ${hg.comm.dir}"/></hg>
+	<echo message="running client.py script:${N}python ${hg.comm.dir}/client.py --comm-repo=${hg.comm.repo} --mozilla-repo=${hg.mozilla.repo} checkout"/>
+	<exec executable="python" taskname="client.py" failonerror="true">
+		<arg line="${hg.comm.dir}/client.py --comm-repo=${hg.comm.repo} --mozilla-repo=${hg.mozilla.repo} checkout"/>
+	</exec>
+</target>
+<target name="pull-mozilla" depends="load-mainconf"
+	description="pull comm and mozilla mercurial repogitory from hg.mozilla.org">
+	<echo message="running client.py script:${N}python ${hg.comm.dir}/client.py --comm-repo=${hg.comm.repo} --mozilla-repo=${hg.mozilla.repo} checkout"/>
+	<exec executable="python" taskname="client.py" failonerror="true">
+		<arg line="${hg.comm.dir}/client.py --comm-repo=${hg.comm.repo} --mozilla-repo=${hg.mozilla.repo} checkout"/>
 	</exec>
 </target>
 
-<target name="pull-mozilla" depends="load-mainconf"
-	description="pull mozilla-central and comm-central mercurial repogitory from hg.mozilla.org">
-	<echo message="running client.py script:${N}python ${lot.comm.dir}/client.py --comm-repo=${hg.comm.repo} --mozilla-repo=${hg.mozilla.repo} checkout"/>
-	<exec executable="python" taskname="python">
-		<arg line="${lot.comm.dir}/client.py --comm-repo=${hg.comm.repo} --mozilla-repo=${hg.mozilla.repo} checkout"/>
-	</exec>
+<target name="clone-mobile" depends="load-mainconf"
+	description="clone mobile-browser mercurial repogitory from hg.mozilla.org">
+	<mkdir dir="${lot.hg.dir}"/>
+	<echo message="executing hg clone command:${N}hg clone ${hg.mobile.repo} ${hg.mobile.dir}"/>
+	<hg failonerror="true"><arg line="clone ${hg.mobile.repo} ${hg.mobile.dir}"/></hg>
+</target>
+<target name="pull-mobile" depends="load-mainconf"
+	description="pull mobile-browser mercurial repogitory from hg.mozilla.org">
+	<hg dir="${hg.mobile.dir}" failonerror="true"><arg line="up -C"/></hg>
+	<hg dir="${hg.mobile.dir}" failonerror="true"><arg line="pull -u"/></hg>
 </target>
 
 <target name="clone-locale" depends="load-mainconf"
 	description="clone l10n mercurial repogitory from hg.mozilla.org">
-	<property name="locale" value="${lot.locale.default}"/>
-	<fail message="${lot.l10n.dir}/${locale} directory already exists">
-		<condition><available file="${lot.l10n.dir}/${locale}"/></condition>
-	</fail>
-	<mkdir dir="${lot.l10n.dir}"/>
-	<echo message="executing hg clone command:${N}hg clone ${hg.l10n.repo.base}${locale} ${lot.l10n.dir}/${locale}"/>
-	<hg><arg line="clone ${hg.l10n.repo.base}${locale} ${lot.l10n.dir}/${locale}"/></hg>
+	<propertyalias property="default.locale" alias="locale"/>
+	<notavailableassert file="${hg.l10n.dir}/${locale}"
+		message="${hg.l10n.dir}/${locale} directory already exists"/>
+	<mkdir dir="${hg.l10n.dir}"/>
+	<echo message="executing hg clone command:${N}hg clone ${hg.l10n.repo.base}${locale} ${hg.l10n.dir}/${locale}"/>
+	<hg failonerror="true"><arg line="clone ${hg.l10n.repo.base}${locale} ${hg.l10n.dir}/${locale}"/></hg>
 	<if>
 		<equals arg1="${locale}" arg2="ja"/>
 		<then>
-			<echo message="executing hg clone command:${N}hg clone ${hg.l10n.repo.base}ja-JP-mac ${lot.l10n.dir}/ja-JP-mac"/>
-			<hg><arg line="clone ${hg.l10n.repo.base}ja-JP-mac ${lot.l10n.dir}/ja-JP-mac"/></hg>
+			<echo message="executing hg clone command:${N}hg clone ${hg.l10n.repo.base}ja-JP-mac ${hg.l10n.dir}/ja-JP-mac"/>
+			<hg failonerror="true"><arg line="clone ${hg.l10n.repo.base}ja-JP-mac ${hg.l10n.dir}/ja-JP-mac"/></hg>
 		</then>
 	</if>
 </target>
-
 <target name="pull-locale" depends="load-mainconf"
 	description="pull l10n mercurial repogitory from hg.mozilla.org">
-	<property name="locale" value="${lot.locale.default}"/>
-	<hg dir="${lot.l10n.dir}/${locale}"><arg line="up -C"/></hg>
-	<hg dir="${lot.l10n.dir}/${locale}"><arg line="pull -u"/></hg>
+	<propertyalias property="default.locale" alias="locale"/>
+	<hg dir="${hg.l10n.dir}/${locale}" failonerror="true"><arg line="up -C"/></hg>
+	<hg dir="${hg.l10n.dir}/${locale}" failonerror="true"><arg line="pull -u"/></hg>
 	<if>
 		<equals arg1="${locale}" arg2="ja"/>
 		<then>
-			<hg dir="${lot.l10n.dir}/ja-JP-mac"><arg line="up -C"/></hg>
-			<hg dir="${lot.l10n.dir}/ja-JP-mac"><arg line="pull -u"/></hg>
+			<hg dir="${hg.l10n.dir}/ja-JP-mac" failonerror="true"><arg line="up -C"/></hg>
+			<hg dir="${hg.l10n.dir}/ja-JP-mac" failonerror="true"><arg line="pull -u"/></hg>
 		</then>
 	</if>
 </target>
 
+<target name="clone-all" description="clone all hg repogitories">
+	<antcall>
+		<target name="for191"/>
+		<target name="clone-mozilla"/><target name="clone-locale"/>
+	</antcall>
+	<antcall>
+		<target name="for192"/>
+		<target name="clone-mozilla"/><target name="clone-locale"/>
+	</antcall>
+	<antcall>
+		<target name="fortrunk"/>
+		<target name="clone-mozilla"/><target name="clone-locale"/>
+	</antcall>
+	<antcall target="clone-mobile"/>
+</target>
+<target name="pull-all" description="pull all hg repogitories">
+	<antcall>
+		<target name="for191"/>
+		<target name="pull-mozilla"/><target name="pull-locale"/>
+	</antcall>
+	<antcall>
+		<target name="for192"/>
+		<target name="pull-mozilla"/><target name="pull-locale"/>
+	</antcall>
+	<antcall>
+		<target name="fortrunk"/>
+		<target name="pull-mozilla"/><target name="pull-locale"/>
+	</antcall>
+	<antcall target="pull-mobile"/>
+</target>
 
-<!-- common errorcheck for each applications -->
+<!-- * copy locale files from mercurial repogitory to l10n directory * -->
+<macrodef name="hgtol10n">
+	<attribute name="hgpath"/>
+	<attribute name="l10npath"/>
+	<attribute name="hgdir" default="${hg.mozilla.dir}"/>
+	<attribute name="l10ndir" default="${en-US.dir}"/>
+	<attribute name="rev" default=""/>
+	<attribute name="tempdir" default="${lot.temp.dir}/hgtol10n"/>
+	<sequential>
+		<if>
+			<equals arg1="@{rev}" arg2=""/>
+			<then>
+				<copy todir="@{l10ndir}/@{l10npath}" failonerror="false" preservelastmodified="true">
+					<fileset dir="@{hgdir}/@{hgpath}"/>
+				</copy>
+			</then>
+			<else>
+				<delete dir="@{tempdir}"/><mkdir dir="@{tempdir}"/>
+				<echo message="executing hg archive command: hg -R @{hgdir} archive --rev @{rev} --include @{hgdir}/@{hgpath} @{tempdir}"/>
+				<hg failonerror="true"><arg line="-R @{hgdir} archive --rev @{rev} --include @{hgdir}/@{hgpath} @{tempdir}"/></hg>
+				<move todir="@{l10ndir}/@{l10npath}" failonerror="false" preservelastmodified="true">
+					<fileset dir="@{tempdir}/@{hgpath}"/>
+				</move>
+			</else>
+		</if>
+	</sequential>
+</macrodef>
+<presetdef name="mozillatol10n">
+	<hgtol10n hgdir="${hg.mozilla.dir}" rev="${mozillatol10n.rev}"/>
+</presetdef>
+<presetdef name="commtol10n">
+	<hgtol10n hgdir="${hg.comm.dir}" rev="${commtol10n.rev}"/>
+</presetdef>
+<presetdef name="mobiletol10n">
+	<hgtol10n hgdir="${hg.mobile.dir}" rev="${mobiletol10n.rev}"/>
+</presetdef>
+
+<target name="mozilla-to-l10n" depends="remove-en-US"
+	description="copy en-US locale files from mozilla hg repository to l10n directory">
+	<property name="mozillatol10n.rev" value=""/>
+	<mozillatol10n hgpath="browser/locales/en-US" l10npath="browser"/><!-- only firefox -->
+	<mozillatol10n hgpath="dom/locales/en-US" l10npath="dom"/>
+	<mozillatol10n hgpath="extensions/spellcheck/locales/en-US" l10npath="extensions/spellcheck"/>
+	<mozillatol10n hgpath="extensions/reporter/locales/en-US" l10npath="extensions/reporter"/>
+	<mozillatol10n hgpath="netwerk/locales/en-US" l10npath="netwerk"/>
+	<mozillatol10n hgpath="other-licenses/branding/firefox/locales/en-US" l10npath="other-licenses/branding/firefox"/><!-- only firefox -->
+	<mozillatol10n hgpath="security/manager/locales/en-US" l10npath="security/manager"/>
+	<mozillatol10n hgpath="toolkit/locales/en-US" l10npath="toolkit"/>
+</target>
+<target name="comm-to-l10n" depends="remove-en-US"
+	description="copy en-US locale files from comm hg repository to l10n directory">
+	<property name="commtol10n.rev" value=""/>
+	<commtol10n hgpath="calendar/locales/en-US" l10npath="calendar"/><!-- only sunbird -->
+	<commtol10n hgpath="editor/ui/locales/en-US" l10npath="editor/ui"/><!-- only thunderbird -->
+	<commtol10n hgpath="mail/locales/en-US" l10npath="mail"/><!-- only thunderbird -->
+	<commtol10n hgpath="other-licenses/branding/sunbird/locales/en-US" l10npath="other-licenses/branding/sunbird"/><!-- only sunbird -->
+	<commtol10n hgpath="other-licenses/branding/thunderbird/locales/en-US" l10npath="other-licenses/branding/thunderbird"/><!-- only thunderbird -->
+	<commtol10n hgpath="suite/locales/en-US" l10npath="suite"/><!-- only seamonkey -->
+</target>
+<target name="mobile-to-l10n" depends="remove-en-US"
+	description="copy en-US locale files from mobile hg repository to l10n directory">
+	<property name="mobiletol10n.rev" value=""/>
+	<mobiletol10n hgpath="locales/en-US" l10npath="mobile"/>
+</target>
+<target name="other-to-l10n" depends="remove-en-US"
+	description="copy en-US locale files from other cvs/svn repository to l10n directory">
+	<hgtol10n hgpath="extensions/inspector/resources/locale/en-US" l10npath="extensions/inspector/chrome"/>
+	<hgtol10n hgpath="extensions/irc/locales/en-US" l10npath="extensions/irc"/>
+	<hgtol10n hgpath="extensions/venkman/locales/en-US" l10npath="extensions/venkman"/>
+</target>
+<target name="repo-to-l10n" depends="mozilla-to-l10n, comm-to-l10n, mobile-to-l10n, other-to-l10n"
+	description="copy en-US locale files from hg repository to l10n directory"/>
+<target name="get-en-US" depends="repo-to-l10n"/>
+<target name="en-US-to-l10n" depends="repo-to-l10n"/>
+
+
+<!-- * Routine Work Interface * -->
+<!-- check for each applications -->
 <macrodef name="commoncheckapp">
 	<attribute name="app"/>
 	<sequential>
@@ -214,7 +327,7 @@
 <target name="comparesm"><compareapp app="seamonkey"/></target>
 <target name="compare-eachapp" depends="comparetk, comparefx, comparetb, comparefe, comparesb, comparesm"/>
 
-<!-- for all locales -->
+<!-- check for all locales -->
 <target name="genconf-alllocale" depends="load-mainconf">
 	<groovy><![CDATA[
 		properties.'alllocale.list'.eachMatch(/([a-zA-Z-]+)[\s,]*/) { a,locale ->
@@ -289,15 +402,13 @@
 <!-- * update and commit lot itself * -->
 <target name="update-src" depends="load-mainconf"
 	description="update src files in the working directory">
-	<exec executable="svn" taskname="svn">
-		<arg line="update ${lot.src.dir}/l10n"/>
-	</exec>
+	<svn><arg line="update ${svn.l10n.dir}"/></svn>
 </target>
 <target name="update-lot" depends="load-mainconf"
 	description="replace current lot with checkouted lot (src/l10n/lot)">
 	<confirm message="現在使用中の Localization Tools を L10N SVN の最新バージョンで置き換えます。本当に置き換えてよろしいですか？(Y/N)"
 		failmessage="Localization Tools の 置き換えを中止しました"/>
-	<property name="update-lot.dir" value="${lot.src.dir}/l10n/lot"/>
+	<property name="update-lot.dir" value="${svn.trunk.dir}/lot"/>
 	<exec executable="svn" taskname="svn">
 		<arg line="update ${update-lot.dir}"/>
 	</exec>
@@ -311,14 +422,14 @@
 
 <target name="pre-commit-lot" depends="load-mainconf"
 	description="copy current lot to svn working directory (src/l10n/lot)">
-	<copy todir="${lot.src.dir}/l10n/lot" preservelastmodified="true">
+	<copy todir="${svn.trunk.dir}/lot" preservelastmodified="true">
 		<fileset dir="." defaultexcludes="no"
 			includes="${backuplot.includes}" excludes="${backuplot.excludes}"/>
 	</copy>
 </target>
 <target name="commit-lot" depends="pre-commit-lot"
 	description="commit current lot to l10n svn server">
-	<property name="commit-lot.dir" value="${lot.src.dir}/l10n/lot"/>
+	<property name="commit-lot.dir" value="${svn.trunk.dir}/lot"/>
 	<input message="コミットログを入力してください:"
 		addproperty="commit-lot.message" defaultvalue=""/>
 	<fail message="コミットログが指定されていません。">
@@ -346,9 +457,7 @@
 <target name="restoresrc" depends="load-mainconf" unless="norestore"
 	description="restore whole src files">
 	<loadmessage pattern="^vmsg\.restoresrc\."/>
-	<fail message="${vmsg.restoresrc.notfound}">
-		<condition><not><available file="${restoresrc.file}" type="file"/></not></condition>
-	</fail>
+	<availableassert file="${restoresrc.file}" type="file" message="${vmsg.restoresrc.notfound}"/>
 	<confirm message="${vmsg.restoresrc.confirm}" failmessage="${cmsg.restoresrc.cancelled}"/>
 	
 	<condition property="nobackup">
@@ -382,7 +491,6 @@
 </target>
 
 
-
 <!-- * escape and unescape * -->
 <!-- switching unicode escape from/to utf-8 (only *.properties files are escaped/unescaped and others are just copied by default) -->
 <target name="-escape-jar-" depends="load-mainconf" if="escape.jar.file">
@@ -394,9 +502,7 @@
 <target name="escape" depends="load-mainconf"
 	description="escape *.properties files and copy other files">
 	<loadmessage pattern="^vmsg\.escape\."/>
-	<fail message="${vmsg.escape.no.fromdir}">
-		<condition><not><available file="${escape.fromdir}" type="dir"/></not></condition>
-	</fail>
+	<availableassert file="${escape.fromdir}" type="dir" message="${vmsg.escape.no.fromdir}"/>
 	<escapeunicode-copy fromdir="${escape.fromdir}" todir="${escape.todir}" encoding="${escape.encoding}"
 		includes="${escape.includes}" excludes="${escape.excludes}"
 		escapeincludes="${escape.escapeincludes}" escapeexcludes="${escape.escapeexcludes}"/>
@@ -410,134 +516,11 @@
 <target name="unescape" depends="load-mainconf, -unescape-jar-"
 	description="unescape *.properties files and copy other files">
 	<loadmessage pattern="^vmsg\.unescape\."/>
-	<fail message="${vmsg.unescape.no.fromdir}">
-		<condition><not><available file="${unescape.fromdir}" type="dir"/></not></condition>
-	</fail>
+	<availableassert  file="${unescape.fromdir}" type="dir" message="${vmsg.unescape.no.fromdir}"/>
 	<unescapeunicode-copy fromdir="${unescape.fromdir}" todir="${unescape.todir}" encoding="${unescape.encoding}"
 		includes="${unescape.includes}" excludes="${unescape.excludes}"
 		unescapeincludes="${unescape.unescapeincludes}" unescapeexcludes="${unescape.unescapeexcludes}"/>
 </target>
-
-
-
-<!-- * en-US to l10n * -->
-<target name="prepare-hg" depends="">
-	<property name="locale" value="${lot.locale.default}"/>
-</target>
-
-<target name="mozilla-to-l10n" depends="prepare-hg"
-	description="copy changing directory structure of en-US locale files within mozilla repository">
-	<!-- prepare properties to make this script possible to use stand alone -->
-	<property name="mozilla-to-l10n.temp.dir" value="${lot.temp.dir}/mozilla-to-l10n"/>
-	<property name="mozilla-to-l10n.dir" value="${lot.l10n.dir}/en-US"/>
-	
-	<!-- cleaning -->
-	<delete dir="${mozilla-to-l10n.temp.dir}"/>
-	
-	<!-- now, copy changing directory structure -->
-	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/browser"
-		failonerror="false" preservelastmodified="true">
-		<fileset dir="${lot.mozilla.dir}/browser/locales/en-US"/>
-	</copy><!-- only firefox -->
-	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/dom"
-		failonerror="false" preservelastmodified="true">
-		<fileset dir="${lot.mozilla.dir}/dom/locales/en-US"/>
-	</copy>
-	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/extensions/inspector/chrome"
-		failonerror="false" preservelastmodified="true">
-		<fileset dir="${lot.mozilla.dir}/extensions/inspector/resources/locale/en-US"/>
-	</copy>
-	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/extensions/irc"
-		failonerror="false" preservelastmodified="true">
-		<fileset dir="${lot.mozilla.dir}/extensions/irc/locales/en-US"/>
-	</copy>
-	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/extensions/spellcheck"
-		failonerror="false" preservelastmodified="true">
-		<fileset dir="${lot.mozilla.dir}/extensions/spellcheck/locales/en-US"/>
-	</copy>
-	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/extensions/reporter"
-		failonerror="false" preservelastmodified="true">
-		<fileset dir="${lot.mozilla.dir}/extensions/reporter/locales/en-US"/>
-	</copy>
-	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/extensions/venkman"
-		failonerror="false" preservelastmodified="true">
-		<fileset dir="${lot.mozilla.dir}/extensions/venkman/locales/en-US"/>
-	</copy>
-	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/netwerk"
-		failonerror="false" preservelastmodified="true">
-		<fileset dir="${lot.mozilla.dir}/netwerk/locales/en-US"/>
-	</copy>
-	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/other-licenses/branding/firefox"
-		failonerror="false" preservelastmodified="true">
-		<fileset dir="${lot.mozilla.dir}/other-licenses/branding/firefox/locales/en-US"/>
-	</copy><!-- only firefox -->
-	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/security/manager"
-		failonerror="false" preservelastmodified="true">
-		<fileset dir="${lot.mozilla.dir}/security/manager/locales/en-US"/>
-	</copy>
-	<copy todir="${mozilla-to-l10n.temp.dir}/en-US/toolkit"
-		failonerror="false" preservelastmodified="true">
-		<fileset dir="${lot.mozilla.dir}/toolkit/locales/en-US"/>
-	</copy>
-	
-	<mkdir dir="${mozilla-to-l10n.dir}"/>
-	<move todir="${mozilla-to-l10n.dir}">
-		<fileset dir="${mozilla-to-l10n.temp.dir}/en-US"/>
-	</move>
-</target>
-
-<target name="comm-to-l10n" depends="prepare-hg"
-	description="copy changing directory structure of en-US locale files within comm repository">
-	<!-- prepare properties to make this script possible to use stand alone -->
-	<property name="comm-to-l10n.temp.dir" value="${lot.temp.dir}/comm-to-l10n"/>
-	<property name="comm-to-l10n.dir" value="${lot.l10n.dir}/en-US"/>
-	
-	<!-- cleaning -->
-	<delete dir="${comm-to-l10n.temp.dir}"/>
-	
-	<!-- now, copy changing directory structure -->
-	<copy todir="${comm-to-l10n.temp.dir}/en-US/calendar"
-		failonerror="false" preservelastmodified="true">
-		<fileset dir="${lot.comm.dir}/calendar/locales/en-US"/>
-	</copy><!-- only sunbird -->
-	<copy todir="${comm-to-l10n.temp.dir}/en-US/editor/ui"
-		failonerror="false" preservelastmodified="true">
-		<fileset dir="${lot.comm.dir}/editor/ui/locales/en-US"/>
-	</copy><!-- only thunderbird -->
-	<copy todir="${comm-to-l10n.temp.dir}/en-US/mail"
-		failonerror="false" preservelastmodified="true">
-		<fileset dir="${lot.comm.dir}/mail/locales/en-US"/>
-	</copy><!-- only thunderbird -->
-	<copy todir="${comm-to-l10n.temp.dir}/en-US/other-licenses/branding/sunbird"
-		failonerror="false" preservelastmodified="true">
-		<fileset dir="${lot.comm.dir}/other-licenses/branding/sunbird/locales/en-US"/>
-	</copy><!-- only sunbird -->
-	<copy todir="${comm-to-l10n.temp.dir}/en-US/other-licenses/branding/thunderbird"
-		failonerror="false" preservelastmodified="true">
-		<fileset dir="${lot.comm.dir}/other-licenses/branding/thunderbird/locales/en-US"/>
-	</copy><!-- only thunderbird -->
-	<copy todir="${comm-to-l10n.temp.dir}/en-US/suite"
-		failonerror="false" preservelastmodified="true">
-		<fileset dir="${lot.comm.dir}/suite/locales/en-US"/>
-	</copy><!-- only seamonkey -->
-	
-	<mkdir dir="${comm-to-l10n.dir}"/>
-	<move todir="${comm-to-l10n.dir}">
-		<fileset dir="${comm-to-l10n.temp.dir}/en-US"/>
-	</move>
-</target>
-
-<target name="mobile-to-l10n" depends="prepare-hg"
-	description="copy changing directory structure of en-US locale files within mobile-browser">
-	<property name="mobile-to-l10n.dir" value="${lot.l10n.dir}/en-US"/>
-	<mkdir dir="${mobile-to-l10n.dir}/mobile"/>
-	<copy todir="${mobile-to-l10n.dir}/mobile" failonerror="false" preservelastmodified="true">
-		<fileset dir="${lot.mobile.dir}/locales/en-US"/>
-	</copy>
-</target>
-
-<target name="en-US-to-l10n" depends="remove-en-US, mozilla-to-l10n, comm-to-l10n, mobile-to-l10n"
-       description="copy changing directory structure of en-US locale files within both mozilla and comm repository"/>
 
 
 <!-- * better to have * -->
