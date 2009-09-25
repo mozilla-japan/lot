@@ -21,13 +21,13 @@
 		<target name="errorcheck"/>
 	</antcall>
 </presetdef>
-<target name="convert"
+<target name="convert" depends=""
 	description="apply filters to src files and modify them">
 	<groovy><![CDATA[
 		if (properties.locale == 'ja' || properties.locale == 'ja-JP-mac') {
 			ant.execconvert()
 		}
-		else if (properties.'lot.locale.default' == 'ja') {
+		else if (properties.'default.locale' == 'ja') {
 			ant.execconvert { param(name:'locale', value:'ja') }
 			ant.execconvert { param(name:'locale', value:'ja-JP-mac') }
 		}
@@ -119,7 +119,7 @@
 <target name="check"
 	description="check converted l10n files and compare with en-US">
 	<groovy><![CDATA[
-		if (!properties.locale && properties.'lot.locale.default' == 'ja') {
+		if (!properties.locale && properties.'default.locale' == 'ja') {
 			ant.execcheck { param(name:'locale', value:'ja') }
 			ant.execcheck { param(name:'locale', value:'ja-JP-mac') }
 		}
@@ -143,7 +143,7 @@
 <target name="pack"
 	description="make xpi package from converted src files">
 	<groovy><![CDATA[
-		if (!properties.locale && properties.'lot.locale.default' == 'ja') {
+		if (!properties.locale && properties.'default.locale' == 'ja') {
 			ant.execpack { param(name:'locale', value:'ja') }
 			ant.execpack { param(name:'locale', value:'ja-JP-mac') }
 		}

@@ -1,6 +1,19 @@
-	spec change memo
+		spec change memo
 
-property change
+	directory cahnge @ 2.0b1 -> 2.0b2
+
+src/l10n			-> src/1.9.1
+src/l10n-central	-> src/trunk
+l10n/en-US			-> l10n/1.9.1/en-US
+l10n-central/en-US	-> l10n/trunk/en-US
+comm-central		-> hg/comm-1.9.1
+mozilla-central		-> hg/comm-central
+mobile-browser		-> hg/mobile-browser
+dest/langpack		-> dest/1.9.1/langpack, dest/trunk/langpack
+
+
+	property change @ 2.0b1 -> 2.0b2
+
 lot.src.l10n.dir	-> svn.l10n.dir
 lot.comm.dir		-> hg.comm.dir
 lot.mozilla.dir		-> hg.mozilla.dir
@@ -8,5 +21,6 @@ lot.mobile.dir		-> hg.mobile.dir
 
 lot.l10n.dir		-> hg.l10n.dir / l10n.dir
 lot.dest.dir		-> dest.dir
+
 
 

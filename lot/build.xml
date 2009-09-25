@@ -99,7 +99,7 @@
 		<istrue value="${filters.printaccesskeys}"/>
 	</condition>
 	<concat destfile="${filters.file}" encoding="${lot.encoding.filters}" fixlastline="yes">
-		<filelist dir="${lot.src.dir}" files="${filters.filelist}"/>
+		<filelist files="${filters.filelist}"/>
 		<filelist dir="${lot.res.dir}" files="${filters.accesskey.filename}"/>
 		<filterchain>
 			<replaceregex pattern="^(${filters.stripprefix})\." replace="" flags="i"/>
