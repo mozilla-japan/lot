@@ -214,6 +214,14 @@
 	<antcall target="pull-mobile"/>
 </target>
 
+<target name="pre-commit-hg" depends="load-mainconf">
+	<property name="locale" value="${default.locale}"/>
+	<echo message="executing hg status command:${N}hg -R ${hg.l10n.dir}/${locale} status"/>
+	<hg failonerror="true"><arg line="-R ${hg.l10n.dir}/${locale} status"/></hg>
+	<echo message="executing hg diff command:${N}hg -R ${hg.l10n.dir}/${locale} diff"/>
+	<hg failonerror="true"><arg line="-R ${hg.l10n.dir}/${locale} diff"/></hg>
+</target>
+
 <!-- * copy locale files from mercurial repogitory to l10n directory * -->
 <macrodef name="hgtol10n">
 	<attribute name="hgpath"/>
@@ -432,21 +440,20 @@
 		<fileset dir="." defaultexcludes="no"
 			includes="${backuplot.includes}" excludes="${backuplot.excludes}"/>
 	</copy>
+	<echo message="ファイルのステータスを確認してください:"/>
+	<svn dir="${svn.trunk.dir}/lot" failonerror="true"><arg line="status"/></svn>
+	<echo message="リポジトリとの差分を確認してください:"/>
+	<svn dir="${svn.trunk.dir}/lot" failonerror="true"><arg line="diff"/></svn>
 </target>
 <target name="commit-lot" depends="pre-commit-lot"
 	description="commit current lot to l10n svn server">
-	<property name="commit-lot.dir" value="${svn.trunk.dir}/lot"/>
-	<echo message="ファイルのステータスを確認してください:"/>
-	<svn dir="${commit-lot.dir}" failonerror="true"><arg line="status"/></svn>
-	<echo message="コミットされる差分を確認してください:"/>
-	<svn dir="${commit-lot.dir}" failonerror="true"><arg line="diff"/></svn>
 	<input message="コミットログを入力してください:"
 		addproperty="commit-lot.message" defaultvalue=""/>
 	<notequalsassert arg1="${commit-lot.message}" arg2="" trim="true" message="コミットログが指定されていません。"/>
-	<confirm message='${commit-lot.dir} ディレクトリで次の svn commit コマンドを実行しようとしています:${N}
+	<confirm message='${svn.trunk.dir}/lot ディレクトリで次の svn commit コマンドを実行しようとしています:${N}
 		svn commit -m "${commit-lot.message}"${N}本当に実行してもよろしいですか？(Y/N)'
 		failmessage="svn commit を中止しました。"/>
-	<svn dir="${commit-lot.dir}" failonerror="true"><arg line='commit -m "${commit-lot.message}"'/></svn>
+	<svn dir="${svn.trunk.dir}/lot" failonerror="true"><arg line='commit -m "${commit-lot.message}"'/></svn>
 </target>
 
 
