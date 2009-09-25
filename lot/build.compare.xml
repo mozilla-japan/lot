@@ -42,12 +42,12 @@
 </target>
 
 <target name="show-revisions" depends="load-mainconf">
-	<hg outputproperty="hg.mozilla.rev"		failonerror="true"><arg line="-R ${hg.mozilla.dir} id -i"/></hg>
-	<hg outputproperty="hg.comm.rev"		failonerror="true"><arg line="-R ${hg.comm.dir} id -i"/></hg>
-	<hg outputproperty="hg.mobile.rev"		failonerror="true"><arg line="-R ${hg.mobile.dir} id -i"/></hg>
-	<hg outputproperty="hg.mozilla.revn"	failonerror="true"><arg line="-R ${hg.mozilla.dir} id -n"/></hg>
-	<hg outputproperty="hg.comm.revn"		failonerror="true"><arg line="-R ${hg.comm.dir} id -n"/></hg>
-	<hg outputproperty="hg.mobile.revn"		failonerror="true"><arg line="-R ${hg.mobile.dir} id -n"/></hg>
+	<hgrevision property="hg.mozilla.rev"	dir="${hg.mozilla.dir}"		type="id" failonerror="true"/>
+	<hgrevision property="hg.comm.rev"		dir="${hg.comm.dir}"		type="id" failonerror="true"/>
+	<hgrevision property="hg.mobile.rev"	dir="${hg.mobile.dir}"		type="id" failonerror="true"/>
+	<hgrevision property="hg.mozilla.revn"	dir="${hg.mozilla.dir}"		type="num" failonerror="true"/>
+	<hgrevision property="hg.comm.revn"		dir="${hg.comm.dir}"		type="num" failonerror="true"/>
+	<hgrevision property="hg.mobile.revn"	dir="${hg.mobile.dir}"		type="num" failonerror="true"/>
 	<echo message="mozilla repogitory revision = ${hg.mozilla.revn}:${hg.mozilla.rev}"/>
 	<echo message="comm repogitory revision    = ${hg.comm.revn}:${hg.comm.rev}"/>
 	<echo message="mobile repogitory revision  = ${hg.mobile.revn}:${hg.mobile.rev}"/>
@@ -74,13 +74,13 @@
 	<!-- check and get revision ids -->
 	<issetassert property="diff.mozilla.rev1"/>
 	<issetassert property="diff.comm.rev1"/>
-	<hg outputproperty="diff.mozilla.rev2"	failonerror="true"><arg line="-R ${hg.mozilla.dir} id -i"/></hg>
-	<hg outputproperty="diff.comm.rev2"		failonerror="true"><arg line="-R ${hg.comm.dir} id -i"/></hg>
+	<hgrevision property="diff.mozilla.rev2" dir="${hg.mozilla.dir}" failonerror="true"/>
+	<hgrevision property="diff.comm.rev2" dir="${hg.comm.dir}" failonerror="true"/>
 	<!-- get revision numbers -->
-	<hg outputproperty="diff.mozilla.revn1"	failonerror="true"><arg line="-R ${hg.mozilla.dir} id --rev ${diff.mozilla.rev1} -n"/></hg>
-	<hg outputproperty="diff.mozilla.revn2"	failonerror="true"><arg line="-R ${hg.mozilla.dir} id --rev ${diff.mozilla.rev2} -n"/></hg>
-	<hg outputproperty="diff.comm.revn1"	failonerror="true"><arg line="-R ${hg.comm.dir} id --rev ${diff.comm.rev1} -n"/></hg>
-	<hg outputproperty="diff.comm.revn2"	failonerror="true"><arg line="-R ${hg.comm.dir} id --rev ${diff.comm.rev2} -n"/></hg>
+	<hgrevision property="diff.mozilla.revn1" dir="${hg.mozilla.dir}" type="num" rev="${diff.mozilla.rev1}" failonerror="true"/>
+	<hgrevision property="diff.mozilla.revn2" dir="${hg.mozilla.dir}" type="num" rev="${diff.mozilla.rev2}" failonerror="true"/>
+	<hgrevision property="diff.comm.revn1" dir="${hg.comm.dir}" type="num" rev="${diff.comm.rev1}" failonerror="true"/>
+	<hgrevision property="diff.comm.revn2" dir="${hg.comm.dir}" type="num" rev="${diff.comm.rev2}" failonerror="true"/>
 	<!-- check and set properties -->
 	<echo message="mozilla repo1 = ${diff.mozilla.revn1}:${diff.mozilla.rev1} comm repo1 = ${diff.comm.revn1}:${diff.comm.rev1}"/>
 	<echo message="mozilla repo2 = ${diff.mozilla.revn2}:${diff.mozilla.rev2} comm repo2 = ${diff.comm.revn2}:${diff.comm.rev2}"/>
