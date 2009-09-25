@@ -31,9 +31,7 @@
 <target name="patch-dry" depends="load-mainconf"
 	description="test patch file without any actual changes">
 	<loadmessage pattern="^vmsg\.patch\."/>
-	<fail message="${vmsg.patch.no.patchfile}">
-		<condition><not><available file="${patch.file}" type="file"/></not></condition>
-	</fail>
+	<availableassert file="${patch.file}" type="file" message="${vmsg.patch.no.patchfile}"/>
 	
 	<property name="patch.strip" value="3"/>
 	<property name="patch.locale" value="ja"/>
@@ -46,10 +44,13 @@
 <target name="show-revisions" depends="load-mainconf">
 	<hg outputproperty="hg.mozilla.rev"		failonerror="true"><arg line="-R ${hg.mozilla.dir} id -i"/></hg>
 	<hg outputproperty="hg.comm.rev"		failonerror="true"><arg line="-R ${hg.comm.dir} id -i"/></hg>
+	<hg outputproperty="hg.mobile.rev"		failonerror="true"><arg line="-R ${hg.mobile.dir} id -i"/></hg>
 	<hg outputproperty="hg.mozilla.revn"	failonerror="true"><arg line="-R ${hg.mozilla.dir} id -n"/></hg>
 	<hg outputproperty="hg.comm.revn"		failonerror="true"><arg line="-R ${hg.comm.dir} id -n"/></hg>
+	<hg outputproperty="hg.mobile.revn"		failonerror="true"><arg line="-R ${hg.mobile.dir} id -n"/></hg>
 	<echo message="mozilla repogitory revision = ${hg.mozilla.revn}:${hg.mozilla.rev}"/>
 	<echo message="comm repogitory revision    = ${hg.comm.revn}:${hg.comm.rev}"/>
+	<echo message="mobile repogitory revision  = ${hg.mobile.revn}:${hg.mobile.rev}"/>
 </target>
 
 <target name="diff-revisions" depends="load-mainconf">
@@ -63,11 +64,13 @@
 	<hg outputproperty="diff.mozilla.revn2"	failonerror="true"><arg line="-R ${hg.mozilla.dir} id --rev ${diff.mozilla.rev2} -n"/></hg>
 	<hg outputproperty="diff.comm.revn1"	failonerror="true"><arg line="-R ${hg.comm.dir} id --rev ${diff.comm.rev1} -n"/></hg>
 	<hg outputproperty="diff.comm.revn2"	failonerror="true"><arg line="-R ${hg.comm.dir} id --rev ${diff.comm.rev2} -n"/></hg>
+	<!-- check and set properties -->
 	<echo message="mozilla repo1 = ${diff.mozilla.revn1}:${diff.mozilla.rev1} comm repo1 = ${diff.comm.revn1}:${diff.comm.rev1}"/>
 	<echo message="mozilla repo2 = ${diff.mozilla.revn2}:${diff.mozilla.rev2} comm repo2 = ${diff.comm.revn2}:${diff.comm.rev2}"/>
 	<issetassert property="diff.en-US.dir1"/><expandproperty name="diff.en-US.dir1"/>
 	<issetassert property="diff.en-US.dir2"/><expandproperty name="diff.en-US.dir2"/>
 	<issetassert property="diff.revisions.output"/><expandproperty name="diff.revisions.output"/>
+	<!-- get en-US files from repogitory and exec diff -->
 	<antcall target="get-en-US">
 		<param name="en-US.dir" value="${diff.en-US.dir1}"/>
 		<param name="mozillatol10n.rev" value="${diff.mozilla.rev1}"/>
