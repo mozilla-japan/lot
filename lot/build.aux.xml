@@ -155,11 +155,17 @@
 	<mkdir dir="${hg.l10n.dir}"/>
 	<echo message="executing hg clone command:${N}hg clone ${hg.l10n.repo.base}${locale} ${hg.l10n.dir}/${locale}"/>
 	<hg failonerror="true"><arg line="clone ${hg.l10n.repo.base}${locale} ${hg.l10n.dir}/${locale}"/></hg>
+	<replaceregexp file="${hg.l10n.dir}/${locale}/.hg/hgrc"
+		match="^(\[paths\]\ndefault = http(://.+/${locale})\n)$"
+		replace="\1default-push = ssh\2${N}"/>
 	<if>
 		<equals arg1="${locale}" arg2="ja"/>
 		<then>
 			<echo message="executing hg clone command:${N}hg clone ${hg.l10n.repo.base}ja-JP-mac ${hg.l10n.dir}/ja-JP-mac"/>
 			<hg failonerror="true"><arg line="clone ${hg.l10n.repo.base}ja-JP-mac ${hg.l10n.dir}/ja-JP-mac"/></hg>
+			<replaceregexp file="${hg.l10n.dir}/ja-JP-mac/.hg/hgrc"
+				match="^(\[paths\]\ndefault = http(://.+/ja-JP-mac)\n)$"
+				replace="\1default-push = ssh\2${N}"/>
 		</then>
 	</if>
 </target>
@@ -430,17 +436,17 @@
 <target name="commit-lot" depends="pre-commit-lot"
 	description="commit current lot to l10n svn server">
 	<property name="commit-lot.dir" value="${svn.trunk.dir}/lot"/>
+	<echo message="ファイルのステータスを確認してください:"/>
+	<svn dir="${commit-lot.dir}" failonerror="true"><arg line="status"/></svn>
+	<echo message="コミットされる差分を確認してください:"/>
+	<svn dir="${commit-lot.dir}" failonerror="true"><arg line="diff"/></svn>
 	<input message="コミットログを入力してください:"
 		addproperty="commit-lot.message" defaultvalue=""/>
-	<fail message="コミットログが指定されていません。">
-		<condition><equals arg1="${commit-lot.message}" arg2="" trim="true"/></condition>
-	</fail>
+	<notequalsassert arg1="${commit-lot.message}" arg2="" trim="true" message="コミットログが指定されていません。"/>
 	<confirm message='${commit-lot.dir} ディレクトリで次の svn commit コマンドを実行しようとしています:${N}
 		svn commit -m "${commit-lot.message}"${N}本当に実行してもよろしいですか？(Y/N)'
 		failmessage="svn commit を中止しました。"/>
-	<exec executable="svn" taskname="svn" dir="${commit-lot.dir}">
-		<arg line='commit -m "${commit-lot.message}"'/>
-	</exec>
+	<svn dir="${commit-lot.dir}" failonerror="true"><arg line='commit -m "${commit-lot.message}"'/></svn>
 </target>
 
 
