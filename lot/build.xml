@@ -276,6 +276,36 @@
 	<updateproperty name="targetbranch" value="trunk"/>
 </target>
 
+<target name="onlycommon" description="exec following targets only for common files">
+	<fail if="mainconf.loaded" message="this target must be used before 'load-userconf' target"/>
+	<updateproperty name="diff.l10n.includes" value="${common.l10n.includes}"/>
+</target>
+<target name="onlyfx" depends="onlyfirefox"/>
+<target name="onlyfirefox" description="exec following targets only for firefox files">
+	<fail if="mainconf.loaded" message="this target must be used before 'load-userconf' target"/>
+	<updateproperty name="diff.l10n.includes" value="${common.l10n.includes}, ${firefox.l10n.includes}"/>
+</target>
+<target name="onlytb" depends="onlythunderbird"/>
+<target name="onlythunderbird" description="exec following targets only for thunderbird files">
+	<fail if="mainconf.loaded" message="this target must be used before 'load-userconf' target"/>
+	<updateproperty name="diff.l10n.includes" value="${common.l10n.includes}, ${thunderbird.l10n.includes}"/>
+</target>
+<target name="onlyfe" depends="onlyfennec"/>
+<target name="onlyfennec" description="exec following targets only for fennec files">
+	<fail if="mainconf.loaded" message="this target must be used before 'load-userconf' target"/>
+	<updateproperty name="diff.l10n.includes" value="${common.l10n.includes}, ${fennec.l10n.includes}"/>
+</target>
+<target name="onlysb" depends="onlysunbird"/>
+<target name="onlysunbird" description="exec following targets only for sunbird files">
+	<fail if="mainconf.loaded" message="this target must be used before 'load-userconf' target"/>
+	<updateproperty name="diff.l10n.includes" value="${common.l10n.includes}, ${sunbird.l10n.includes}"/>
+</target>
+<target name="onlysm" depends="onlyseamonkey"/>
+<target name="onlyseamonkey" description="exec following targets only for seamonkey files">
+	<fail if="mainconf.loaded" message="this target must be used before 'load-userconf' target"/>
+	<updateproperty name="diff.l10n.includes" value="${common.l10n.includes}, ${seamonkey.l10n.includes}"/>
+</target>
+
 <target name="version" description="display lot version">
 	<echo taskname="version" message="${lot.fullname} ${lot.version}"/>
 </target>
