@@ -61,11 +61,25 @@
 	<delete dir="${en-US.dir}"/>
 </target>
 
-<target name="download-en-US" depends="load-mainconf, remove-en-US"
+<target name="download-en-US" depends="load-mainconf"
 	description="downlaod and expand en-US l10n zip file">
+	<!-- set properties -->
+	<isset arg="download.en-US.rev" property="download.en-US.url"
+		value="${download.en-US.url.dir}/${download.en-US.filename}"
+		 else="${download.en-US.url.dir}/${download.en-US.latestfilename}"/>
+	<expandproperty name="download.en-US.url"/>
+	<isset arg="download.en-US.rev" property="download.en-US.dir"
+		value="${l10n.dir}/en-US-rev${download.en-US.rev}" else="${l10n.dir}/en-US"/>
+	<expandproperty name="download.en-US.dir"/>
+	<!-- now download and unzip it -->
+	<antcall target="remove-en-US">
+		<param name="en-US.dir" value="${download.en-US.dir}"/>
+	</antcall>
 	<mkdir dir="${lot.temp.dir}"/>
 	<get src="${download.en-US.url}" dest="${lot.temp.dir}/en-US.zip"/>
-	<unzip src="${lot.temp.dir}/en-US.zip" dest="${l10n.dir}"/>
+	<unzip src="${lot.temp.dir}/en-US.zip" dest="${download.en-US.dir}">
+		<globmapper from="en-US/*" to="*"/>
+	</unzip>
 </target>
 
 <target name="newlocale" depends="load-mainconf"

@@ -48,25 +48,35 @@
 	<hgrevision property="hg.mozilla.revn"	dir="${hg.mozilla.dir}"		type="num" failonerror="true"/>
 	<hgrevision property="hg.comm.revn"		dir="${hg.comm.dir}"		type="num" failonerror="true"/>
 	<hgrevision property="hg.mobile.revn"	dir="${hg.mobile.dir}"		type="num" failonerror="true"/>
-	<echo message="mozilla repogitory revision = ${hg.mozilla.revn}:${hg.mozilla.rev}"/>
-	<echo message="comm repogitory revision    = ${hg.comm.revn}:${hg.comm.rev}"/>
-	<echo message="mobile repogitory revision  = ${hg.mobile.revn}:${hg.mobile.rev}"/>
+	<echo taskname="info" message="mozilla repogitory = ${hg.mozilla.repo}"/>
+	<echo taskname="info" message="mozilla repogitory revision = ${hg.mozilla.revn}:${hg.mozilla.rev}"/>
+	<echo taskname="info" message="mozilla repogitory = ${hg.comm.repo}"/>
+	<echo taskname="info" message="comm repogitory revision    = ${hg.comm.revn}:${hg.comm.rev}"/>
+	<echo taskname="info" message="mozilla repogitory = ${hg.mobile.repo}"/>
+	<echo taskname="info" message="mobile repogitory revision  = ${hg.mobile.revn}:${hg.mobile.rev}"/>
 </target>
 
 <target name="diff-download-revisions" depends="load-mainconf"
 	description="downlaod two en-US l10n zip and generate diff of them">
-	<!-- リビジョン番号は数値だけ指定で済ませられるようにしたい... -->
+	<!-- できればリビジョン番号は数値だけ指定で済ませられるようにしたい... -->
 	<issetassert property="diff.download.rev1"/>
 	<issetassert property="diff.download.rev2"/>
-	<property name="diff.download.filename1" value="en-US-rev${diff.download.rev1}.zip"/>
-	<property name="diff.download.filename2" value="en-US-rev${diff.download.rev2}.zip"/>
+	<property name="diff.download.url1" value="${download.en-US.url.dir}/en-US-rev${diff.download.rev1}.zip"/>
+	<property name="diff.download.url2" value="${download.en-US.url.dir}/en-US-rev${diff.download.rev2}.zip"/>
 	<expandproperty name="diff.download.output"/>
-	<mkdir dir="${lot.temp.dir}"/>
-	<get src="${download.en-US.url.dir}/${diff.download.filename1}" dest="${lot.temp.dir}/${diff.download.filename1}"/>
-	<unzip src="${lot.temp.dir}/${diff.download.filename1}" dest="${lot.temp.dir}/diff-en-US/${diff.download.filename1}"/>
-	<get src="${download.en-US.url.dir}/${diff.download.filename2}" dest="${lot.temp.dir}/${diff.download.filename2}"/>
-	<unzip src="${lot.temp.dir}/${diff.download.filename2}" dest="${lot.temp.dir}/diff-en-US/${diff.download.filename2}"/>
-	<diff dir="${lot.temp.dir}/diff-en-US" from="${diff.download.filename1}" to="${diff.download.filename2}" option="${diff.option}" output="${diff.download.output}"/>
+	<!-- now download and generate diff -->
+	<mkdir dir="${lot.temp.dir}/diff-en-US"/>
+	<delete dir="${lot.temp.dir}/diff-en-US/${diff.download.rev1}"/>
+	<get src="${diff.download.url1}" dest="${lot.temp.dir}/diff-en-US/${diff.download.rev1}.zip"/>
+	<unzip src="${lot.temp.dir}/diff-en-US/${diff.download.rev1}.zip" dest="${lot.temp.dir}/diff-en-US/${diff.download.rev1}">
+		<globmapper from="en-US/*" to="*"/>
+	</unzip>
+	<delete dir="${lot.temp.dir}/diff-en-US/${diff.download.rev2}"/>
+	<get src="${diff.download.url2}" dest="${lot.temp.dir}/diff-en-US/${diff.download.rev2}.zip"/>
+	<unzip src="${lot.temp.dir}/diff-en-US/${diff.download.rev2}.zip" dest="${lot.temp.dir}/diff-en-US/${diff.download.rev2}">
+		<globmapper from="en-US/*" to="*"/>
+	</unzip>
+	<diff dir="${lot.temp.dir}/diff-en-US" from="${diff.download.rev1}" to="${diff.download.rev2}" option="${diff.option}" output="${diff.download.output}"/>
 </target>
 
 <target name="diff-revisions" depends="load-mainconf"
