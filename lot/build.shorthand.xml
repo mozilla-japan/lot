@@ -2,31 +2,54 @@
 <project name="shorthand" default="" basedir=".">
 <description>make it easy to specify properties from command line with shorthands</description>
 
-<propertyalias property="lang"			alias="lot.lang"/>
+<!-- common shorthands -->
+<propertyalias property="lang"				alias="lot.lang"/>
 
-<propertyalias property="docheck"		alias="dosuspectedwordcheck"/>
 
-<propertyalias property="nocheck"		alias="noerrorcheck"/>
-<propertyalias property="noerrorcheck"	alias="nosyntaxcheck"/>
-<propertyalias property="noerrorcheck"	alias="noplaceholdercheck"/>
-<propertyalias property="noerrorcheck"	alias="nopluralcheck"/>
-<propertyalias property="noerrorcheck"	alias="nowordcheck"/>
-<propertyalias property="noerrorcheck"	alias="nosuspectedwordcheck"/>
-<propertyalias property="noerrorcheck"	alias="nocharcheck"/>
+<!-- errorcheck shorthands -->
+<propertyalias property="docheck"			alias="dosuspectedwordcheck"/>
 
-<propertyalias property="dir1"			alias="compare.dir1"/>
-<propertyalias property="dir1"			alias="merge.dir1"/>
-<propertyalias property="dir1"			alias="resetaccesskey.dir1"/>
-<propertyalias property="dir2"			alias="compare.dir2"/>
-<propertyalias property="dir2"			alias="merge.dir2"/>
-<propertyalias property="dir2"			alias="resetaccesskey.dir2"/>
+<propertyalias property="nocheck"			alias="noerrorcheck"/>
+<propertyalias property="noerrorcheck"		alias="nosyntaxcheck"/>
+<propertyalias property="noerrorcheck"		alias="noplaceholdercheck"/>
+<propertyalias property="noerrorcheck"		alias="nopluralcheck"/>
+<propertyalias property="noerrorcheck"		alias="nowordcheck"/>
+<propertyalias property="noerrorcheck"		alias="nosuspectedwordcheck"/>
+<propertyalias property="noerrorcheck"		alias="nocharcheck"/>
 
-<propertyalias property="fromdir"		alias="escape.fromdir"/>
-<propertyalias property="fromdir"		alias="unescape.fromdir"/>
-<propertyalias property="todir"			alias="escape.todir"/>
-<propertyalias property="todir"			alias="unescape.todir"/>
 
-<propertyalias property="output"		alias="genconf.output"/>
+<!-- diff/compare shorthands -->
+<propertyalias property="rev1"				alias="diff.download.rev1"/>
+<propertyalias property="rev2"				alias="diff.download.rev2"/>
 
+<propertyalias property="mozrev1"			alias="diff.mozilla.rev1"/>
+<propertyalias property="mozrev2"			alias="diff.mozilla.rev2"/>
+<propertyalias property="commrev1"			alias="diff.comm.rev1"/>
+<propertyalias property="commrev2"			alias="diff.comm.rev2"/>
+
+<propertyalias property="dir1"				alias="compare.dir1"/>
+<propertyalias property="dir1"				alias="merge.dir1"/>
+<propertyalias property="dir1"				alias="resetaccesskey.dir1"/>
+<propertyalias property="dir2"				alias="compare.dir2"/>
+<propertyalias property="dir2"				alias="merge.dir2"/>
+<propertyalias property="dir2"				alias="resetaccesskey.dir2"/>
+
+<propertyalias property="fromdir"			alias="escape.fromdir"/>
+<propertyalias property="fromdir"			alias="unescape.fromdir"/>
+<propertyalias property="todir"				alias="escape.todir"/>
+<propertyalias property="todir"				alias="unescape.todir"/>
+
+<propertyalias property="output"			alias="diff.download.output"/>
+<propertyalias property="output"			alias="diff.revisions.output"/>
+<propertyalias property="output"			alias="diff.branches.output"/>
+
+
+<!-- aux shorthands -->
+<propertyalias property="output"			alias="genconf.output"/>
+
+
+<target name="list-shorthands">
+	<!-- todo: shorthand 定義一覧を生成できるようにしたい -->
+</target>
 
 </project>

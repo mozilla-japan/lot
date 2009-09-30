@@ -80,10 +80,11 @@
 			includes = args[5]
 			excludes = '*/*, */*/**'
 			if (includes != '' && includes != '*' && includes != '**') {
+				if (includes == '**')
+					includes = '*'
 				ant.delete(file:output)
 				ant.dirset(dir:basedir+'/'+fromdir, includes:includes, excludes:excludes).each {
 					dir = it.getFile().getName()
-					//ant.echo(message:":::"+ basedir+'/'+fromdir +":::"+ it.getFile().getPath() + ":::")
 					ant.diff(dir:basedir, from:fromdir+'/'+dir, to:todir+'/'+dir, output:output, option:option, append:true)
 				}
 			} else {
@@ -118,7 +119,7 @@
 </target>
 
 <target name="diff-revisions" depends="load-mainconf"
-	description="">
+	description="get two sets of en-US files from hg repo and generate diff of them">
 	<!-- check and get revision ids -->
 	<issetassert property="diff.mozilla.rev1"/>
 	<issetassert property="diff.comm.rev1"/>
