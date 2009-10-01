@@ -55,7 +55,7 @@
 	<echo message="You can edit any setting anytime. See the file for more information."/>
 </target>
 
-<target name="remove-en-US" depends="load-mainconf">
+<target name="remove-en-US" depends="load-mainconf" unless="reuse.en-US">
 	<available property="en-US.dir.exists" file="${en-US.dir}" type="dir"/>
 	<confirm message="${en-US.dir} ディレクトリを削除してもよろしいですか？(Y/N)" if="en-US.dir.exists"/>
 	<delete dir="${en-US.dir}"/>
@@ -76,8 +76,8 @@
 		<param name="en-US.dir" value="${download.en-US.dir}"/>
 	</antcall>
 	<mkdir dir="${lot.temp.dir}"/>
-	<get src="${download.en-US.url}" dest="${lot.temp.dir}/en-US.zip"/>
-	<unzip src="${lot.temp.dir}/en-US.zip" dest="${download.en-US.dir}">
+	<get src="${download.en-US.url}" dest="${lot.temp.dir}/download-en-US/en-US.zip"/>
+	<unzip src="${lot.temp.dir}/download-en-US/en-US.zip" dest="${download.en-US.dir}">
 		<globmapper from="en-US/*" to="*"/>
 	</unzip>
 </target>
@@ -246,20 +246,26 @@
 	<attribute name="tempdir" default="${lot.temp.dir}/hgtol10n"/>
 	<sequential>
 		<if>
-			<equals arg1="@{rev}" arg2=""/>
-			<then>
-				<copy todir="@{l10ndir}/@{l10npath}" failonerror="false" preservelastmodified="true">
-					<fileset dir="@{hgdir}/@{hgpath}"/>
-				</copy>
-			</then>
-			<else>
-				<delete dir="@{tempdir}"/><mkdir dir="@{tempdir}"/>
-				<echo message="executing hg archive command: hg -R @{hgdir} archive --rev @{rev} --include @{hgdir}/@{hgpath} @{tempdir}"/>
-				<hg failonerror="true"><arg line="-R @{hgdir} archive --rev @{rev} --include @{hgdir}/@{hgpath} @{tempdir}"/></hg>
-				<move todir="@{l10ndir}/@{l10npath}" failonerror="false" preservelastmodified="true">
-					<fileset dir="@{tempdir}/@{hgpath}"/>
-				</move>
-			</else>
+			<and>
+				<not><available file="${diff.en-US.dir1}" type="dir"/></not>
+				<not><isset property="reuse.en-US"/></not>
+			</and>
+			<then><if>
+				<equals arg1="@{rev}" arg2=""/>
+				<then>
+					<copy todir="@{l10ndir}/@{l10npath}" failonerror="false" preservelastmodified="true">
+						<fileset dir="@{hgdir}/@{hgpath}"/>
+					</copy>
+				</then>
+				<else>
+					<delete dir="@{tempdir}"/><mkdir dir="@{tempdir}"/>
+					<echo message="executing hg archive command: hg -R @{hgdir} archive --rev @{rev} --include @{hgdir}/@{hgpath} @{tempdir}"/>
+					<hg failonerror="true"><arg line="-R @{hgdir} archive --rev @{rev} --include @{hgdir}/@{hgpath} @{tempdir}"/></hg>
+					<move todir="@{l10ndir}/@{l10npath}" failonerror="false" preservelastmodified="true">
+						<fileset dir="@{tempdir}/@{hgpath}"/>
+					</move>
+				</else>
+			</if></then>
 		</if>
 	</sequential>
 </macrodef>
