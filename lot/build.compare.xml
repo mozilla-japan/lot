@@ -78,7 +78,7 @@
 			output  = args[3]
 			option  = args[4]
 			includes = args[5]
-			excludes = '*/*, */*/**'
+			excludes = '*/*, */*/**' // select only top level directories
 			if (includes != '' && includes != '*' && includes != '**') {
 				if (includes == '**')
 					includes = '*'

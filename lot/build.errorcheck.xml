@@ -89,7 +89,9 @@
 		errormsg = new StringBuilder()
 		includes = properties.'placeholdercheck.includes' ?: '**/*.properties'
 		excludes = properties.'placeholdercheck.excludes' ?: ''
+		ant.echo(message: properties.'placeholdercheck.dir' + ':::' + includes + ':::' + excludes);
 		ant.fileset(dir:properties.'placeholdercheck.dir', includes:includes, excludes:excludes).each {
+			if (!(it =~ /\.properties$/)) return // check only properties files
 			errorlines = new StringBuilder()
 			it.getFile().getText('UTF-8').eachLine { line, n ->
 				err = false
@@ -126,6 +128,7 @@
 		includes = properties.'pluralcheck.includes' ?: '**/*.properties'
 		excludes = properties.'pluralcheck.excludes' ?: ''
 		ant.fileset(dir:properties.'pluralcheck.dir', includes:includes, excludes:excludes).each {
+			if (!(it =~ /\.properties$/)) return // check only properties files
 			errorlines = new StringBuilder()
 			it.getFile().getText('UTF-8').replaceAll(/(?ms)${properties.'pluralcheck.allow'}/, properties.'pluralcheck.allow.replace').eachLine { line, n ->
 				if (line =~ /^\s*[-0-9a-zA-Z_.?{@}]+\s*=.+;.+/) {
@@ -151,7 +154,8 @@
 	<attribute name="replacement"	default="${wordcheck.deny.replace}"/>
 	<attribute name="dir"			default="${wordcheck.dir}"/>
 	<attribute name="output"		default="${wordcheck.output}"/>
-	<attribute name="excludes"		default=""/>
+	<attribute name="includes"		default="${wordcheck.includes}"/>
+	<attribute name="excludes"		default="${wordcheck.excludes}"/>
 	<attribute name="regexpengine"	default=""/>
 	<sequential>
 		<groovy>
@@ -161,6 +165,7 @@
 			<arg value="@{replacement}"/>
 			<arg value="@{dir}"/>
 			<arg value="@{output}"/>
+			<arg value="@{includes}"/>
 			<arg value="@{excludes}"/>
 			<arg value="@{regexpengine}"/>
 			<![CDATA[
@@ -171,8 +176,9 @@
 			replacement		= args[2]
 			dir				= args[3]
 			outputfile		= new File(args[4])
-			excludes		= args[5]
-			regexpengine	= args[6]
+			includes		= args[5]
+			excludes		= args[6]
+			regexpengine	= args[7]
 			xmlcommentpattern  = /${properties.'RE.xml.comment'}/
 			linecommentpattern = /(?m)^(@line [0-9]+: )?\s*#[^\n]*/
 			errormsg           = new StringBuilder()
@@ -208,28 +214,29 @@
 				if (errorlines) errormsg << "Error Found in $file:\n$errorlines\n\n"
 			}
 			
-			ant.fileset(dir:dir, includes:'**/*.dtd, ${xmlfiles}', excludes:excludes).each {
-				wordchecker(it, 'UTF-8', allowpattern, denypattern, xmlcommentpattern)
+			ant.fileset(dir:dir, includes:includes, excludes:excludes).each {
+				if (it =~ /\.(dtd|xml|html?|xhtml|rdf)$/)
+					wordchecker(it, 'UTF-8', allowpattern, denypattern, xmlcommentpattern)
 			}
 			if (properties.'wordcheck.unescape.properties') {
 				// note: native2ascii task require JDK installed and JAVA_HOME env set properly, or you'll see the error "error starting Sun's native2ascii"
 				ant.native2ascii(src:dir, includes:'**/*.properties',
 					dest:'${lot.temp.dir}/wordcheck', reverse:true, encoding:'UTF-8')
-				ant.fileset(dir: '${lot.temp.dir}/wordcheck', includes:'**/*.properties', excludes:excludes).each {
-					wordchecker(it, 'UTF-8', allowpattern, denypattern, linecommentpattern)
+				ant.fileset(dir: '${lot.temp.dir}/wordcheck', includes:includes, excludes:excludes).each {
+					if (it =~ /\.properties$/)
+						wordchecker(it, 'UTF-8', allowpattern, denypattern, linecommentpattern)
 				}
 				ant.delete(dir:'${lot.temp.dir}/wordcheck', failonerror:false)
 			}
 			else {
-				ant.fileset(dir:dir, includes:'**/*.properties', excludes:excludes).each {
-					wordchecker(it, 'UTF-8', allowpattern, denypattern, linecommentpattern)
+				ant.fileset(dir:dir, includes:includes, excludes:excludes).each {
+					if (it =~ /\.properties$/)
+						wordchecker(it, 'UTF-8', allowpattern, denypattern, linecommentpattern)
 				}
 			}
-			ant.fileset(dir:dir, includes:'**/*.inc, **/unix/*.it', excludes:excludes).each {
-				wordchecker(it, 'UTF-8', allowpattern, denypattern, null)
-			}
-			ant.fileset(dir:dir, includes:'${sjisfiles}', excludes:excludes).each {
-				wordchecker(it, 'Shift_JIS', allowpattern, denypattern, null)
+			ant.fileset(dir:dir, includes:includes, excludes:excludes).each {
+				if (it =~ /\.inc$/)
+					wordchecker(it, 'UTF-8', allowpattern, denypattern, null)
 			}
 			if (errormsg) {
 				ant.mkdir(dir:outputfile.getParent())
@@ -256,19 +263,23 @@
 	<equals property="wordcheck.allow"	value="${wordcheck.allow.ja-JP-mac}" arg1="${locale}" arg2="ja-JP-mac"/>
 	<property name="wordcheck.allow"	value="##NOTHING##"/>
 	
-	<wordchecksuite excludes="browser/, calendar/, editor/, mail/, mobile/, suite/"/>
-	<wordchecksuite dir="${wordcheck.dir}/browser"
+	<wordchecksuite denypattern="${wordcheck.deny}" excludes="${l10n.includes.notcommon}"/>
+	<wordchecksuite includes="${wordcheck.includes}" excludes="${l10n.includes.not.only.fx}"
 		denypattern="${wordcheck.deny}|${wordcheck.deny.firefox}"/>
-	<wordchecksuite dir="${wordcheck.dir}/calendar"
-		denypattern="${wordcheck.deny}|${wordcheck.deny.sunbird}"/>
-	<wordchecksuite dir="${wordcheck.dir}/editor"
-		denypattern="${wordcheck.deny}|${wordcheck.deny.thunderbird}|${wordcheck.deny.seamonkey}"/>
-	<wordchecksuite dir="${wordcheck.dir}/mail"
-		denypattern="${wordcheck.deny}|${wordcheck.deny.thunderbird}|${wordcheck.deny.seamonkey}"/>
-	<wordchecksuite dir="${wordcheck.dir}/mobile"
+	<wordchecksuite includes="${wordcheck.includes}" excludes="${l10n.includes.not.only.tb}"
+		denypattern="${wordcheck.deny}|${wordcheck.deny.thunderbird}"/>
+	<wordchecksuite includes="${wordcheck.includes}" excludes="${l10n.includes.not.only.fe}"
 		denypattern="${wordcheck.deny}|${wordcheck.deny.fennec}"/>
-	<wordchecksuite dir="${wordcheck.dir}/suite"
+	<wordchecksuite includes="${wordcheck.includes}" excludes="${l10n.includes.not.only.sb}"
+		denypattern="${wordcheck.deny}|${wordcheck.deny.sunbird}"/>
+	<wordchecksuite includes="${wordcheck.includes}" excludes="${l10n.includes.not.only.sm}"
 		denypattern="${wordcheck.deny}|${wordcheck.deny.seamonkey}"/>
+	<wordchecksuite includes="${wordcheck.includes}" excludes="${l10n.includes.not.only.fx.tb.sm}"
+		denypattern="${wordcheck.deny}|${wordcheck.deny.firefox}|${wordcheck.deny.thunderbird}|${wordcheck.deny.seamonkey}"/>
+	<wordchecksuite includes="${wordcheck.includes}" excludes="${l10n.includes.not.only.fx.sm}"
+		denypattern="${wordcheck.deny}|${wordcheck.deny.firefox}|${wordcheck.deny.seamonkey}"/>
+	<wordchecksuite includes="${wordcheck.includes}" excludes="${l10n.includes.not.only.tb.sm}"
+		denypattern="${wordcheck.deny}|${wordcheck.deny.thunderbird}|${wordcheck.deny.seamonkey}"/>
 	
 	<loadfile property="wordcheck.error" srcfile="${wordcheck.output}" encoding="UTF-8"
 		failonerror="false" quiet="true"/>
@@ -300,9 +311,9 @@
 		<condition><not><available file="${charcheck.dir}" type="dir"/></not></condition>
 	</fail>
 	
-	<wordchecksuite dir="${charcheck.dir}" output="${charcheck.output}" excludes="${charcheck.excludes}"
-		allowpattern="${charcheck.allow}" denypattern="${charcheck.deny}" replacement="${charcheck.deny.replace}"
-		regexpengine="jakartaoro"/>
+	<wordchecksuite dir="${charcheck.dir}" output="${charcheck.output}" regexpengine="jakartaoro"
+		includes="${charcheck.includes}" excludes="${charcheck.excludes}"
+		allowpattern="${charcheck.allow}" denypattern="${charcheck.deny}" replacement="${charcheck.deny.replace}"/>
 	
 	<loadfile property="charcheck.error" srcfile="${charcheck.output}" encoding="UTF-8"
 		failonerror="false" quiet="true"/>
