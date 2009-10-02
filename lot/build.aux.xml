@@ -324,9 +324,9 @@
 	<attribute name="app"/>
 	<sequential>
 		<antcall target="commoncheck">
-			<param name="syntaxcheck.includes"		value="${@{app}.l10n.includes}"/>
-			<param name="placeholdercheck.includes"	value="${@{app}.l10n.includes}"/>
-			<param name="pluralcheck.includes"		value="${@{app}.l10n.includes}"/>
+			<param name="syntaxcheck.includes"		value="${l10n.includes.@{app}}"/>
+			<param name="placeholdercheck.includes"	value="${l10n.includes.@{app}}"/>
+			<param name="pluralcheck.includes"		value="${l10n.includes.@{app}}"/>
 			<param name="errorsummary.output"		value="${lot.log.dir}/@{app}/${locale}.${tstamp.yyyyMMddHH}.errorsummary"/>
 			<param name="syntaxcheck.output"		value="${lot.log.dir}/@{app}/${locale}.${tstamp.yyyyMMddHH}.syntaxerror"/>
 			<param name="placeholdercheck.includes"	value="${lot.log.dir}/@{app}/${locale}.${tstamp.yyyyMMddHH}.placeholdererror"/>
@@ -346,10 +346,9 @@
 	<attribute name="app"/>
 	<sequential>
 		<antcall target="compare">
-			<param name="compare.includes"		value="${@{app}.l10n.includes}"/>
-			<param name="compare.excludes"		value=".hg/"/>
-			<param name="errorsummary.output"	value="${lot.log.dir}/@{app}/${locale}.${tstamp.yyyyMMddHH}.errorsummary"/>
-			<param name="compare.output"		value="${lot.log.dir}/@{app}/${locale}.${tstamp.yyyyMMddHH}.compare"/>
+			<param name="compare.includes"		value="${l10n.includes.@{app}}"/>
+			<param name="errorsummary.output"	value="${log.dir}/@{app}/${locale}.${tstamp.yyyyMMddHH}.errorsummary"/>
+			<param name="compare.output"		value="${log.dir}/@{app}/${locale}.${tstamp.yyyyMMddHH}.compare"/>
 		</antcall>
 	</sequential>
 </macrodef>

@@ -154,6 +154,10 @@
 	
 </target>
 
+<target name="diff-from-lastsync" depends="diff-to-sync"/>
+<target name="diff-to-sync" depends="load-mainconf">
+	
+</target>
 
 <!-- * compare/merge locales * -->
 <macrodef name="compare">

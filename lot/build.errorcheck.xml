@@ -89,7 +89,6 @@
 		errormsg = new StringBuilder()
 		includes = properties.'placeholdercheck.includes' ?: '**/*.properties'
 		excludes = properties.'placeholdercheck.excludes' ?: ''
-		ant.echo(message: properties.'placeholdercheck.dir' + ':::' + includes + ':::' + excludes);
 		ant.fileset(dir:properties.'placeholdercheck.dir', includes:includes, excludes:excludes).each {
 			if (!(it =~ /\.properties$/)) return // check only properties files
 			errorlines = new StringBuilder()
@@ -286,7 +285,9 @@
 	<if>
 		<istrue value="${wordcheck.failonerror}"/>
 		<then><fail message="${N}${wordcheck.error}${vmsg.wordcheck.found}" if="wordcheck.error"/></then>
-		<else><echo message="${N}${wordcheck.error}${vmsg.wordcheck.found}" if="wordcheck.error"/></else>
+		<else><if><isset property="wordcheck.error"/>
+			<then><echo message="${N}${wordcheck.error}${vmsg.wordcheck.found}"/></then>
+		</if></else>
 	</if>
 </target>
 
@@ -317,7 +318,13 @@
 	
 	<loadfile property="charcheck.error" srcfile="${charcheck.output}" encoding="UTF-8"
 		failonerror="false" quiet="true"/>
-	<fail if="charcheck.error">${N}${charcheck.error}${vmsg.charcheck.found}${N}使用不可と検出された文字のリストを取得したい場合は次の(一行の)コマンドを実行してください:${N}cat ${charcheck.output} | perl -pe 'use utf8; use encoding ("utf-8"); s/^[^\[\]]*(\[CHARERROR\[([^\]]+)\]CHARERROR\])?[^\[\]]*|[^\[\]]*|^Error.+/$1\n/g; s/CHARERROR|[\[\]\s]//g; s/(.)/$1\n/g;' | sort | uniq</fail>
+	<if>
+		<istrue value="${charcheck.failonerror}"/>
+		<then><fail if="charcheck.error">${N}${charcheck.error}${vmsg.charcheck.found}${N}使用不可と検出された文字のリストを取得したい場合は次の(一行の)コマンドを実行してください:${N}cat ${charcheck.output} | perl -pe 'use utf8; use encoding ("utf-8"); s/^[^\[\]]*(\[CHARERROR\[([^\]]+)\]CHARERROR\])?[^\[\]]*|[^\[\]]*|^Error.+/$1\n/g; s/CHARERROR|[\[\]\s]//g; s/(.)/$1\n/g;' | sort | uniq</fail></then>
+		<else><if><isset property="charcheck.error"/>
+			<then><echo>${N}${charcheck.error}${vmsg.charcheck.found}${N}使用不可と検出された文字のリストを取得したい場合は次の(一行の)コマンドを実行してください:${N}cat ${charcheck.output} | perl -pe 'use utf8; use encoding ("utf-8"); s/^[^\[\]]*(\[CHARERROR\[([^\]]+)\]CHARERROR\])?[^\[\]]*|[^\[\]]*|^Error.+/$1\n/g; s/CHARERROR|[\[\]\s]//g; s/(.)/$1\n/g;' | sort | uniq</echo></then>
+		</if></else>
+	</if>
 </target>
 
 
