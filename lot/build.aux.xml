@@ -246,10 +246,10 @@
 	<attribute name="tempdir" default="${lot.temp.dir}/hgtol10n"/>
 	<sequential>
 		<if>
-			<and>
-				<not><available file="${diff.en-US.dir1}" type="dir"/></not>
+			<or>
+				<not><available file="@{l10ndir}/@{l10npath}" type="dir"/></not>
 				<not><isset property="reuse.en-US"/></not>
-			</and>
+			</or>
 			<then><if>
 				<equals arg1="@{rev}" arg2=""/>
 				<then>

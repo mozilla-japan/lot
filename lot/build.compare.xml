@@ -71,25 +71,39 @@
 			<arg value="@{output}"/>
 			<arg value="@{option}"/>
 			<arg value="@{includes}"/>
+			<!-- 今のところ includes のターゲットはディレクトリのみという仕様
+			includes 上位ディレクトリにマッチしないがファイルにだけマッチする場合はファイル個別で diff 取るべきか？ -->
 			<![CDATA[
-			basedir = args[0]
-			fromdir = args[1]
-			todir   = args[2]
-			output  = args[3]
-			option  = args[4]
-			includes = args[5]
-			excludes = '*/*, */*/**' // select only top level directories
-			if (includes != '' && includes != '*' && includes != '**') {
-				if (includes == '**')
-					includes = '*'
-				ant.delete(file:output)
+				def basedir = args[0]
+				def fromdir = args[1]
+				def todir   = args[2]
+				def output  = args[3]
+				def option  = args[4]
+				def includes = args[5]
+				
+				def excludes = ""
+				ant.availableassert(file:"$basedir/$fromdir", type:'dir')
+				ant.availableassert(file:"$basedir/$todir", type:'dir')
+				def fromdirpath = ant.dirset(dir:basedir, includes:fromdir).iterator().next().getFile().getPath()
+				def todirpath = ant.dirset(dir:basedir, includes:todir).iterator().next().getFile().getPath()
+				def dirlist = [], templist = []
 				ant.dirset(dir:basedir+'/'+fromdir, includes:includes, excludes:excludes).each {
-					dir = it.getFile().getName()
-					ant.diff(dir:basedir, from:fromdir+'/'+dir, to:todir+'/'+dir, output:output, option:option, append:true)
+					templist.push(it.getFile().getPath().replace("$fromdirpath/",'').replace(fromdirpath,''))
 				}
-			} else {
-				ant.diff(dir:basedir, from:fromdir, to:todir, output:output, option:option, append:false)
-			}
+				ant.dirset(dir:basedir+'/'+todir, includes:includes, excludes:excludes).each {
+					templist.push(it.getFile().getPath().replace("$todirpath/",'').replace(todirpath,''))
+				}
+				templist.sort()
+				templist.each {
+					if (dirlist.size() == 0 || !it.contains(dirlist.last())) {
+						dirlist.push(it)
+					}
+				}
+				ant.delete(file:output)
+				dirlist.each { diffpath ->
+					ant.echo(message: "$fromdir/$diffpath")
+					ant.diff(dir:basedir, from:"$fromdir/$diffpath", to:"$todir/$diffpath", output:output, option:option, append:true)
+				}
 		]]></groovy>
 	</sequential>
 </macrodef>
