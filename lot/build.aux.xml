@@ -244,6 +244,7 @@
 	<attribute name="l10ndir" default="${en-US.dir}"/>
 	<attribute name="rev" default=""/>
 	<attribute name="tempdir" default="${lot.temp.dir}/hgtol10n"/>
+	<attribute name="failonerror" default="true"/>
 	<sequential>
 		<if>
 			<or>
@@ -260,7 +261,7 @@
 				<else>
 					<delete dir="@{tempdir}"/><mkdir dir="@{tempdir}"/>
 					<echo message="executing hg archive command: hg -R @{hgdir} archive --rev @{rev} --include @{hgdir}/@{hgpath} @{tempdir}"/>
-					<hg failonerror="true"><arg line="-R @{hgdir} archive --rev @{rev} --include @{hgdir}/@{hgpath} @{tempdir}"/></hg>
+					<hg failonerror="@{failonerror}"><arg line="-R @{hgdir} archive --rev @{rev} --include @{hgdir}/@{hgpath} @{tempdir}"/></hg>
 					<move todir="@{l10ndir}/@{l10npath}" failonerror="false" preservelastmodified="true">
 						<fileset dir="@{tempdir}/@{hgpath}"/>
 					</move>
