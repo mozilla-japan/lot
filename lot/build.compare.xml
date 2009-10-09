@@ -269,7 +269,7 @@
 <target name="merge" depends="load-conf" unless="nomerge"
 	description="compare l10n files and merge new/obsolate files/entities">
 	<istrue arg="${merge.withcomment}" property="merge.mode" value="merge+withcomment" else="merge"/>
-	<confirm message="${merge.dir1} ディレクトリのファイルと ${merge.dir2} ディレクトリのファイルを比較し、新しいファイルやエンティティを追加、古いものは削除します。実行してもよろしいですか？ (Y/N)${N}次のファイルやディレクトリは除外されます: ${merge.excludes}${N}注: 古いものを削除せず残したい場合は merge ではなく insertnew ターゲットを使用してください。"/>
+	<confirm message="${merge.dir1} ディレクトリのファイルと ${merge.dir2} ディレクトリのファイルを比較し、新しいファイルやエンティティを追加、古いものは削除します。実行してもよろしいですか？ (Y/N)${N}次のファイルが対象になります: ${merge.includes}${N}次のファイルやディレクトリは除外されます: ${merge.excludes}${N}注: 古いものを削除せず残したい場合は merge ではなく insertnew ターゲットを使用してください。"/>
 	<compare mode="${merge.mode}" locale2="${locale}" output="${merge.output}" failonerror="${merge.failonerror}"
 		dir1="${merge.dir1}" dir2="${merge.dir2}" includes="${merge.includes}" excludes="${merge.excludes}"/>
 	<echo message="ブロック最初のエンティティが削除される場合、ブロックに対するコメントがそのエンティティ単体のものとして削除されることがあります(現時点での仕様)。必ず処理結果を差分ファイルで確認し、必要に応じて修正してください。"/>
@@ -278,28 +278,28 @@
 <target name="insertnew" depends="load-conf" unless="nomerge"
 	description="compare l10n files and merge new files/entities (not remove obsolate ones)">
 	<istrue arg="${merge.withcomment}" property="insertnew.mode" value="insert+withcomment" else="insert"/>
-	<confirm message="${merge.dir1} ディレクトリのファイルを ${merge.dir2} ディレクトリのファイルを比較し、新しいファイルやエンティティを追加します。実行してもよろしいですか？ (Y/N)${N}次のファイルやディレクトリは除外されます: ${merge.excludes}"/>
+	<confirm message="${merge.dir1} ディレクトリのファイルを ${merge.dir2} ディレクトリのファイルを比較し、新しいファイルやエンティティを追加します。実行してもよろしいですか？ (Y/N)${N}次のファイルが対象になります: ${merge.includes}${N}次のファイルやディレクトリは除外されます: ${merge.excludes}"/>
 	<compare mode="${insertnew.mode}" locale2="${locale}" output="${merge.output}" failonerror="${merge.failonerror}"
 		dir1="${merge.dir1}" dir2="${merge.dir2}" includes="${merge.includes}" excludes="${merge.excludes}"/>
 </target>
 
 <target name="merge-onlyfile" depends="load-conf" unless="nomerge"
 	description="compare l10n files and merge new/obsolate files (not merge entities)">
-	<confirm message="${merge.dir1} ディレクトリのファイルと ${merge.dir2} ディレクトリのファイルを比較し、新しいファイルを追加、古いものは削除します。実行してもよろしいですか？ (Y/N)${N}次のファイルやディレクトリは除外されます: ${merge.excludes}"/>
+	<confirm message="${merge.dir1} ディレクトリのファイルと ${merge.dir2} ディレクトリのファイルを比較し、新しいファイルを追加、古いものは削除します。実行してもよろしいですか？ (Y/N)${N}次のファイルが対象になります: ${merge.includes}${N}次のファイルやディレクトリは除外されます: ${merge.excludes}"/>
 	<compare mode="merge-onlyfile" locale2="${locale}" output="${merge.output}" failonerror="${merge.failonerror}"
 		dir1="${merge.dir1}" dir2="${merge.dir2}" includes="${merge.includes}" excludes="${merge.excludes}"/>
 </target>
 
 <target name="merge-onlyaccesskey" depends="load-conf" unless="nomerge"
 	description="compare l10n files and merge new/obsolate accesskeys (only in common files)">
-	<confirm message="${merge.dir1} ディレクトリのファイルと ${merge.dir2} ディレクトリのファイルを比較し、新しいアクセスキーを追加、古いものは削除します。実行してもよろしいですか？ (Y/N)${N}次のファイルやディレクトリは除外されます: ${merge.excludes}"/>
+	<confirm message="${merge.dir1} ディレクトリのファイルと ${merge.dir2} ディレクトリのファイルを比較し、新しいアクセスキーを追加、古いものは削除します。実行してもよろしいですか？ (Y/N)${N}次のファイルが対象になります: ${merge.includes}${N}次のファイルやディレクトリは除外されます: ${merge.excludes}"/>
 	<compare mode="merge-onlyaccesskey" locale2="${locale}" output="${merge.output}" failonerror="${merge.failonerror}"
 		dir1="${merge.dir1}" dir2="${merge.dir2}" includes="${merge.includes}" excludes="${merge.excludes}"/>
 </target>
 
 <target name="resetaccesskey" depends="load-conf" unless="nomerge"
 	description="compare l10n files and reset accesskeys (only in common files)">
-	<confirm message="${merge.dir1} ディレクトリと ${merge.dir2} ディレクトリのファイルのアクセスキーを比較し、異なるものは前者の定義に書き換えます。実行してもよろしいですか？ (Y/N)${N}次のファイルやディレクトリは除外されます: ${resetaccesskey.excludes}"/>
+	<confirm message="${resetaccesskey.dir1} ディレクトリと ${resetaccesskey.dir2} ディレクトリのファイルのアクセスキーを比較し、異なるものは前者の定義に書き換えます。実行してもよろしいですか？ (Y/N)${N}次のファイルが対象になります: ${resetaccesskey.includes}${N}次のファイルやディレクトリは除外されます: ${resetaccesskey.excludes}"/>
 	<compare mode="resetaccesskey" locale2="${locale}" output="${resetaccesskey.output}"
 		dir1="${resetaccesskey.dir1}" dir2="${resetaccesskey.dir2}" includes="${resetaccesskey.includes}" excludes="${resetaccesskey.excludes}"/>
 </target>

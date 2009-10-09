@@ -262,7 +262,7 @@
 	<equals property="wordcheck.allow"	value="${wordcheck.allow.ja-JP-mac}" arg1="${locale}" arg2="ja-JP-mac"/>
 	<property name="wordcheck.allow"	value="##NOTHING##"/>
 	
-	<wordchecksuite denypattern="${wordcheck.deny}" excludes="${l10n.includes.notcommon}"/>
+	<wordchecksuite excludes="${l10n.includes.not.common}" denypattern="${wordcheck.deny}"/>
 	<wordchecksuite includes="${wordcheck.includes}" excludes="${l10n.includes.not.only.fx}"
 		denypattern="${wordcheck.deny}|${wordcheck.deny.firefox}"/>
 	<wordchecksuite includes="${wordcheck.includes}" excludes="${l10n.includes.not.only.tb}"
