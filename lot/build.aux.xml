@@ -75,7 +75,7 @@
 	<antcall target="remove-en-US">
 		<param name="en-US.dir" value="${download.en-US.dir}"/>
 	</antcall>
-	<mkdir dir="${lot.temp.dir}"/>
+	<mkdir dir="${lot.temp.dir}/download-en-US"/>
 	<get src="${download.en-US.url}" dest="${lot.temp.dir}/download-en-US/en-US.zip"/>
 	<unzip src="${lot.temp.dir}/download-en-US/en-US.zip" dest="${download.en-US.dir}">
 		<globmapper from="en-US/*" to="*"/>
@@ -100,16 +100,18 @@
 		<then>
 			<input message="Japanese L10N SVN サーバのアカウント名を入力してください。アカウントを持っていないか、サーバにコミットする予定もない場合は何も入力しないでください。" addproperty="svn.username"/>
 			<expandproperty name="svn.l10n.userssh.repo"/>
-			<equals arg1="${svn.username}" arg2="" trim="true" property="svn.repo"
-				value="${svn.l10n.repo}" else="${svn.l10n.userssh.repo}"/>
-			<property name="svn.l10n.checkout.arg" value="checkout ${svn.repo} ${svn.l10n.dir}"/>
+			<equals arg1="${svn.username}" arg2="" trim="true" property="svn.l10n.repo"
+				value="${svn.l10n.http.repo}" else="${svn.l10n.userssh.repo}"/>
+			<property name="svn.l10n.checkout.arg" value="checkout ${svn.l10n.repo} ${svn.l10n.dir}"/>
 			<confirm message="次の SVN コマンドを実行してもよろしいですか？(Y/N)${N}svn ${svn.l10n.checkout.arg}"/>
 			<svn failonerror="true"><arg line="${svn.l10n.checkout.arg}"/></svn>
 			<if>
 				<equals arg1="${genconf.type}" arg2="childbrowser"/>
 				<then>
+					<equals arg1="${svn.username}" arg2="" trim="true" property="svn.childbrowser.repo"
+						value="${svn.childbrowser.http.repo}" else="${svn.childbrowser.userssh.repo}"/>
 					<property name="svn.childbrowser.checkout.arg"
-						value="checkout ${svn.childbrowser.userssh.repo} ${svn.childbrowser.dir}"/>
+						value="checkout ${svn.childbrowser.repo} ${svn.childbrowser.dir}"/>
 					<confirm message="次の SVN コマンドを実行してもよろしいですか？(Y/N)${N}svn ${svn.childbrowser.checkout.arg}"/>
 					<svn failonerror="true"><arg line="${svn.childbrowser.checkout.arg}"/></svn>
 				</then>
