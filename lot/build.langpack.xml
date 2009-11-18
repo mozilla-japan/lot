@@ -5,8 +5,9 @@
 
 <!-- import preset/macro library and additional targets -->
 <import file="build.errorcheck.xml"/>
-<import file="build.compare.xml"	optional="true"/>
-<import file="build.aux.xml"		optional="true"/>
+<import file="build.compare.xml"		optional="true"/>
+<import file="build.aux.xml"			optional="true"/>
+<import file="build.childbrowser.xml"	optional="true"/>
 
 
 

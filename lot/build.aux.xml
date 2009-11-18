@@ -120,6 +120,19 @@
 	</if>
 </target>
 
+<target name="checkout-all"
+	description="checkout all branch src files from l10n svn server (only for ja locale)">
+	<antcall>
+		<target name="for191"/><target name="checkout-src"/>
+	</antcall>
+	<antcall>
+		<target name="for192"/><target name="checkout-src"/>
+	</antcall>
+	<antcall>
+		<target name="fortrunk"/><target name="checkout-src"/>
+	</antcall>
+</target>
+
 <target name="setupl10n" depends="genconf, download-en-US, clone-locale, checkout-src"
 	description="generate config file and get l10n files for your locale"/>
 <target name="setupnewl10n" depends="genconf, download-en-US, newlocale"

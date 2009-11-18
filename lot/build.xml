@@ -76,7 +76,7 @@
 	<matchesassert string="${targetapp}" pattern="^firefox|thunderbird|fennec|sunbird|seamonkey$"/>
 	<loadconf file="${config.package.file}">
 		<morefilters>
-			<replaceregex pattern="^(${targetapp}\\.${locale}|${targetapp}|${locale})#" replace="" flags="i"/>
+			<replaceregex pattern="^(${package}|${targetbranch}|${targetapp}\\.${locale}|${targetapp}|${locale})#" replace="" flags="i"/>
 		</morefilters>
 	</loadconf>
 	<property name="packageconf.loaded" value="yes"/>
@@ -232,20 +232,16 @@
 </target>
 
 
-		<!-- *** Other Interface *** -->
 
-<target name="clean" unless="noclean"
-	description="clean (delete) temporary files">
-	<available property="temp.dir.exists" file="${lot.temp.dir}" type="dir"/>
-	<confirm message="${cmsg.clean.confirm}" failmessage="${cmsg.clean.aborted}" if="temp.dir.exists"/>
-	<delete dir="${lot.temp.dir}"/>
-</target>
+		<!-- *** Option Targets *** -->
 
+<!-- * Skip Confirm * -->
 <target name="auto" description="exec following targets without any confirming">
 	<property name="nointro" value="YES"/>
 	<property name="noconfirm" value="YES"/>
 </target>
 
+<!-- * Skip Error Check * -->
 <target name="noerrorcheck" description="exec following targets without any errorcheck">
 	<property name="nosyntaxcheck" value="YES"/>
 	<property name="noplaceholdercheck" value="YES"/>
@@ -258,6 +254,7 @@
 	<property name="nocompare" value="YES"/>
 </target>
 
+<!-- * Select Branch * -->
 <target name="for1.9.1" depends="for191"/>
 <target name="for191" description="exec following targets for mozilla-1.9.1 files">
 	<fail if="userconf.loaded" message="this target must be used before 'load-userconf' target"/>
@@ -274,6 +271,11 @@
 	<updateproperty name="targetbranch" value="trunk"/>
 </target>
 
+<!-- * Select Target Application * -->
+<target name="includeall" description="exec following targets for all files">
+	<fail if="mainconf.loaded" message="this target must be used before 'load-userconf' target"/>
+	<updateproperty name="l10n.includes" value="**"/>
+</target>
 <target name="onlycommon" description="exec following targets only for common files">
 	<fail if="mainconf.loaded" message="this target must be used before 'load-userconf' target"/>
 	<updateproperty name="l10n.includes" value="${l10n.includes.common}"/>
@@ -302,6 +304,17 @@
 <target name="onlyseamonkey" description="exec following targets only for seamonkey files">
 	<fail if="mainconf.loaded" message="this target must be used before 'load-userconf' target"/>
 	<updateproperty name="l10n.includes" value="${l10n.includes.common}, ${l10n.includes.seamonkey}"/>
+</target>
+
+
+
+		<!-- *** Other Interface *** -->
+
+<target name="clean" unless="noclean"
+	description="clean (delete) temporary files">
+	<available property="temp.dir.exists" file="${lot.temp.dir}" type="dir"/>
+	<confirm message="${cmsg.clean.confirm}" failmessage="${cmsg.clean.aborted}" if="temp.dir.exists"/>
+	<delete dir="${lot.temp.dir}"/>
 </target>
 
 <target name="version" description="display lot version">
