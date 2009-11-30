@@ -253,7 +253,11 @@
 	<update-jar dir="${jar.src.dir}/mobile/chrome"							prefix="locale/${langpack.locale}/browser"
 		includes="*" excludes=""/>
 	<update-jar dir="${jar.src.dir}/mobile/chrome/overrides"				prefix="locale/${langpack.locale}/browser"/>
-	<update-jar dir="${jar.src.dir}/mobile/chrome/brand"					prefix="locale/${langpack.locale}/branding"/>
+	<!-- <update-jar dir="${jar.src.dir}/mobile/chrome/brand"					prefix="locale/${langpack.locale}/branding"/> -->
+	<!-- <update-jar dir="${jar.src.dir}/mobile/chrome/brand"					prefix="locale/branding"/> -->
+	<!-- searchplugins should be in browser dir for fennec -->
+	<update-jar dir="${en-US.dir}/mobile/searchplugins"						prefix="locale/${langpack.locale}/browser/searchplugins" includes="google.xml, twitter.xml"/>
+	<update-jar dir="${jar.src.dir}/mobile/searchplugins"					prefix="locale/${langpack.locale}/browser/searchplugins"/>
 	
 	<!-- mobile-l10n.js は @AB_CD@ を置き換えて defaults ディレクトリにコピーする必要あり -->
 	<copy file="${jar.src.dir}/mobile/mobile-l10n.js"
@@ -262,11 +266,6 @@
 			<replaceregex pattern="@AB_CD@" replace="${langpack.locale}"/>
 		</filterchain>
 	</copy>
-	
-	<!-- not for jar but exec here just for simplicity
-	<copy todir="${xpi.src.dir}/searchplugins" preservelastmodified="true" overwrite="true">
-		<fileset dir="${jar.src.dir}/mobile/searchplugins" excludes="list.txt"/>
-	</copy> -->
 </target>
 
 <target name="-jar-sunbird-" if="targetapp.is.sunbird">

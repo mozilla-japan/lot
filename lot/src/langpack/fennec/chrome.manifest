@@ -1,10 +1,12 @@
 # fennec part
 locale	browser		${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/browser/
-locale	branding	${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/branding/
-#locale	firstrun	${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/firstrun/
-#content	firstrun	jar:chrome/${langpack.locale}.jar!/content/firstrun/ contentaccessible=yes
+# current fennec use common branding locale files
+#locale	branding	${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/branding/
+#locale	branding	${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/branding/
 
-override chrome://global/locale/netErrorApp.dtd chrome://browser/locale/netError.dtd
+override chrome://global/locale/appstrings.properties chrome://browser/locale/appstrings.properties
+override chrome://global/locale/aboutRights.dtd chrome://browser/locale/aboutRights.dtd
+override chrome://global/locale/netError.dtd    chrome://browser/locale/netError.dtd
 
 # xulrunner part
 locale	alerts		${langpack.locale}	jar:chrome/${langpack.locale}.jar!/locale/${langpack.locale}/alerts/
