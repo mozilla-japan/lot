@@ -11,7 +11,7 @@
 	<if>
 		<istrue value="${genconf.noinput}"/>
 		<then>
-			<propertyalias name="default.locale" property="locale"/>
+			<propertyalias property="default.locale" alias="locale"/>
 			<property name="genconf.lot.user.name" value="${lot.user.name}"/>
 			<property name="genconf.lot.user.homepageURL" value="${lot.user.homepageURL}"/>
 			<property name="genconf.firefox.langpack.guid" value="langpack-${locale}@firefox.l10n.jp"/>
