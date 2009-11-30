@@ -4,8 +4,10 @@
 <property name="buildfile.errorcheck.loaded" value="true"/>
 
 <!-- * basic interface * -->
-<target name="errorcheck" depends="syntaxcheck, placeholdercheck, pluralcheck, wordcheck, suspectedwordcheck, charcheck"/>
-<target name="commoncheck" depends="syntaxcheck, placeholdercheck, pluralcheck"/>
+<target name="errorcheck" depends="syntaxcheck, placeholdercheck, pluralcheck, wordcheck, suspectedwordcheck, charcheck"
+	description="exec syntax/placeholder/plural/word/suspectedword/char error check for l10n files"/>
+<target name="commoncheck" depends="syntaxcheck, placeholdercheck, pluralcheck"
+	description="exec syntax/placeholder/plural error check for l10n files"/>
 
 <!-- * common macro * -->
 <macrodef name="errorlog">

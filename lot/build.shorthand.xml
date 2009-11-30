@@ -22,10 +22,14 @@
 <propertyalias property="rev1"				alias="diff.download.rev1"/>
 <propertyalias property="rev2"				alias="diff.download.rev2"/>
 
+<propertyalias property="mozillarev1"		alias="diff.mozilla.rev1"/>
+<propertyalias property="mozillarev2"		alias="diff.mozilla.rev2"/>
 <propertyalias property="mozrev1"			alias="diff.mozilla.rev1"/>
 <propertyalias property="mozrev2"			alias="diff.mozilla.rev2"/>
 <propertyalias property="commrev1"			alias="diff.comm.rev1"/>
 <propertyalias property="commrev2"			alias="diff.comm.rev2"/>
+<propertyalias property="mobilerev1"		alias="diff.mobile.rev1"/>
+<propertyalias property="mobilerev2"		alias="diff.mobile.rev2"/>
 
 <propertyalias property="dir1"				alias="compare.dir1"/>
 <propertyalias property="dir1"				alias="merge.dir1"/>

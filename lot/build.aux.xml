@@ -4,13 +4,14 @@
 <property name="buildfile.aux.loaded" value="true"/>
 
 <!-- * Setup and Update Targets * -->
-<target name="genconf" unless="nogenconf">
+<target name="genconf" unless="nogenconf"
+	description="generate use/locale specific user config file">
 	<property name="genconf.output" value="${config.dir}/user.conf"/>
 	<notavailableassert file="${genconf.output}"/>
 	<if>
 		<istrue value="${genconf.noinput}"/>
 		<then>
-			<property name="default.locale" alias="${locale}"/>
+			<propertyalias name="default.locale" alias="locale"/>
 			<property name="genconf.lot.user.name" value="${lot.user.name}"/>
 			<property name="genconf.lot.user.homepageURL" value="${lot.user.homepageURL}"/>
 			<property name="genconf.firefox.langpack.guid" value="langpack-${locale}@firefox.l10n.jp"/>
@@ -83,7 +84,7 @@
 </target>
 
 <target name="newlocale" depends="load-mainconf"
-	description="copy en-US files to your new locale">
+	description="copy en-US files to your new locale (start new l10n)">
 	<propertyalias property="default.locale" alias="locale"/>
 	<notavailableassert file="${l10n.dir}/${locale}" type="dir"
 		message="${l10n.dir}/${locale} directory already exists"/>
@@ -243,7 +244,8 @@
 	<antcall target="pull-mobile"/>
 </target>
 
-<target name="pre-commit-hg" depends="load-mainconf">
+<target name="pre-commit-hg" depends="load-mainconf"
+	description="hg status check before commit">
 	<property name="locale" value="${default.locale}"/>
 	<echo message="executing hg status command:${N}hg -R ${hg.l10n.dir}/${locale} status"/>
 	<hg failonerror="true"><arg line="-R ${hg.l10n.dir}/${locale} status"/></hg>
@@ -356,7 +358,8 @@
 <target name="commoncheckfe"><commoncheckapp app="fennec"/></target>
 <target name="commonchecksb"><commoncheckapp app="sunbird"/></target>
 <target name="commonchecksm"><commoncheckapp app="seamonkey"/></target>
-<target name="commoncheck-eachapp" depends="commonchecktk, commoncheckfx, commonchecktb, commoncheckfe, commonchecksb, commonchecksm"/>
+<target name="commoncheck-eachapp" depends="commonchecktk, commoncheckfx, commonchecktb, commoncheckfe, commonchecksb, commonchecksm"
+		description="exec error check suite for l10n files per targetapp"/>
 
 <macrodef name="compareapp">
 	<attribute name="app"/>
@@ -374,7 +377,8 @@
 <target name="comparefe"><compareapp app="fennec"/></target>
 <target name="comparesb"><compareapp app="sunbird"/></target>
 <target name="comparesm"><compareapp app="seamonkey"/></target>
-<target name="compare-eachapp" depends="comparetk, comparefx, comparetb, comparefe, comparesb, comparesm"/>
+<target name="compare-eachapp" depends="comparetk, comparefx, comparetb, comparefe, comparesb, comparesm"
+	description="exec only common error check for l10n files per targetapp"/>
 
 <!-- check for all locales -->
 <target name="genconf-alllocale" depends="load-mainconf">

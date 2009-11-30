@@ -102,6 +102,7 @@
 					}
 				}
 				ant.delete(file:output)
+				ant.echo(message:"generating diff file: $output")
 				dirlist.each { diffpath ->
 					ant.diff(dir:basedir, from:"$fromdir/$diffpath", to:"$todir/$diffpath", output:output, option:option, append:true)
 				}
@@ -136,18 +137,22 @@
 <target name="diff-revisions" depends="load-mainconf"
 	description="get two sets of en-US files from hg repo and generate diff of them">
 	<!-- check and get revision ids -->
-	<issetassert property="diff.mozilla.rev1"/>
+	<issetassert property="diff.mozilla.rev1"/><!-- rev1 for mozilla/comm repo must be specified -->
 	<issetassert property="diff.comm.rev1"/>
 	<hgrevision property="diff.mozilla.rev2" dir="${hg.mozilla.dir}" failonerror="true"/>
 	<hgrevision property="diff.comm.rev2" dir="${hg.comm.dir}" failonerror="true"/>
+	<hgrevision property="diff.mobile.rev1" dir="${hg.mobile.dir}" failonerror="true"/>
+	<hgrevision property="diff.mobile.rev2" dir="${hg.mobile.dir}" failonerror="true"/>
 	<!-- get revision numbers -->
 	<hgrevision property="diff.mozilla.revn1" dir="${hg.mozilla.dir}" type="num" rev="${diff.mozilla.rev1}" failonerror="true"/>
 	<hgrevision property="diff.mozilla.revn2" dir="${hg.mozilla.dir}" type="num" rev="${diff.mozilla.rev2}" failonerror="true"/>
 	<hgrevision property="diff.comm.revn1" dir="${hg.comm.dir}" type="num" rev="${diff.comm.rev1}" failonerror="true"/>
 	<hgrevision property="diff.comm.revn2" dir="${hg.comm.dir}" type="num" rev="${diff.comm.rev2}" failonerror="true"/>
+	<hgrevision property="diff.mobile.revn1" dir="${hg.mobile.dir}" type="num" rev="${diff.mobile.rev1}" failonerror="true"/>
+	<hgrevision property="diff.mobile.revn2" dir="${hg.mobile.dir}" type="num" rev="${diff.mobile.rev2}" failonerror="true"/>
 	<!-- check and set properties -->
-	<echo message="mozilla repo1 = ${diff.mozilla.revn1}:${diff.mozilla.rev1} comm repo1 = ${diff.comm.revn1}:${diff.comm.rev1}"/>
-	<echo message="mozilla repo2 = ${diff.mozilla.revn2}:${diff.mozilla.rev2} comm repo2 = ${diff.comm.revn2}:${diff.comm.rev2}"/>
+	<echo message="mozilla repo1 = ${diff.mozilla.revn1}:${diff.mozilla.rev1}, comm repo1 = ${diff.comm.revn1}:${diff.comm.rev1}, mobile repo1 = ${diff.mobile.revn1}:${diff.mobile.rev1}"/>
+	<echo message="mozilla repo2 = ${diff.mozilla.revn2}:${diff.mozilla.rev2}, comm repo2 = ${diff.comm.revn2}:${diff.comm.rev2}, mobile repo2 = ${diff.mobile.revn2}:${diff.mobile.rev2}"/>
 	<issetassert property="diff.en-US.dir1"/><expandproperty name="diff.en-US.dir1"/>
 	<issetassert property="diff.en-US.dir2"/><expandproperty name="diff.en-US.dir2"/>
 	<issetassert property="diff.revisions.output"/><expandproperty name="diff.revisions.output"/>
@@ -156,11 +161,13 @@
 		<param name="en-US.dir" value="${diff.en-US.dir1}"/>
 		<param name="mozillatol10n.rev" value="${diff.mozilla.rev1}"/>
 		<param name="commtol10n.rev" value="${diff.comm.rev1}"/>
+		<param name="mobiletol10n.rev" value="${diff.mobile.rev1}"/>
 	</antcall>
 	<antcall target="get-en-US">
 		<param name="en-US.dir" value="${diff.en-US.dir2}"/>
 		<param name="mozillatol10n.rev" value="${diff.mozilla.rev2}"/>
 		<param name="commtol10n.rev" value="${diff.comm.rev2}"/>
+		<param name="mobiletol10n.rev" value="${diff.mobile.rev2}"/>
 	</antcall>
 	<diffl10n dir="." option="${diff.option}" output="${diff.revisions.output}"
 		fromdir="${diff.en-US.dir1}" todir="${diff.en-US.dir2}" excludes="${sync.diff.excludes}"/>
