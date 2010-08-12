@@ -265,6 +265,11 @@
 	<fail if="userconf.loaded" message="this target must be used before 'load-userconf' target"/>
 	<updateproperty name="targetbranch" value="1.9.2"/>
 </target>
+<target name="for2.0" depends="for20"/>
+<target name="for20" description="exec following targets for mozilla-2.0 files">
+	<fail if="userconf.loaded" message="this target must be used before 'load-userconf' target"/>
+	<updateproperty name="targetbranch" value="2.0"/>
+</target>
 <target name="forcentral" depends="fortrunk"/>
 <target name="fortrunk" description="exec following targets for mozilla-central files">
 	<fail if="userconf.loaded" message="this target must be used before 'load-userconf' target"/>

@@ -378,7 +378,7 @@
 <target name="comparesb"><compareapp app="sunbird"/></target>
 <target name="comparesm"><compareapp app="seamonkey"/></target>
 <target name="compare-eachapp" depends="comparetk, comparefx, comparetb, comparefe, comparesb, comparesm"
-	description="exec only common error check for l10n files per targetapp"/>
+	description="compare l10n files and check new/obsolate files/entities per targetapp"/>
 
 <!-- check for all locales -->
 <target name="genconf-alllocale" depends="load-mainconf">
@@ -458,7 +458,7 @@
 	<svn><arg line="update ${svn.l10n.dir}"/></svn>
 </target>
 <target name="update-lot" depends="load-mainconf"
-	description="replace current lot with checkouted lot (src/l10n/lot)">
+	description="replace current lot with checkouted lot (src/l10n/trunk/lot)">
 	<confirm message="現在使用中の Localization Tools を L10N SVN の最新バージョンで置き換えます。本当に置き換えてよろしいですか？(Y/N)"
 		failmessage="Localization Tools の 置き換えを中止しました"/>
 	<property name="update-lot.dir" value="${svn.trunk.dir}/lot"/>
@@ -474,7 +474,7 @@
 	description="update src and lot itself from svn server"/>
 
 <target name="pre-commit-lot" depends="load-mainconf"
-	description="copy current lot to svn working directory (src/l10n/lot)">
+	description="copy current lot to svn working directory (src/l10n/trunk/lot)">
 	<copy todir="${svn.trunk.dir}/lot" preservelastmodified="true">
 		<fileset dir="." defaultexcludes="no"
 			includes="${backuplot.includes}" excludes="${backuplot.excludes}"/>
