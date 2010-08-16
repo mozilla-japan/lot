@@ -213,6 +213,9 @@
 		includes="**" excludes="crashreporter.ini"/>
 	<update-jar dir="${jar.src.dir}/toolkit/chrome/search"					prefix="locale/${langpack.locale}/global/search"/>
 	
+	<!-- files needed for jar but not in l10n hg repo -->
+	<update-jar dir="${jar.moresrc.dir}/firefox" prefix="locale"/>
+	
 	<!-- overrides -->
 	<!-- <update-jar dir="${jar.src.dir}/browser/chrome/overrides"				prefix="locale/${langpack.locale}/global"/> -->
 	<update-jar dir="${jar.src.dir}/browser/chrome/overrides"				prefix="locale/browser"
