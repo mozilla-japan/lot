@@ -207,7 +207,6 @@
 	<update-jar dir="${jar.src.dir}/browser/chrome"							prefix="locale"
 		includes="**" excludes="branding/, browser/cookieviewer/, overrides/"/>
 	
-	<update-jar dir="${jar.src.dir}/extensions/reporter/chrome"				prefix="locale/${langpack.locale}/reporter"/>
 	<update-jar dir="${jar.src.dir}/other-licenses/branding/firefox"		prefix="locale/branding"/>
 	<update-jar dir="${jar.src.dir}/toolkit/crashreporter"					prefix="locale/${langpack.locale}/global"
 		includes="**" excludes="crashreporter.ini"/>
