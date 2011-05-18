@@ -3,9 +3,9 @@
 	xmlns:em="http://www.mozilla.org/2004/em-rdf#">
 
 <Description about="urn:mozilla:install-manifest">
-	<em:id>${fennec.langpack.guid}</em:id>
-	<em:name>${fennec.langpack.name}</em:name>
-	<em:version>${fennec.langpack.revision}</em:version>
+	<em:id>${package.guid}</em:id>
+	<em:name>${package.name}</em:name>
+	<em:version>${package.revision}</em:version>
 	<em:type>${package.type}</em:type>
 	
 	<em:targetApplication>

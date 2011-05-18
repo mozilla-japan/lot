@@ -5,9 +5,9 @@
 <!-- http://hg.mozilla.org/comm-central/file/tip/calendar/locales/generic/install.rdf -->
 
 <Description about="urn:mozilla:install-manifest">
-	<em:id>${sunbird.guid}</em:id>
-	<em:name>${sunbird.name}</em:name>
-	<em:version>${sunbird.revision}</em:version>
+	<em:id>${package.guid}</em:id>
+	<em:name>${package.name}</em:name>
+	<em:version>${package.revision}</em:version>
 	<em:type>${package.type}</em:type>
 	
 	<em:targetApplication>

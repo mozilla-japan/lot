@@ -238,28 +238,18 @@
 </target>
 
 <target name="-jar-fennec-" if="targetapp.is.fennec">
-	<!-- <mkdir dir="${jar.dest.dir}/chrome"/>
-	<zip taskname="packaging ${jar.filename}" compress="false" update="false" whenempty="create"
-		destfile="${jar.dest.dir}/chrome/${jar.filename}">
-		<zipfileset dir="${jar.src.dir}/mobile/chrome"				prefix="locale/${langpack.locale}/browser"
-			includes="*" excludes=""/>
-	</zip>
-	<zip taskname="packaging ${jar.filename}" compress="false" update="true"
-		destfile="${jar.dest.dir}/chrome/${jar.filename}">
-		<zipfileset dir="${jar.src.dir}/mobile/chrome/overrides"	prefix="locale/${langpack.locale}/browser"/>
-	</zip>
-	<zip taskname="packaging ${jar.filename}" compress="false" update="true"
-		destfile="${jar.dest.dir}/chrome/${jar.filename}">
-		<zipfileset dir="${jar.src.dir}/mobile/chrome/brand"		prefix="locale/${langpack.locale}/branding"/>
-	</zip> -->
 	<update-jar dir="${jar.src.dir}/mobile/chrome"							prefix="locale/${langpack.locale}/browser"
-		includes="*" excludes=""/>
+		includes="*" excludes="overrides/"/>
 	<update-jar dir="${jar.src.dir}/mobile/chrome/overrides"				prefix="locale/${langpack.locale}/browser"/>
-	<!-- <update-jar dir="${jar.src.dir}/mobile/chrome/brand"					prefix="locale/${langpack.locale}/branding"/> -->
-	<!-- <update-jar dir="${jar.src.dir}/mobile/chrome/brand"					prefix="locale/branding"/> -->
 	<!-- searchplugins should be in browser dir for fennec -->
-	<update-jar dir="${en-US.dir}/mobile/searchplugins"						prefix="locale/${langpack.locale}/browser/searchplugins" includes="google.xml, twitter.xml"/>
+	<update-jar dir="${en-US.dir}/mobile/searchplugins"						prefix="locale/${langpack.locale}/browser/searchplugins" includes="google.xml"/>
 	<update-jar dir="${jar.src.dir}/mobile/searchplugins"					prefix="locale/${langpack.locale}/browser/searchplugins"/>
+	<update-jar dir="${jar.src.dir}/services/sync"							prefix="locale/${langpack.locale}/services"/>
+	
+	<!-- temporary workaround for flat package -->
+	<unzip src="${jar.dest.dir}/chrome/${jar.filename}"
+		dest="${jar.dest.dir}/chrome"/>
+	<delete file="${jar.dest.dir}/chrome/${jar.filename}"/>
 	
 	<!-- mobile-l10n.js は @AB_CD@ を置き換えて defaults ディレクトリにコピーする必要あり -->
 	<copy file="${jar.src.dir}/mobile/mobile-l10n.js"

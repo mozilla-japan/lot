@@ -32,7 +32,7 @@
 <issetassert property="package"/>
 <issetassert property="targetbranch"/>
 <matchesassert string="${package}" pattern="^(langpack|repack|venkman|chatzilla)$"/>
-<matchesassert string="${targetbranch}" pattern="^(trunk|1.9.1|1.9.2|2.0)$"/>
+<matchesassert string="${targetbranch}" pattern="^(trunk|aurora|beta|2.0|1.9.2|1.9.1)$"/>
 
 
 <!-- load constants -->
@@ -42,7 +42,7 @@
 
 <!-- * import targets * -->
 <!-- import package specific targets, which imports other targets -->
-<propertyalias property="default.package.buildfile" alias="package.buildfile"/>
+<property name="package.buildfile" value="build.${package}.xml"/>
 <import file="${package.buildfile}" optional="false"/>
 
 
@@ -270,11 +270,19 @@
 	<fail if="userconf.loaded" message="this target must be used before 'load-userconf' target"/>
 	<updateproperty name="targetbranch" value="2.0"/>
 </target>
-<target name="forcentral" depends="fortrunk"/>
+<target name="foraurora" description="exec following targets for mozilla-aurora files">
+	<fail if="userconf.loaded" message="this target must be used before 'load-userconf' target"/>
+	<updateproperty name="targetbranch" value="aurora"/>
+</target>
+<target name="forbeta" description="exec following targets for mozilla-central files">
+	<fail if="userconf.loaded" message="this target must be used before 'load-userconf' target"/>
+	<updateproperty name="targetbranch" value="beta"/>
+</target>
 <target name="fortrunk" description="exec following targets for mozilla-central files">
 	<fail if="userconf.loaded" message="this target must be used before 'load-userconf' target"/>
 	<updateproperty name="targetbranch" value="trunk"/>
 </target>
+<target name="forcentral" depends="fortrunk"/>
 
 <!-- * Select Target Application * -->
 <target name="includeall" description="exec following targets for all files">

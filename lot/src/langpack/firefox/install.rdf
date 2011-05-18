@@ -5,9 +5,9 @@
 <!-- http://hg.mozilla.org/mozilla-central/file/tip/browser/locales/generic/install.rdf -->
 
 <Description about="urn:mozilla:install-manifest">
-	<em:id>${firefox.langpack.guid}</em:id>
-	<em:name>${firefox.langpack.name}</em:name>
-	<em:version>${firefox.langpack.revision}</em:version>
+	<em:id>${package.guid}</em:id>
+	<em:name>${package.name}</em:name>
+	<em:version>${package.revision}</em:version>
 	<em:type>${package.type}</em:type>
 	
 	<em:targetApplication>

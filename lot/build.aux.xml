@@ -124,13 +124,13 @@
 <target name="checkout-all"
 	description="checkout all branch src files from l10n svn server (only for ja locale)">
 	<antcall>
-		<target name="for191"/><target name="checkout-src"/>
-	</antcall>
-	<antcall>
-		<target name="for192"/><target name="checkout-src"/>
-	</antcall>
-	<antcall>
 		<target name="fortrunk"/><target name="checkout-src"/>
+	</antcall>
+	<!-- <antcall>
+		<target name="foraurora"/><target name="checkout-src"/>
+	</antcall> -->
+	<antcall>
+		<target name="forbeta"/><target name="checkout-src"/>
 	</antcall>
 </target>
 
@@ -148,21 +148,27 @@
 
 <!-- * Work with Mercurial * -->
 <target name="clone-mozilla" depends="load-mainconf"
-	description="clone comm and mozilla mercurial repogitory from hg.mozilla.org">
+	description="clone mozilla repogitory from hg.mozilla.org">
+	<mkdir dir="${lot.hg.dir}"/>
+	<echo message="executing hg clone command:${N}hg clone ${hg.mozilla.repo} ${hg.mozilla.dir}"/>
+	<hg failonerror="true"><arg line="clone ${hg.mozilla.repo} ${hg.mozilla.dir}"/></hg>
+</target>
+<target name="pull-mozilla" depends="load-mainconf"
+	description="pull mozilla repogitory from hg.mozilla.org">
+	<hg dir="${hg.mozilla.dir}" failonerror="true"><arg line="up -C"/></hg>
+	<hg dir="${hg.mozilla.dir}" failonerror="true"><arg line="pull -u"/></hg>
+</target>
+
+<target name="clone-comm" depends="load-mainconf"
+	description="clone comm repogitory from hg.mozilla.org">
 	<mkdir dir="${lot.hg.dir}"/>
 	<echo message="executing hg clone command:${N}hg clone ${hg.comm.repo} ${hg.comm.dir}"/>
 	<hg failonerror="true"><arg line="clone ${hg.comm.repo} ${hg.comm.dir}"/></hg>
-	<echo message="running client.py script:${N}python ${hg.comm.dir}/client.py --comm-repo=${hg.comm.repo} --mozilla-repo=${hg.mozilla.repo} checkout"/>
-	<exec executable="python" taskname="client.py" failonerror="true">
-		<arg line="${hg.comm.dir}/client.py --comm-repo=${hg.comm.repo} --mozilla-repo=${hg.mozilla.repo} checkout"/>
-	</exec>
 </target>
-<target name="pull-mozilla" depends="load-mainconf"
-	description="pull comm and mozilla mercurial repogitory from hg.mozilla.org">
-	<echo message="running client.py script:${N}python ${hg.comm.dir}/client.py --comm-repo=${hg.comm.repo} --mozilla-repo=${hg.mozilla.repo} checkout"/>
-	<exec executable="python" taskname="client.py" failonerror="true">
-		<arg line="${hg.comm.dir}/client.py --comm-repo=${hg.comm.repo} --mozilla-repo=${hg.mozilla.repo} checkout"/>
-	</exec>
+<target name="pull-comm" depends="load-mainconf"
+	description="pull comm repogitory from hg.mozilla.org">
+	<hg dir="${hg.comm.dir}" failonerror="true"><arg line="up -C"/></hg>
+	<hg dir="${hg.comm.dir}" failonerror="true"><arg line="pull -u"/></hg>
 </target>
 
 <target name="clone-mobile" depends="load-mainconf"
@@ -215,30 +221,30 @@
 
 <target name="clone-all" description="clone all hg repogitories">
 	<antcall>
-		<target name="for191"/>
-		<target name="clone-mozilla"/><target name="clone-locale"/>
-	</antcall>
-	<antcall>
-		<target name="for192"/>
-		<target name="clone-mozilla"/><target name="clone-locale"/>
-	</antcall>
-	<antcall>
 		<target name="fortrunk"/>
+		<target name="clone-mozilla"/><target name="clone-locale"/>
+	</antcall>
+	<antcall>
+		<target name="foraurora"/>
+		<target name="clone-mozilla"/><target name="clone-locale"/>
+	</antcall>
+	<antcall>
+		<target name="forbeta"/>
 		<target name="clone-mozilla"/><target name="clone-locale"/>
 	</antcall>
 	<antcall target="clone-mobile"/>
 </target>
 <target name="pull-all" description="pull all hg repogitories">
 	<antcall>
-		<target name="for191"/>
-		<target name="pull-mozilla"/><target name="pull-locale"/>
-	</antcall>
-	<antcall>
-		<target name="for192"/>
-		<target name="pull-mozilla"/><target name="pull-locale"/>
-	</antcall>
-	<antcall>
 		<target name="fortrunk"/>
+		<target name="pull-mozilla"/><target name="pull-locale"/>
+	</antcall>
+	<antcall>
+		<target name="foraurora"/>
+		<target name="pull-mozilla"/><target name="pull-locale"/>
+	</antcall>
+	<antcall>
+		<target name="forbeta"/>
 		<target name="pull-mozilla"/><target name="pull-locale"/>
 	</antcall>
 	<antcall target="pull-mobile"/>
@@ -302,6 +308,7 @@
 	<property name="mozillatol10n.rev" value=""/>
 	<mozillatol10n hgpath="browser/locales/en-US" l10npath="browser"/><!-- only firefox -->
 	<mozillatol10n hgpath="dom/locales/en-US" l10npath="dom"/>
+	<mozillatol10n hgpath="embedding/android/locales/en-US/" l10npath="embedding/android"/>
 	<mozillatol10n hgpath="extensions/spellcheck/locales/en-US" l10npath="extensions/spellcheck"/>
 	<mozillatol10n hgpath="extensions/reporter/locales/en-US" l10npath="extensions/reporter"/>
 	<mozillatol10n hgpath="netwerk/locales/en-US" l10npath="netwerk"/>
@@ -321,8 +328,17 @@
 </target>
 <target name="mobile-to-l10n" depends="remove-en-US"
 	description="copy en-US locale files from mobile hg repository to l10n directory">
-	<property name="mobiletol10n.rev" value=""/>
-	<mobiletol10n hgpath="locales/en-US" l10npath="mobile"/>
+	<if>
+		<matches string="${targetbranch}" pattern="^(2.0|1.9.2|1.9.1)$"/>
+		<then>
+			<property name="mobiletol10n.rev" value=""/>
+			<mobiletol10n hgpath="locales/en-US" l10npath="mobile"/>
+		</then>
+		<else>
+			<property name="mozillatol10n.rev" value=""/>
+			<mozillatol10n hgpath="mobile/locales/en-US" l10npath="mobile"/>
+		</else>
+	</if>
 </target>
 <target name="other-to-l10n" depends="remove-en-US"
 	description="copy en-US locale files from other cvs/svn repository to l10n directory">
@@ -461,7 +477,7 @@
 	description="replace current lot with checkouted lot (src/l10n/trunk/lot)">
 	<confirm message="現在使用中の Localization Tools を L10N SVN の最新バージョンで置き換えます。本当に置き換えてよろしいですか？(Y/N)"
 		failmessage="Localization Tools の 置き換えを中止しました"/>
-	<property name="update-lot.dir" value="${svn.trunk.dir}/lot"/>
+	<property name="update-lot.dir" value="${svn.lot.dir}"/>
 	<exec executable="svn" taskname="svn">
 		<arg line="update ${update-lot.dir}"/>
 	</exec>
@@ -475,24 +491,24 @@
 
 <target name="pre-commit-lot" depends="load-mainconf"
 	description="copy current lot to svn working directory (src/l10n/trunk/lot)">
-	<copy todir="${svn.trunk.dir}/lot" preservelastmodified="true">
+	<copy todir="${svn.lot.dir}" preservelastmodified="true">
 		<fileset dir="." defaultexcludes="no"
 			includes="${backuplot.includes}" excludes="${backuplot.excludes}"/>
 	</copy>
 	<echo message="ファイルのステータスを確認してください:"/>
-	<svn dir="${svn.trunk.dir}/lot" failonerror="true"><arg line="status"/></svn>
+	<svn dir="${svn.lot.dir}" failonerror="true"><arg line="status"/></svn>
 	<echo message="リポジトリとの差分を確認してください:"/>
-	<svn dir="${svn.trunk.dir}/lot" failonerror="true"><arg line="diff"/></svn>
+	<svn dir="${svn.lot.dir}" failonerror="true"><arg line="diff"/></svn>
 </target>
 <target name="commit-lot" depends="pre-commit-lot"
 	description="commit current lot to l10n svn server">
 	<input message="コミットログを入力してください:"
 		addproperty="commit-lot.message" defaultvalue=""/>
 	<notequalsassert arg1="${commit-lot.message}" arg2="" trim="true" message="コミットログが指定されていません。"/>
-	<confirm message='${svn.trunk.dir}/lot ディレクトリで次の svn commit コマンドを実行しようとしています:${N}
+	<confirm message='${svn.lot.dir} ディレクトリで次の svn commit コマンドを実行しようとしています:${N}
 		svn commit -m "${commit-lot.message}"${N}本当に実行してもよろしいですか？(Y/N)'
 		failmessage="svn commit を中止しました。"/>
-	<svn dir="${svn.trunk.dir}/lot" failonerror="true"><arg line='commit -m "${commit-lot.message}"'/></svn>
+	<svn dir="${svn.lot.dir}" failonerror="true"><arg line='commit -m "${commit-lot.message}"'/></svn>
 </target>
 
 
