@@ -173,9 +173,17 @@
 
 <target name="clone-mobile" depends="load-mainconf"
 	description="clone mobile-browser mercurial repogitory from hg.mozilla.org">
-	<mkdir dir="${lot.hg.dir}"/>
-	<echo message="executing hg clone command:${N}hg clone ${hg.mobile.repo} ${hg.mobile.dir}"/>
-	<hg failonerror="true"><arg line="clone ${hg.mobile.repo} ${hg.mobile.dir}"/></hg>
+	<if>
+		<matches string="${targetbranch}" pattern="^(2.0|1.9.2|1.9.1)$"/>
+		<then>
+			<mkdir dir="${lot.hg.dir}"/>
+			<echo message="executing hg clone command:${N}hg clone ${hg.mobile.repo} ${hg.mobile.dir}"/>
+			<hg failonerror="true"><arg line="clone ${hg.mobile.repo} ${hg.mobile.dir}"/></hg>
+		</then>
+		<else>
+			<echo messge="nothing to do now (mobile repo has merged into mozilla repo)"/>
+		</else>
+	</if>
 </target>
 <target name="pull-mobile" depends="load-mainconf"
 	description="pull mobile-browser mercurial repogitory from hg.mozilla.org">
@@ -341,7 +349,7 @@
 	</if>
 </target>
 <target name="other-to-l10n" depends="remove-en-US"
-	description="copy en-US locale files from other cvs/svn repository to l10n directory">
+	description="copy en-US locale files from other hg repository to l10n directory">
 	<hgtol10n hgpath="extensions/inspector/resources/locale/en-US" l10npath="extensions/inspector/chrome"/>
 	<hgtol10n hgpath="extensions/irc/locales/en-US" l10npath="extensions/irc"/>
 	<hgtol10n hgpath="extensions/venkman/locales/en-US" l10npath="extensions/venkman"/>
@@ -387,7 +395,7 @@
 		</antcall>
 	</sequential>
 </macrodef>
-<target name="comparetk"><compareapp app="toolkit"/></target>
+<target name="comparetk"><compareapp app="common"/></target>
 <target name="comparefx"><compareapp app="firefox"/></target>
 <target name="comparetb"><compareapp app="thunderbird"/></target>
 <target name="comparefe"><compareapp app="fennec"/></target>
