@@ -1,0 +1,9 @@
+syntax: regexp
+^dest$
+^hg$
+^l10n$
+^log$
+^src/1.9.[12]$
+^src/[0-9]+.0$
+^src/trunk$
+^temp$
