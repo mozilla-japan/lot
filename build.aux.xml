@@ -299,6 +299,7 @@
 <target name="mozilla-to-l10n" depends="remove-en-US"
 	description="copy en-US locale files from mozilla hg repository to l10n directory">
 	<property name="mozillatol10n.rev" value=""/>
+	<echo message="getting en-US locale files from ${hg.mozilla.dir}"/>
 	<mozillatol10n hgpath="browser/locales/en-US" l10npath="browser"/><!-- only firefox -->
 	<mozillatol10n hgpath="dom/locales/en-US" l10npath="dom"/>
 	<mozillatol10n hgpath="embedding/android/locales/en-US/" l10npath="embedding/android"/>
@@ -312,6 +313,7 @@
 <target name="comm-to-l10n" depends="remove-en-US"
 	description="copy en-US locale files from comm hg repository to l10n directory">
 	<property name="commtol10n.rev" value=""/>
+	<echo message="getting en-US locale files from ${hg.comm.dir}"/>
 	<commtol10n hgpath="calendar/locales/en-US" l10npath="calendar"/><!-- only sunbird -->
 	<commtol10n hgpath="editor/ui/locales/en-US" l10npath="editor/ui"/><!-- only thunderbird -->
 	<commtol10n hgpath="mail/locales/en-US" l10npath="mail"/><!-- only thunderbird -->
@@ -325,16 +327,19 @@
 		<matches string="${targetbranch}" pattern="^(2.0|1.9.2|1.9.1)$"/>
 		<then>
 			<property name="mobiletol10n.rev" value=""/>
+			<echo message="getting en-US locale files from ${hg.mobile.dir}"/>
 			<mobiletol10n hgpath="locales/en-US" l10npath="mobile"/>
 		</then>
 		<else>
 			<property name="mozillatol10n.rev" value=""/>
+			<echo message="getting en-US locale files from ${hg.mozilla.dir}"/>
 			<mozillatol10n hgpath="mobile/locales/en-US" l10npath="mobile"/>
 		</else>
 	</if>
 </target>
 <target name="other-to-l10n" depends="remove-en-US"
 	description="copy en-US locale files from other hg repository to l10n directory">
+	<echo message="getting en-US locale files from other repositories"/>
 	<hgtol10n hgpath="extensions/inspector/resources/locale/en-US" l10npath="extensions/inspector/chrome"/>
 	<hgtol10n hgpath="extensions/irc/locales/en-US" l10npath="extensions/irc"/>
 	<hgtol10n hgpath="extensions/venkman/locales/en-US" l10npath="extensions/venkman"/>

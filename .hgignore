@@ -1,4 +1,5 @@
 syntax: regexp
+^config/user.conf$
 ^dest$
 ^hg$
 ^l10n$

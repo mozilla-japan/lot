@@ -10,14 +10,16 @@
 
 <!-- * prepare and check basic settings * -->
 <property name="config.dir"				value="config"/>
+<property name="config.user.file"		value="${config.dir}/user.conf"/>
 <property name="config.main.file"		value="${config.dir}/lot.conf"/>
-<condition property="config.user.file"	value="${config.dir}/user.conf" else="${config.dir}/dummy.conf">
-	<available file="${config.dir}/user.conf" type="file"/>
-</condition>
-<available property="config.user.file.exists" type="file" file="${config.user.file}"/>
 
 <!-- load preload settings from user.conf first to override lot.conf -->
-<loadconf file="${config.user.file}" pattern="^((default|lot)\.[^=\s]+)\s*="/>
+<if>
+	<available type="file" file="${config.user.file}"/>
+	<then>
+		<loadconf file="${config.user.file}" pattern="^((default|lot)\.[^=\s]+)\s*="/>
+	</then>
+</if>
 <!-- load preload settings from lot.conf next -->
 <loadconf file="${config.main.file}" pattern="^((default|lot)\.[^=\s]+)\s*="/>
 
