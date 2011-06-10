@@ -184,6 +184,7 @@
 	<mkdir dir="${hg.l10n.dir}"/>
 	<echo message="executing hg clone command:${N}hg clone ${hg.l10n.repo.base}${locale} ${hg.l10n.dir}/${locale}"/>
 	<hg failonerror="true"><arg line="clone ${hg.l10n.repo.base}${locale} ${hg.l10n.dir}/${locale}"/></hg>
+	<echo message="setting ssh url for default-push of the repository"/>
 	<replaceregexp file="${hg.l10n.dir}/${locale}/.hg/hgrc"
 		match="^(\[paths\]\ndefault = http(://.+/${locale})\n)$"
 		replace="\1default-push = ssh\2${N}"/>
@@ -192,6 +193,7 @@
 		<then>
 			<echo message="executing hg clone command:${N}hg clone ${hg.l10n.repo.base}ja-JP-mac ${hg.l10n.dir}/ja-JP-mac"/>
 			<hg failonerror="true"><arg line="clone ${hg.l10n.repo.base}ja-JP-mac ${hg.l10n.dir}/ja-JP-mac"/></hg>
+			<echo message="setting ssh url for default-push of the repository"/>
 			<replaceregexp file="${hg.l10n.dir}/ja-JP-mac/.hg/hgrc"
 				match="^(\[paths\]\ndefault = http(://.+/ja-JP-mac)\n)$"
 				replace="\1default-push = ssh\2${N}"/>
@@ -215,30 +217,30 @@
 <target name="clone-all" description="clone all hg repogitories">
 	<antcall>
 		<target name="fortrunk"/>
-		<target name="clone-mozilla"/><target name="clone-locale"/>
+		<target name="clone-mozilla"/><target name="clone-comm"/><target name="clone-locale"/>
 	</antcall>
 	<antcall>
 		<target name="foraurora"/>
-		<target name="clone-mozilla"/><target name="clone-locale"/>
+		<target name="clone-mozilla"/><target name="clone-comm"/><target name="clone-locale"/>
 	</antcall>
 	<antcall>
 		<target name="forbeta"/>
-		<target name="clone-mozilla"/><target name="clone-locale"/>
+		<target name="clone-mozilla"/><target name="clone-comm"/><target name="clone-locale"/>
 	</antcall>
 	<antcall target="clone-mobile"/>
 </target>
 <target name="pull-all" description="pull all hg repogitories">
 	<antcall>
 		<target name="fortrunk"/>
-		<target name="pull-mozilla"/><target name="pull-locale"/>
+		<target name="pull-mozilla"/><target name="pull-comm"/><target name="pull-locale"/>
 	</antcall>
 	<antcall>
 		<target name="foraurora"/>
-		<target name="pull-mozilla"/><target name="pull-locale"/>
+		<target name="pull-mozilla"/><target name="pull-comm"/><target name="pull-locale"/>
 	</antcall>
 	<antcall>
 		<target name="forbeta"/>
-		<target name="pull-mozilla"/><target name="pull-locale"/>
+		<target name="pull-mozilla"/><target name="pull-comm"/><target name="pull-locale"/>
 	</antcall>
 	<antcall target="pull-mobile"/>
 </target>
