@@ -34,7 +34,7 @@
 <issetassert property="package"/>
 <issetassert property="targetbranch"/>
 <matchesassert string="${package}" pattern="^(langpack|repack|venkman|chatzilla)$"/>
-<matchesassert string="${targetbranch}" pattern="^(trunk|aurora|beta|2.0|1.9.2|1.9.1)$"/>
+<matchesassert string="${targetbranch}" pattern="^(trunk|aurora|beta|2\.0|1\.9\.2|1\.9\.1)$"/>
 
 
 <!-- load constants -->
