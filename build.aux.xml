@@ -517,12 +517,6 @@
 
 <!-- * escape and unescape * -->
 <!-- switching unicode escape from/to utf-8 (only *.properties files are escaped/unescaped and others are just copied by default) -->
-<target name="-escape-jar-" depends="load-mainconf" if="escape.jar.file">
-	<property name="escape.jar.dir" value="${escape.todir}"/>
-	<zip taskname="JAR Packaging (${escape.jar.file})" destfile="${escape.jar.dir}/${escape.jar.file}" compress="false" update="false">
-		<zipfileset dir="${escape.todir}/" excludes="${escape.jar.file}"/>
-	</zip>
-</target>
 <target name="escape" depends="load-mainconf"
 	description="escape *.properties files and copy other files">
 	<loadmessage pattern="^vmsg\.escape\."/>
@@ -531,16 +525,27 @@
 		includes="${escape.includes}" excludes="${escape.excludes}"
 		escapeincludes="${escape.escapeincludes}" escapeexcludes="${escape.escapeexcludes}"/>
 	<antcall target="-escape-jar-"/>
+	<if>
+		<isset property="escape.jar.file"/>
+		<then>
+			<property name="escape.jar.dir" value="${escape.todir}"/>
+			<zip taskname="JAR Packaging (${escape.jar.file})" destfile="${escape.jar.dir}/${escape.jar.file}" compress="false" update="false">
+				<zipfileset dir="${escape.todir}/" excludes="${escape.jar.file}"/>
+			</zip>
+		</then>
+	</if>
 </target>
 
-<target name="-unescape-jar-" depends="load-mainconf" if="unescape.jar.file">
-	<unjar src="${unescape.jar.file}"
-		dest="${unescape.fromdir}"/>
-</target>
-<target name="unescape" depends="load-mainconf, -unescape-jar-"
+<target name="unescape" depends="load-mainconf"
 	description="unescape *.properties files and copy other files">
 	<loadmessage pattern="^vmsg\.unescape\."/>
 	<availableassert  file="${unescape.fromdir}" type="dir" message="${vmsg.unescape.no.fromdir}"/>
+	<if>
+		<isset property="unescape.jar.file"/>
+		<then>
+			<unjar src="${unescape.jar.file}" dest="${unescape.fromdir}"/>
+		</then>
+	</if>
 	<unescapeunicode-copy fromdir="${unescape.fromdir}" todir="${unescape.todir}" encoding="${unescape.encoding}"
 		includes="${unescape.includes}" excludes="${unescape.excludes}"
 		unescapeincludes="${unescape.unescapeincludes}" unescapeexcludes="${unescape.unescapeexcludes}"/>
