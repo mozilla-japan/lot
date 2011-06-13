@@ -52,15 +52,17 @@
 		<!-- *** Phase 2: Prepare to Build *** -->
 
 <!-- * load configuration files * -->
-<target name="load-userconf" if="config.user.file.exists" unless="userconf.loaded">
-	<loadconf file="${config.user.file}">
-		<morefilters>
-			<replaceregex pattern="^(${package}|${targetbranch})#" replace="" flags="i"/>
-		</morefilters>
-	</loadconf>
-	<property name="userconf.loaded" value="yes"/>
-</target>
-<target name="load-mainconf" depends="load-userconf" unless="mainconf.loaded">
+<target name="load-mainconf" unless="mainconf.loaded">
+	<if>
+		<available type="file" file="${config.user.file}"/>
+		<then>
+			<loadconf file="${config.user.file}">
+				<morefilters>
+					<replaceregex pattern="^(${package}|${targetbranch})#" replace="" flags="i"/>
+				</morefilters>
+			</loadconf>
+		</then>
+	</if>
 	<loadconf file="${config.main.file}">
 		<morefilters>
 			<replaceregex pattern="^(${package}|${targetbranch})#" replace="" flags="i"/>
@@ -76,6 +78,16 @@
 	<issetassert property="targetapp"/>
 	<issetassert property="locale"/>
 	<matchesassert string="${targetapp}" pattern="^firefox|thunderbird|fennec|sunbird|seamonkey$"/>
+	<if>
+		<available type="file" file="${config.user.file}"/>
+		<then>
+			<loadconf file="${config.user.file}">
+				<morefilters>
+					<replaceregex pattern="^(${targetapp}\\.${locale}|${targetapp}|${locale})#" replace="" flags="i"/>
+				</morefilters>
+			</loadconf>
+		</then>
+	</if>
 	<loadconf file="${config.package.file}">
 		<morefilters>
 			<replaceregex pattern="^(${package}|${targetbranch}|${targetapp}\\.${locale}|${targetapp}|${locale})#" replace="" flags="i"/>
@@ -85,7 +97,7 @@
 </target>
 
 
-<target name="load-conf" depends="load-userconf, load-mainconf, load-packageconf" unless="conf.loaded">
+<target name="load-conf" depends="load-mainconf, load-packageconf" unless="conf.loaded">
 	<property name="conf.loaded" value="yes"/>
 </target>
 
@@ -259,65 +271,65 @@
 <!-- * Select Branch * -->
 <target name="for1.9.1" depends="for191"/>
 <target name="for191" description="exec following targets for mozilla-1.9.1 files">
-	<fail if="userconf.loaded" message="this target must be used before 'load-userconf' target"/>
+	<fail if="mainconf.loaded" message="this target must be used before 'load-mainconf' target"/>
 	<updateproperty name="targetbranch" value="1.9.1"/>
 </target>
 <target name="for1.9.2" depends="for192"/>
 <target name="for192" description="exec following targets for mozilla-1.9.2 files">
-	<fail if="userconf.loaded" message="this target must be used before 'load-userconf' target"/>
+	<fail if="mainconf.loaded" message="this target must be used before 'load-mainconf' target"/>
 	<updateproperty name="targetbranch" value="1.9.2"/>
 </target>
 <target name="for2.0" depends="for20"/>
 <target name="for20" description="exec following targets for mozilla-2.0 files">
-	<fail if="userconf.loaded" message="this target must be used before 'load-userconf' target"/>
+	<fail if="mainconf.loaded" message="this target must be used before 'load-mainconf' target"/>
 	<updateproperty name="targetbranch" value="2.0"/>
 </target>
 <target name="foraurora" description="exec following targets for mozilla-aurora files">
-	<fail if="userconf.loaded" message="this target must be used before 'load-userconf' target"/>
+	<fail if="mainconf.loaded" message="this target must be used before 'load-mainconf' target"/>
 	<updateproperty name="targetbranch" value="aurora"/>
 </target>
 <target name="forbeta" description="exec following targets for mozilla-central files">
-	<fail if="userconf.loaded" message="this target must be used before 'load-userconf' target"/>
+	<fail if="mainconf.loaded" message="this target must be used before 'load-mainconf' target"/>
 	<updateproperty name="targetbranch" value="beta"/>
 </target>
 <target name="fortrunk" description="exec following targets for mozilla-central files">
-	<fail if="userconf.loaded" message="this target must be used before 'load-userconf' target"/>
+	<fail if="mainconf.loaded" message="this target must be used before 'load-mainconf' target"/>
 	<updateproperty name="targetbranch" value="trunk"/>
 </target>
 <target name="forcentral" depends="fortrunk"/>
 
 <!-- * Select Target Application * -->
 <target name="includeall" description="exec following targets for all files">
-	<fail if="mainconf.loaded" message="this target must be used before 'load-userconf' target"/>
+	<fail if="mainconf.loaded" message="this target must be used before 'load-mainconf' target"/>
 	<updateproperty name="l10n.includes" value="**"/>
 </target>
 <target name="onlycommon" description="exec following targets only for common files">
-	<fail if="mainconf.loaded" message="this target must be used before 'load-userconf' target"/>
+	<fail if="mainconf.loaded" message="this target must be used before 'load-mainconf' target"/>
 	<updateproperty name="l10n.includes" value="${l10n.includes.common}"/>
 </target>
 <target name="onlyfx" depends="onlyfirefox"/>
 <target name="onlyfirefox" description="exec following targets only for firefox files">
-	<fail if="mainconf.loaded" message="this target must be used before 'load-userconf' target"/>
+	<fail if="mainconf.loaded" message="this target must be used before 'load-mainconf' target"/>
 	<updateproperty name="l10n.includes" value="${l10n.includes.common}, ${l10n.includes.firefox}"/>
 </target>
 <target name="onlytb" depends="onlythunderbird"/>
 <target name="onlythunderbird" description="exec following targets only for thunderbird files">
-	<fail if="mainconf.loaded" message="this target must be used before 'load-userconf' target"/>
+	<fail if="mainconf.loaded" message="this target must be used before 'load-mainconf' target"/>
 	<updateproperty name="l10n.includes" value="${l10n.includes.common}, ${l10n.includes.thunderbird}"/>
 </target>
 <target name="onlyfe" depends="onlyfennec"/>
 <target name="onlyfennec" description="exec following targets only for fennec files">
-	<fail if="mainconf.loaded" message="this target must be used before 'load-userconf' target"/>
+	<fail if="mainconf.loaded" message="this target must be used before 'load-mainconf' target"/>
 	<updateproperty name="l10n.includes" value="${l10n.includes.common}, ${l10n.includes.fennec}"/>
 </target>
 <target name="onlysb" depends="onlysunbird"/>
 <target name="onlysunbird" description="exec following targets only for sunbird files">
-	<fail if="mainconf.loaded" message="this target must be used before 'load-userconf' target"/>
+	<fail if="mainconf.loaded" message="this target must be used before 'load-mainconf' target"/>
 	<updateproperty name="l10n.includes" value="${l10n.includes.common}, ${l10n.includes.sunbird}"/>
 </target>
 <target name="onlysm" depends="onlyseamonkey"/>
 <target name="onlyseamonkey" description="exec following targets only for seamonkey files">
-	<fail if="mainconf.loaded" message="this target must be used before 'load-userconf' target"/>
+	<fail if="mainconf.loaded" message="this target must be used before 'load-mainconf' target"/>
 	<updateproperty name="l10n.includes" value="${l10n.includes.common}, ${l10n.includes.seamonkey}"/>
 </target>
 
