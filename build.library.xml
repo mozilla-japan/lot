@@ -16,38 +16,6 @@
 <property name="lib.filters.endtoken"		value="@@"/>
 
 
-<!-- * test targets * -->
-<target name="echo-japanese">
-	<echo message="Japanese Message: 日本語メッセージ"/>
-</target>
-<target name="echoproperties">
-	<!-- <echoproperties prefix="prefix"/> -->
-	<echoproperties/>
-</target>
-<target name="jstest">
-	<script language="javascript" classpathref="path.antlib">
-		<![CDATA[
-			echo = project.createTask("echo");
-			echo.setMessage("JavaScript is Running Correctly!");
-			echo.perform();
-		]]>
-	</script>
-</target>
-<target name="groovytest">
-	<property name="groovytest" value="Before"/>
-	<echo message="${groovytest}"/><!-- Before -->
-	<updateproperty name="groovytest" value="After"/>
-	<echo message="${groovytest}"/><!-- After -->
-	<groovy>
-		<![CDATA[
-			ant.echo 'Groovy is Running Correctly!'
-			properties.groovytest = 'Groovy!'
-		]]>
-	</groovy>
-	<echo message="${groovytest}"/><!-- Groovy! -->
-</target>
-
-
 <!-- * common settings * -->
 <defaultexcludes add="**/*~/**"/>
 <tstamp><format property="tstamp.yyyyMMdd"		pattern="yyyyMMdd"/></tstamp>
@@ -63,6 +31,14 @@
 
 <path id="path.antlib"><fileset dir="antlib" includes="*.jar"/></path>
 <taskdef resource="net/sf/antcontrib/antlib.xml" classpathref="path.antlib"/>
+
+<path id="path.js"><fileset dir="antlib" includes="js.jar"/></path>
+<presetdef name="javascript">
+	<script language="javascript" classpathref="path.js"/>
+</presetdef>
+<presetdef name="js">
+	<script language="javascript" classpathref="path.js"/>
+</presetdef>
 
 <path id="path.groovy"><fileset dir="antlib" includes="groovy-all-*.jar"/></path>
 <path id="path.groovy"><fileset dir="antlib" includes="groovy-all-*.jar, jakarta-oro-*.jar"/></path>
@@ -531,7 +507,7 @@
 	</copy>
 </presetdef> -->
 
-<!-- * diff/lpdiff simple interface * -->
+<!-- * diff/lpdiff interface * -->
 <macrodef name="diff">
 	<attribute name="dir" default="."/>
 	<attribute name="from"/><!-- file|dir -->
@@ -563,7 +539,19 @@
 	</sequential>
 </macrodef>
 
-<!-- hg/svn simple wrapper -->
+
+<!-- svn wrapper -->
+<macrodef name="svn">
+	<attribute name="dir" default="."/>
+	<attribute name="failonerror" default="false"/>
+	<element name="children" implicit="true"/>
+	<sequential>
+		<exec taskname="svn" dir="@{dir}" executable="svn" failonerror="@{failonerror}"><children/></exec>
+	</sequential>
+</macrodef>
+
+
+<!-- hg wrapper -->
 <macrodef name="hg">
 	<attribute name="dir" default="."/>
 	<attribute name="failonerror" default="false"/>
@@ -598,13 +586,72 @@
 		</if>
 	</sequential>
 </macrodef>
-<macrodef name="svn">
+<macrodef name="hgclone">
+	<attribute name="repo"/>
 	<attribute name="dir" default="."/>
-	<attribute name="failonerror" default="false"/>
-	<element name="children" implicit="true"/>
+	<attribute name="failonerror" default="true"/>
 	<sequential>
-		<exec taskname="svn" dir="@{dir}" executable="svn" failonerror="@{failonerror}"><children/></exec>
+		<mkdir dir="@{dir}"/>
+		<echo message="executing hg clone:${N}hg clone @{repo} @{dir}"/>
+		<hg failonerror="@{failonerror}"><arg line="clone @{repo} @{dir}"/></hg>
 	</sequential>
 </macrodef>
+<macrodef name="hgpull">
+	<attribute name="dir" default="."/>
+	<attribute name="failonerror" default="true"/>
+	<sequential>
+		<echo message="executing hg pull on @{dir}:${N}hg up -C; hg pull -u"/>
+		<hg dir="@{dir}" failonerror="true"><arg line="up -C"/></hg>
+		<hg dir="@{dir}" failonerror="true"><arg line="pull -u"/></hg>
+	</sequential>
+</macrodef>
+
+<!-- * test targets * -->
+<target name="echo-properties">
+	<!-- <echoproperties prefix="prefix"/> -->
+	<echoproperties/>
+</target>
+<target name="test-echo-japanese">
+	<echo message="Japanese Message: 日本語メッセージ"/>
+</target>
+<target name="test-js">
+	<property name="jstest" value="Before"/>
+	<js><![CDATA[
+		echo = project.createTask("echo");
+		echo.setMessage("JavaScript is Running...");
+		echo.perform();
+		project.setProperty("jstest", "After");
+	]]></js>
+	<fail>
+		<condition><not><equals arg1="${jstest}" arg2="After"/></not></condition>
+	</fail>
+	<echo message="&lt;js&gt; task works fine."/>
+</target>
+<target name="test-groovy">
+	<property name="groovytest" value="Before"/>
+	<groovy><![CDATA[
+		ant.echo 'Groovy is Running...'
+		properties.groovytest = 'Groovy!'
+	]]></groovy>
+	<fail>
+		<condition><not><equals arg1="${groovytest}" arg2="Groovy!"/></not></condition>
+	</fail>
+	<echo message="&lt;groovy&gt; task works fine."/>
+</target>
+<target name="test-updateproperty">
+	<property name="updatepropertytest" value="Before"/>
+	<updateproperty name="updatepropertytest" value="After"/>
+	<fail>
+		<condition><not><equals arg1="${updatepropertytest}" arg2="After"/></not></condition>
+	</fail>
+	<echo message="&lt;updateproperty&gt; task works fine."/>
+</target>
+<target name="test-library">
+	<antcall>
+		<target name="echo-properties"/><target name="test-echo-japanese"/>
+		<target name="test-js"/><target name="test-groovy"/>
+		<target name="test-updateproperty"/>
+	</antcall>
+</target>
 
 </project>

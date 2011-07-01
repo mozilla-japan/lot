@@ -123,9 +123,9 @@
 	<antcall>
 		<target name="fortrunk"/><target name="pull-src"/>
 	</antcall>
-	<!-- <antcall>
+	<antcall>
 		<target name="foraurora"/><target name="pull-src"/>
-	</antcall> -->
+	</antcall>
 	<antcall>
 		<target name="forbeta"/><target name="pull-src"/>
 	</antcall>
@@ -134,26 +134,20 @@
 <!-- * Work with hg.mozilla.org repository * -->
 <target name="clone-mozilla" depends="load-mainconf"
 	description="clone mozilla repository from hg.mozilla.org">
-	<mkdir dir="${lot.hg.dir}"/>
-	<echo message="executing hg clone command:${N}hg clone ${hg.mozilla.repo} ${hg.mozilla.dir}"/>
-	<hg failonerror="true"><arg line="clone ${hg.mozilla.repo} ${hg.mozilla.dir}"/></hg>
+	<hgclone repo="${hg.mozilla.repo}" dir="${hg.mozilla.dir}"/>
 </target>
 <target name="pull-mozilla" depends="load-mainconf"
 	description="pull mozilla repository from hg.mozilla.org">
-	<hg dir="${hg.mozilla.dir}" failonerror="true"><arg line="up -C"/></hg>
-	<hg dir="${hg.mozilla.dir}" failonerror="true"><arg line="pull -u"/></hg>
+	<hgpull dir="${hg.mozilla.dir}"/>
 </target>
 
 <target name="clone-comm" depends="load-mainconf"
 	description="clone comm repository from hg.mozilla.org">
-	<mkdir dir="${lot.hg.dir}"/>
-	<echo message="executing hg clone command:${N}hg clone ${hg.comm.repo} ${hg.comm.dir}"/>
-	<hg failonerror="true"><arg line="clone ${hg.comm.repo} ${hg.comm.dir}"/></hg>
+	<hgclone repo="${hg.comm.repo}" dir="${hg.comm.dir}"/>
 </target>
 <target name="pull-comm" depends="load-mainconf"
 	description="pull comm repository from hg.mozilla.org">
-	<hg dir="${hg.comm.dir}" failonerror="true"><arg line="up -C"/></hg>
-	<hg dir="${hg.comm.dir}" failonerror="true"><arg line="pull -u"/></hg>
+	<hgpull dir="${hg.comm.dir}"/>
 </target>
 
 <target name="clone-mobile" depends="load-mainconf"
@@ -161,9 +155,7 @@
 	<if>
 		<matches string="${targetbranch}" pattern="^(2.0|1.9.2|1.9.1)$"/>
 		<then>
-			<mkdir dir="${lot.hg.dir}"/>
-			<echo message="executing hg clone command:${N}hg clone ${hg.mobile.repo} ${hg.mobile.dir}"/>
-			<hg failonerror="true"><arg line="clone ${hg.mobile.repo} ${hg.mobile.dir}"/></hg>
+			<hgclone repo="${hg.mobile.repo}" dir="${hg.mobile.dir}"/>
 		</then>
 		<else>
 			<echo messge="nothing to do now (mobile repo has merged into mozilla repo)"/>
@@ -172,8 +164,7 @@
 </target>
 <target name="pull-mobile" depends="load-mainconf"
 	description="pull mobile-browser mercurial repository from hg.mozilla.org">
-	<hg dir="${hg.mobile.dir}" failonerror="true"><arg line="up -C"/></hg>
-	<hg dir="${hg.mobile.dir}" failonerror="true"><arg line="pull -u"/></hg>
+	<hgpull dir="${hg.mobile.dir}"/>
 </target>
 
 <target name="clone-locale" depends="load-mainconf"
@@ -181,9 +172,7 @@
 	<propertyalias property="default.locale" alias="locale"/>
 	<notavailableassert file="${hg.l10n.dir}/${locale}"
 		message="${hg.l10n.dir}/${locale} directory already exists"/>
-	<mkdir dir="${hg.l10n.dir}"/>
-	<echo message="executing hg clone command:${N}hg clone ${hg.l10n.repo.base}${locale} ${hg.l10n.dir}/${locale}"/>
-	<hg failonerror="true"><arg line="clone ${hg.l10n.repo.base}${locale} ${hg.l10n.dir}/${locale}"/></hg>
+	<hgclone repo="${hg.l10n.repo.base}${locale}" dir="${hg.l10n.dir}/${locale}"/>
 	<echo message="setting ssh url for default-push of the repository"/>
 	<replaceregexp file="${hg.l10n.dir}/${locale}/.hg/hgrc"
 		match="^(\[paths\]\ndefault = http(://.+/${locale})\n)$"
@@ -191,8 +180,7 @@
 	<if>
 		<equals arg1="${locale}" arg2="ja"/>
 		<then>
-			<echo message="executing hg clone command:${N}hg clone ${hg.l10n.repo.base}ja-JP-mac ${hg.l10n.dir}/ja-JP-mac"/>
-			<hg failonerror="true"><arg line="clone ${hg.l10n.repo.base}ja-JP-mac ${hg.l10n.dir}/ja-JP-mac"/></hg>
+			<hgclone repo="${hg.l10n.repo.base}ja-JP-mac" dir="${hg.l10n.dir}/ja-JP-mac"/>
 			<echo message="setting ssh url for default-push of the repository"/>
 			<replaceregexp file="${hg.l10n.dir}/ja-JP-mac/.hg/hgrc"
 				match="^(\[paths\]\ndefault = http(://.+/ja-JP-mac)\n)$"
@@ -203,13 +191,11 @@
 <target name="pull-locale" depends="load-mainconf"
 	description="pull l10n mercurial repository from hg.mozilla.org">
 	<propertyalias property="default.locale" alias="locale"/>
-	<hg dir="${hg.l10n.dir}/${locale}" failonerror="true"><arg line="up -C"/></hg>
-	<hg dir="${hg.l10n.dir}/${locale}" failonerror="true"><arg line="pull -u"/></hg>
+	<hgpull dir="${hg.l10n.dir}/${locale}"/>
 	<if>
 		<equals arg1="${locale}" arg2="ja"/>
 		<then>
-			<hg dir="${hg.l10n.dir}/ja-JP-mac" failonerror="true"><arg line="up -C"/></hg>
-			<hg dir="${hg.l10n.dir}/ja-JP-mac" failonerror="true"><arg line="pull -u"/></hg>
+			<hgpull dir="${hg.l10n.dir}/ja-JP-mac"/>
 		</then>
 	</if>
 </target>
