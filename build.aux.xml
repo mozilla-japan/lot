@@ -456,53 +456,6 @@
 <target name="checksuite-eachapp-alllocale" depends="commoncheck-eachapp-alllocale, compare-eachapp-alllocale"/>
 
 
-<!-- * backup and restore * -->
-<target name="backupsrc" depends="load-mainconf" unless="nobackup"
-	description="backup whole src files">
-	<mkdir dir="${backupsrc.dir}"/>
-	<zip destfile="${backupsrc.file}">
-		<zipfileset dir="." defaultexcludes="no"
-			includes="${backupsrc.includes}" excludes="${backupsrc.excludes}"/>
-	</zip>
-</target>
-
-<target name="restoresrc" depends="load-mainconf" unless="norestore"
-	description="restore whole src files">
-	<loadmessage pattern="^vmsg\.restoresrc\."/>
-	<availableassert file="${restoresrc.file}" type="file" message="${vmsg.restoresrc.notfound}"/>
-	<confirm message="${vmsg.restoresrc.confirm}" failmessage="${cmsg.restoresrc.cancelled}"/>
-	
-	<condition property="nobackup">
-		<not><available file="${lot.src.dir}" type="dir"/></not>
-	</condition>
-	<antcall target="backupsrc"/>
-	
-	<unzip src="${restoresrc.file}" dest="${lot.temp.dir}/restore"/>
-	<delete dir="${lot.src.dir}/"/>
-	<move todir="${lot.src.dir}">
-		<fileset dir="${lot.temp.dir}/restore/${lot.src.dir}"/>
-	</move>
-</target>
-
-<target name="backuplot" depends="load-mainconf" unless="nobackup"
-	description="zip localization tools">
-	<mkdir dir="${backuplot.dir}"/>
-	<zip destfile="${backuplot.file}">
-		<zipfileset dir="." defaultexcludes="no"
-			includes="${backuplot.includes}" excludes="${backuplot.excludes}"/>
-	</zip>
-</target>
-
-<target name="backup" depends="load-mainconf" unless="nobackup"
-	description="zip localization tools with src files">
-	<mkdir dir="${backup.dir}"/>
-	<zip destfile="${backup.file}">
-		<zipfileset dir="." defaultexcludes="no"
-			includes="${backup.includes}" excludes="${backup.excludes}"/>
-	</zip>
-</target>
-
-
 <!-- * escape and unescape * -->
 <!-- switching unicode escape from/to utf-8 (only *.properties files are escaped/unescaped and others are just copied by default) -->
 <target name="escape" depends="load-mainconf"
