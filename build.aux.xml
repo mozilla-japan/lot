@@ -154,24 +154,22 @@
 	description="clone mobile-browser mercurial repository from hg.mozilla.org">
 	<if>
 		<matches string="${targetbranch}" pattern="^(2.0|1.9.2|1.9.1)$"/>
-		<then>
-			<hgclone repo="${hg.mobile.repo}" dir="${hg.mobile.dir}"/>
-		</then>
-		<else>
-			<echo messge="nothing to do now (mobile repo has merged into mozilla repo)"/>
-		</else>
+		<then><hgclone repo="${hg.mobile.repo}" dir="${hg.mobile.dir}"/></then>
+		<else><echo messge="no mobile independent repo for the branch"/></else>
 	</if>
 </target>
 <target name="pull-mobile" depends="load-mainconf"
 	description="pull mobile-browser mercurial repository from hg.mozilla.org">
-	<hgpull dir="${hg.mobile.dir}"/>
+	<if>
+		<matches string="${targetbranch}" pattern="^(2.0|1.9.2|1.9.1)$"/>
+		<then><hgpull dir="${hg.mobile.dir}"/></then>
+		<else><echo messge="no mobile independent repo for the branch"/></else>
+	</if>
 </target>
 
 <target name="clone-locale" depends="load-mainconf"
 	description="clone l10n mercurial repository from hg.mozilla.org">
 	<propertyalias property="default.locale" alias="locale"/>
-	<notavailableassert file="${hg.l10n.dir}/${locale}"
-		message="${hg.l10n.dir}/${locale} directory already exists"/>
 	<hgclone repo="${hg.l10n.repo.base}${locale}" dir="${hg.l10n.dir}/${locale}"/>
 	<echo message="setting ssh url for default-push of the repository"/>
 	<replaceregexp file="${hg.l10n.dir}/${locale}/.hg/hgrc"
@@ -281,7 +279,11 @@
 	<hgtol10n hgdir="${hg.comm.dir}" rev="${commtol10n.rev}"/>
 </presetdef>
 <presetdef name="mobiletol10n">
-	<hgtol10n hgdir="${hg.mobile.dir}" rev="${mobiletol10n.rev}"/>
+	<if>
+		<matches string="${targetbranch}" pattern="^(2.0|1.9.2|1.9.1)$"/>
+		<then><hgtol10n hgdir="${hg.mobile.dir}" rev="${mobiletol10n.rev}"/></then>
+		<else><echo messge="no mobile independent repo for the branch"/></else>
+	</if>
 </presetdef>
 
 <target name="mozilla-to-l10n" depends="remove-en-US"
