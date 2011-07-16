@@ -207,10 +207,11 @@
 	<update-jar dir="${jar.src.dir}/browser/chrome"							prefix="locale"
 		includes="**" excludes="branding/, browser/cookieviewer/, overrides/"/>
 	
-	<update-jar dir="${jar.src.dir}/other-licenses/branding/firefox"		prefix="locale/branding"/>
+	<update-jar dir="${jar.src.dir}/browser/branding/official"				prefix="locale/branding"/>
 	<update-jar dir="${jar.src.dir}/toolkit/crashreporter"					prefix="locale/${langpack.locale}/global"
 		includes="**" excludes="crashreporter.ini"/>
 	<update-jar dir="${jar.src.dir}/toolkit/chrome/search"					prefix="locale/${langpack.locale}/global/search"/>
+	<update-jar dir="${jar.src.dir}/services/sync"							prefix="locale/${langpack.locale}/services/sync"/>
 	
 	<!-- files needed for jar but not in l10n hg repo -->
 	<update-jar dir="${jar.moresrc.dir}/firefox" prefix="locale"/>

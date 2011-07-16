@@ -294,9 +294,10 @@
 	<mozillatol10n hgpath="extensions/spellcheck/locales/en-US" l10npath="extensions/spellcheck"/>
 	<mozillatol10n hgpath="extensions/reporter/locales/en-US" l10npath="extensions/reporter"/>
 	<mozillatol10n hgpath="netwerk/locales/en-US" l10npath="netwerk"/>
-	<mozillatol10n hgpath="other-licenses/branding/firefox/locales/en-US" l10npath="other-licenses/branding/firefox"/><!-- only firefox -->
+	<mozillatol10n hgpath="browser/branding/official/locales/en-US" l10npath="browser/branding/official"/><!-- only firefox -->
 	<mozillatol10n hgpath="security/manager/locales/en-US" l10npath="security/manager"/>
 	<mozillatol10n hgpath="toolkit/locales/en-US" l10npath="toolkit"/>
+	<mozillatol10n hgpath="services/sync/locales/en-US" l10npath="services/sync"/>
 </target>
 <target name="comm-to-l10n" depends="remove-en-US"
 	description="copy en-US locale files from comm hg repository to l10n directory">

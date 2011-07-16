@@ -2,5 +2,5 @@
 @echo off
 set LANG=C
 cd src\trunk
-svn diff > ..\trunk.patch
+hg diff > ..\trunk.patch
 @endlocal
