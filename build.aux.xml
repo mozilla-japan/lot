@@ -1,0 +1,550 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="aux" default="" basedir=".">
+<description>auxiliary targets</description>
+<property name="buildfile.aux.loaded" value="true"/>
+
+<!-- * Setup and Update Targets * -->
+<target name="genconf" unless="nogenconf"
+	description="generate use/locale specific user config file">
+	<property name="genconf.output" value="${config.dir}/user.conf"/>
+	<notavailableassert file="${genconf.output}"/>
+	<if>
+		<istrue value="${genconf.noinput}"/>
+		<then>
+			<propertyalias property="default.locale" alias="locale"/>
+			<property name="genconf.lot.user.name" value="${lot.user.name}"/>
+			<property name="genconf.lot.user.homepageURL" value="${lot.user.homepageURL}"/>
+			<property name="genconf.firefox.langpack.guid" value="langpack-${locale}@firefox.l10n.jp"/>
+			<property name="genconf.thunderbird.langpack.guid" value="langpack-${locale}@thunderbird.l10n.jp"/>
+			<property name="genconf.fennec.langpack.guid" value="langpack-${locale}@fennec.l10n.jp"/>
+		</then>
+		<else>
+			<echo message="Please answer some quetions to generate your user.conf file."/>
+			<echo message="If you type enter without any input, default value will be used."/>
+		</else>
+	</if>
+	<!-- ask common user dependent config -->
+	<input addproperty="locale" defaultvalue="${default.locale}"
+		message="input your locale code (default: ${default.locale})"/>
+	<equals arg1="${locale}" arg2="ja" property="genconf.lot.lang" value="japanese" else="english"/>
+	<input addproperty="genconf.lot.user.name" defaultvalue="${lot.user.name}"
+		message="input your l10n community name (default: ${lot.user.name})"/>
+	<input addproperty="genconf.lot.user.homepageURL" defaultvalue="${lot.user.homepageURL}"
+		message="input your homepage url (default: ${lot.user.homepageURL})"/>
+	<input addproperty="genconf.firefox.langpack.guid" defaultvalue="langpack-${locale}@firefox.l10n.jp"
+		message="input your firefox langpack guid (default: langpack-${locale}@firefox.l10n.jp)"/>
+	<input addproperty="genconf.thunderbird.langpack.guid" defaultvalue="langpack-${locale}@thunderbird.l10n.jp"
+		message="input your thunderbird langpack guid (default: langpack-${locale}@thunderbird.l10n.jp)"/>
+	<input addproperty="genconf.fennec.langpack.guid" defaultvalue="langpack-${locale}@fennec.l10n.jp"
+		message="input your fennec langpack guid (default: langpack-${locale}@fennec.l10n.jp)"/>
+	<!-- childbrowser specific configs -->
+	<equals arg1="${genconf.type}" arg2="childbrowser" property="genconf.doreplace.onoff"		value="" else="#"/>
+	<equals arg1="${genconf.type}" arg2="childbrowser" property="genconf.replace.file.6.onoff"	value="" else="#"/>
+	<equals arg1="${genconf.type}" arg2="childbrowser" property="genconf.replace.file.ja.onoff"	value="#" else=""/>
+	<equals arg1="${genconf.type}" arg2="childbrowser" property="genconf.charcheck.deny.onoff"	value="" else="#"/>
+	<equals arg1="${genconf.type}" arg2="childbrowser" property="genconf.nowordcheck.onoff"		value="#"/>
+	<!-- ja locale specific configs -->
+	<equals arg1="${locale}" arg2="ja" property="genconf.nopluralcheck.onoff"			value="#" else=""/>
+	<equals arg1="${locale}" arg2="ja" property="genconf.nowordcheck.onoff"				value="#" else=""/>
+	<equals arg1="${locale}" arg2="ja" property="genconf.nosuspectedwordcheck.onoff"	value="#" else=""/>
+	<equals arg1="${locale}" arg2="ja" property="genconf.nocharcheck.onoff"				value="#" else=""/>
+	<!-- generate user.conf -->
+	<copy file="${lot.res.dir}/template/user.conf" tofile="${genconf.output}">
+		<filterchain><expandproperties/></filterchain>
+	</copy>
+	<echo message="${genconf.output} file is generated according to your input."/>
+	<echo message="You can edit any setting anytime. See the file for more information."/>
+</target>
+
+<target name="remove-en-US" depends="load-mainconf" unless="reuse.en-US">
+	<available property="en-US.dir.exists" file="${en-US.dir}" type="dir"/>
+	<confirm message="${en-US.dir} ディレクトリを削除してもよろしいですか？(Y/N)" if="en-US.dir.exists"/>
+	<delete dir="${en-US.dir}"/>
+</target>
+
+<target name="download-en-US" depends="load-mainconf"
+	description="downlaod and expand en-US l10n zip file">
+	<!-- set properties -->
+	<isset arg="download.en-US.rev" property="download.en-US.url"
+		value="${download.en-US.url.dir}/${download.en-US.filename}"
+		 else="${download.en-US.url.dir}/${download.en-US.latestfilename}"/>
+	<expandproperty name="download.en-US.url"/>
+	<isset arg="download.en-US.rev" property="download.en-US.dir"
+		value="${l10n.dir}/en-US-rev${download.en-US.rev}" else="${l10n.dir}/en-US"/>
+	<expandproperty name="download.en-US.dir"/>
+	<!-- now download and unzip it -->
+	<antcall target="remove-en-US">
+		<param name="en-US.dir" value="${download.en-US.dir}"/>
+	</antcall>
+	<mkdir dir="${lot.temp.dir}/download-en-US"/>
+	<get src="${download.en-US.url}" dest="${lot.temp.dir}/download-en-US/en-US.zip"/>
+	<unzip src="${lot.temp.dir}/download-en-US/en-US.zip" dest="${download.en-US.dir}">
+		<globmapper from="en-US/*" to="*"/>
+	</unzip>
+</target>
+
+<target name="newlocale" depends="load-mainconf"
+	description="copy en-US files to your new locale (start new l10n)">
+	<propertyalias property="default.locale" alias="locale"/>
+	<notavailableassert file="${l10n.dir}/${locale}" type="dir"
+		message="${l10n.dir}/${locale} directory already exists"/>
+	<copy todir="${l10n.dir}/${locale}" preservelastmodified="true">
+		<fileset dir="${en-US.dir}"/>
+	</copy>
+</target>
+
+<target name="setupl10n" depends="genconf, download-en-US, clone-locale, clone-src"
+	description="generate config file and get l10n files for your locale"/>
+<target name="setupnewl10n" depends="genconf, download-en-US, newlocale"
+	description="generate config file and get en-US files for your new locale"/>
+<target name="setupchildbrowser">
+	<antcall>
+		<target name="genconf"/><target name="download-en-US"/><target name="checkout-src"/>
+		<param name="genconf.type" value="childbrowser"/>
+	</antcall>
+</target>
+
+<!-- * Work with mozja hg repository * -->
+<target name="clone-src" depends="load-mainconf"
+	description="clone japanese l10n repository from google code">
+	<mkdir dir="${lot.hg.dir}"/>
+	<echo message="executing hg clone command:${N}hg clone ${hg.mozja.repo} ${hg.mozja.dir}"/>
+	<hg failonerror="true"><arg line="clone ${hg.mozja.repo} ${hg.mozja.dir}"/></hg>
+	<hg dir="${hg.mozja.dir}" failonerror="true"><arg line="up ${hg.mozja.branch}"/></hg>
+</target>
+<target name="pull-src" depends="load-mainconf"
+	description="pull japanese l10n repository from google code">
+	<hg dir="${hg.mozja.dir}" failonerror="true"><arg line="up -C"/></hg>
+	<hg dir="${hg.mozja.dir}" failonerror="true"><arg line="pull -u"/></hg>
+</target>
+
+<target name="pull-src-all"
+	description="pull all branch src files from mozja hg repository (only for ja locale)">
+	<antcall>
+		<target name="fortrunk"/><target name="pull-src"/>
+	</antcall>
+	<antcall>
+		<target name="foraurora"/><target name="pull-src"/>
+	</antcall>
+	<antcall>
+		<target name="forbeta"/><target name="pull-src"/>
+	</antcall>
+</target>
+
+<!-- * Work with hg.mozilla.org repository * -->
+<target name="clone-mozilla" depends="load-mainconf"
+	description="clone mozilla repository from hg.mozilla.org">
+	<hgclone repo="${hg.mozilla.repo}" dir="${hg.mozilla.dir}"/>
+</target>
+<target name="pull-mozilla" depends="load-mainconf"
+	description="pull mozilla repository from hg.mozilla.org">
+	<hgpull dir="${hg.mozilla.dir}"/>
+</target>
+
+<target name="clone-comm" depends="load-mainconf"
+	description="clone comm repository from hg.mozilla.org">
+	<hgclone repo="${hg.comm.repo}" dir="${hg.comm.dir}"/>
+</target>
+<target name="pull-comm" depends="load-mainconf"
+	description="pull comm repository from hg.mozilla.org">
+	<hgpull dir="${hg.comm.dir}"/>
+</target>
+
+<target name="clone-mobile" depends="load-mainconf"
+	description="clone mobile-browser mercurial repository from hg.mozilla.org">
+	<if>
+		<matches string="${targetbranch}" pattern="^(2.0|1.9.2|1.9.1)$"/>
+		<then>
+			<hgclone repo="${hg.mobile.repo}" dir="${hg.mobile.dir}"/>
+		</then>
+		<else>
+			<echo messge="nothing to do now (mobile repo has merged into mozilla repo)"/>
+		</else>
+	</if>
+</target>
+<target name="pull-mobile" depends="load-mainconf"
+	description="pull mobile-browser mercurial repository from hg.mozilla.org">
+	<hgpull dir="${hg.mobile.dir}"/>
+</target>
+
+<target name="clone-locale" depends="load-mainconf"
+	description="clone l10n mercurial repository from hg.mozilla.org">
+	<propertyalias property="default.locale" alias="locale"/>
+	<notavailableassert file="${hg.l10n.dir}/${locale}"
+		message="${hg.l10n.dir}/${locale} directory already exists"/>
+	<hgclone repo="${hg.l10n.repo.base}${locale}" dir="${hg.l10n.dir}/${locale}"/>
+	<echo message="setting ssh url for default-push of the repository"/>
+	<replaceregexp file="${hg.l10n.dir}/${locale}/.hg/hgrc"
+		match="^(\[paths\]\ndefault = http(://.+/${locale})\n)$"
+		replace="\1default-push = ssh\2${N}"/>
+	<if>
+		<equals arg1="${locale}" arg2="ja"/>
+		<then>
+			<hgclone repo="${hg.l10n.repo.base}ja-JP-mac" dir="${hg.l10n.dir}/ja-JP-mac"/>
+			<echo message="setting ssh url for default-push of the repository"/>
+			<replaceregexp file="${hg.l10n.dir}/ja-JP-mac/.hg/hgrc"
+				match="^(\[paths\]\ndefault = http(://.+/ja-JP-mac)\n)$"
+				replace="\1default-push = ssh\2${N}"/>
+		</then>
+	</if>
+</target>
+<target name="pull-locale" depends="load-mainconf"
+	description="pull l10n mercurial repository from hg.mozilla.org">
+	<propertyalias property="default.locale" alias="locale"/>
+	<hgpull dir="${hg.l10n.dir}/${locale}"/>
+	<if>
+		<equals arg1="${locale}" arg2="ja"/>
+		<then>
+			<hgpull dir="${hg.l10n.dir}/ja-JP-mac"/>
+		</then>
+	</if>
+</target>
+
+<target name="clone-all" description="clone all hg repogitories">
+	<antcall>
+		<target name="fortrunk"/>
+		<target name="clone-mozilla"/><target name="clone-comm"/><target name="clone-locale"/>
+	</antcall>
+	<antcall>
+		<target name="foraurora"/>
+		<target name="clone-mozilla"/><target name="clone-comm"/><target name="clone-locale"/>
+	</antcall>
+	<antcall>
+		<target name="forbeta"/>
+		<target name="clone-mozilla"/><target name="clone-comm"/><target name="clone-locale"/>
+	</antcall>
+	<antcall target="clone-mobile"/>
+</target>
+<target name="pull-all" description="pull all hg repogitories">
+	<antcall>
+		<target name="fortrunk"/>
+		<target name="pull-mozilla"/><target name="pull-comm"/><target name="pull-locale"/>
+	</antcall>
+	<antcall>
+		<target name="foraurora"/>
+		<target name="pull-mozilla"/><target name="pull-comm"/><target name="pull-locale"/>
+	</antcall>
+	<antcall>
+		<target name="forbeta"/>
+		<target name="pull-mozilla"/><target name="pull-comm"/><target name="pull-locale"/>
+	</antcall>
+	<antcall target="pull-mobile"/>
+</target>
+
+<target name="pre-commit-hg" depends="load-mainconf"
+	description="hg status check before commit">
+	<property name="locale" value="${default.locale}"/>
+	<echo message="executing hg status command:${N}hg -R ${hg.l10n.dir}/${locale} status"/>
+	<hg failonerror="true"><arg line="-R ${hg.l10n.dir}/${locale} status"/></hg>
+	<echo message="executing hg diff command:${N}hg -R ${hg.l10n.dir}/${locale} diff"/>
+	<hg failonerror="true"><arg line="-R ${hg.l10n.dir}/${locale} diff"/></hg>
+</target>
+
+<!-- * copy locale files from mercurial repository to l10n directory * -->
+<macrodef name="hgtol10n">
+	<attribute name="hgpath"/>
+	<attribute name="l10npath"/>
+	<attribute name="hgdir" default="${hg.mozilla.dir}"/>
+	<attribute name="l10ndir" default="${en-US.dir}"/>
+	<attribute name="rev" default=""/>
+	<attribute name="tempdir" default="${lot.temp.dir}/hgtol10n"/>
+	<attribute name="failonerror" default="true"/>
+	<sequential>
+		<if>
+			<or>
+				<not><available file="@{l10ndir}/@{l10npath}" type="dir"/></not>
+				<not><isset property="reuse.en-US"/></not>
+			</or>
+			<then><if>
+				<equals arg1="@{rev}" arg2=""/>
+				<then>
+					<copy todir="@{l10ndir}/@{l10npath}" failonerror="false" preservelastmodified="true">
+						<fileset dir="@{hgdir}/@{hgpath}"/>
+					</copy>
+				</then>
+				<else>
+					<delete dir="@{tempdir}"/><mkdir dir="@{tempdir}"/>
+					<echo message="executing hg archive command: hg -R @{hgdir} archive --rev @{rev} --include @{hgdir}/@{hgpath} @{tempdir}"/>
+					<hg failonerror="@{failonerror}"><arg line="-R @{hgdir} archive --rev @{rev} --include @{hgdir}/@{hgpath} @{tempdir}"/></hg>
+					<move todir="@{l10ndir}/@{l10npath}" failonerror="false" preservelastmodified="true">
+						<fileset dir="@{tempdir}/@{hgpath}"/>
+					</move>
+				</else>
+			</if></then>
+		</if>
+	</sequential>
+</macrodef>
+<presetdef name="mozillatol10n">
+	<hgtol10n hgdir="${hg.mozilla.dir}" rev="${mozillatol10n.rev}"/>
+</presetdef>
+<presetdef name="commtol10n">
+	<hgtol10n hgdir="${hg.comm.dir}" rev="${commtol10n.rev}"/>
+</presetdef>
+<presetdef name="mobiletol10n">
+	<hgtol10n hgdir="${hg.mobile.dir}" rev="${mobiletol10n.rev}"/>
+</presetdef>
+
+<target name="mozilla-to-l10n" depends="remove-en-US"
+	description="copy en-US locale files from mozilla hg repository to l10n directory">
+	<property name="mozillatol10n.rev" value=""/>
+	<echo message="getting en-US locale files from ${hg.mozilla.dir}"/>
+	<mozillatol10n hgpath="browser/locales/en-US" l10npath="browser"/><!-- only firefox -->
+	<mozillatol10n hgpath="dom/locales/en-US" l10npath="dom"/>
+	<mozillatol10n hgpath="embedding/android/locales/en-US/" l10npath="embedding/android"/>
+	<mozillatol10n hgpath="extensions/spellcheck/locales/en-US" l10npath="extensions/spellcheck"/>
+	<mozillatol10n hgpath="extensions/reporter/locales/en-US" l10npath="extensions/reporter"/>
+	<mozillatol10n hgpath="netwerk/locales/en-US" l10npath="netwerk"/>
+	<mozillatol10n hgpath="browser/branding/official/locales/en-US" l10npath="browser/branding/official"/><!-- only firefox -->
+	<mozillatol10n hgpath="security/manager/locales/en-US" l10npath="security/manager"/>
+	<mozillatol10n hgpath="toolkit/locales/en-US" l10npath="toolkit"/>
+	<mozillatol10n hgpath="services/sync/locales/en-US" l10npath="services/sync"/>
+</target>
+<target name="comm-to-l10n" depends="remove-en-US"
+	description="copy en-US locale files from comm hg repository to l10n directory">
+	<property name="commtol10n.rev" value=""/>
+	<echo message="getting en-US locale files from ${hg.comm.dir}"/>
+	<commtol10n hgpath="calendar/locales/en-US" l10npath="calendar"/><!-- only sunbird -->
+	<commtol10n hgpath="editor/ui/locales/en-US" l10npath="editor/ui"/><!-- only thunderbird -->
+	<commtol10n hgpath="mail/locales/en-US" l10npath="mail"/><!-- only thunderbird -->
+	<commtol10n hgpath="other-licenses/branding/sunbird/locales/en-US" l10npath="other-licenses/branding/sunbird"/><!-- only sunbird -->
+	<commtol10n hgpath="other-licenses/branding/thunderbird/locales/en-US" l10npath="other-licenses/branding/thunderbird"/><!-- only thunderbird -->
+	<commtol10n hgpath="suite/locales/en-US" l10npath="suite"/><!-- only seamonkey -->
+</target>
+<target name="mobile-to-l10n" depends="remove-en-US"
+	description="copy en-US locale files from mobile hg repository to l10n directory">
+	<if>
+		<matches string="${targetbranch}" pattern="^(2.0|1.9.2|1.9.1)$"/>
+		<then>
+			<property name="mobiletol10n.rev" value=""/>
+			<echo message="getting en-US locale files from ${hg.mobile.dir}"/>
+			<mobiletol10n hgpath="locales/en-US" l10npath="mobile"/>
+		</then>
+		<else>
+			<property name="mozillatol10n.rev" value=""/>
+			<echo message="getting en-US locale files from ${hg.mozilla.dir}"/>
+			<mozillatol10n hgpath="mobile/locales/en-US" l10npath="mobile"/>
+		</else>
+	</if>
+</target>
+<target name="other-to-l10n" depends="remove-en-US"
+	description="copy en-US locale files from other hg repository to l10n directory">
+	<echo message="getting en-US locale files from other repositories"/>
+	<hgtol10n hgpath="extensions/inspector/resources/locale/en-US" l10npath="extensions/inspector/chrome"/>
+	<hgtol10n hgpath="extensions/irc/locales/en-US" l10npath="extensions/irc"/>
+	<hgtol10n hgpath="extensions/venkman/locales/en-US" l10npath="extensions/venkman"/>
+</target>
+<target name="repo-to-l10n" depends="mozilla-to-l10n, comm-to-l10n, mobile-to-l10n, other-to-l10n"
+	description="copy en-US locale files from hg repository to l10n directory"/>
+<target name="get-en-US" depends="repo-to-l10n"/>
+<target name="en-US-to-l10n" depends="repo-to-l10n"/>
+
+
+<!-- * Routine Work Interface * -->
+<!-- check for each applications -->
+<macrodef name="commoncheckapp">
+	<attribute name="app"/>
+	<sequential>
+		<antcall target="commoncheck">
+			<param name="syntaxcheck.includes"		value="${l10n.includes.@{app}}"/>
+			<param name="placeholdercheck.includes"	value="${l10n.includes.@{app}}"/>
+			<param name="pluralcheck.includes"		value="${l10n.includes.@{app}}"/>
+			<param name="errorsummary.output"		value="${lot.log.dir}/@{app}/${locale}.${tstamp.yyyyMMddHH}.errorsummary"/>
+			<param name="syntaxcheck.output"		value="${lot.log.dir}/@{app}/${locale}.${tstamp.yyyyMMddHH}.syntaxerror"/>
+			<param name="placeholdercheck.includes"	value="${lot.log.dir}/@{app}/${locale}.${tstamp.yyyyMMddHH}.placeholdererror"/>
+			<param name="pluralcheck.includes"		value="${lot.log.dir}/@{app}/${locale}.${tstamp.yyyyMMddHH}.pluralerror"/>
+		</antcall>
+	</sequential>
+</macrodef>
+<target name="commonchecktk"><commoncheckapp app="toolkit"/></target>
+<target name="commoncheckfx"><commoncheckapp app="firefox"/></target>
+<target name="commonchecktb"><commoncheckapp app="thunderbird"/></target>
+<target name="commoncheckfe"><commoncheckapp app="fennec"/></target>
+<target name="commonchecksb"><commoncheckapp app="sunbird"/></target>
+<target name="commonchecksm"><commoncheckapp app="seamonkey"/></target>
+<target name="commoncheck-eachapp" depends="commonchecktk, commoncheckfx, commonchecktb, commoncheckfe, commonchecksb, commonchecksm"
+		description="exec error check suite for l10n files per targetapp"/>
+
+<macrodef name="compareapp">
+	<attribute name="app"/>
+	<sequential>
+		<antcall target="compare">
+			<param name="compare.includes"		value="${l10n.includes.@{app}}"/>
+			<param name="errorsummary.output"	value="${log.dir}/@{app}/${locale}.${tstamp.yyyyMMddHH}.errorsummary"/>
+			<param name="compare.output"		value="${log.dir}/@{app}/${locale}.${tstamp.yyyyMMddHH}.compare"/>
+		</antcall>
+	</sequential>
+</macrodef>
+<target name="comparetk"><compareapp app="common"/></target>
+<target name="comparefx"><compareapp app="firefox"/></target>
+<target name="comparetb"><compareapp app="thunderbird"/></target>
+<target name="comparefe"><compareapp app="fennec"/></target>
+<target name="comparesb"><compareapp app="sunbird"/></target>
+<target name="comparesm"><compareapp app="seamonkey"/></target>
+<target name="compare-eachapp" depends="comparetk, comparefx, comparetb, comparefe, comparesb, comparesm"
+	description="compare l10n files and check new/obsolate files/entities per targetapp"/>
+
+<!-- check for all locales -->
+<target name="genconf-alllocale" depends="load-mainconf">
+	<groovy><![CDATA[
+		properties.'alllocale.list'.eachMatch(/([a-zA-Z-]+)[\s,]*/) { a,locale ->
+			ant.antcall(target:'genconf') {
+				param(name: 'genconf.noinput', value: true)
+				param(name: 'locale', value: locale)
+				param(name: 'output', value: "${properties.'alllocale.config.dir'}/user.${locale}.conf")
+			}
+		}
+	]]></groovy>
+</target>
+<target name="clone-alllocale" depends="load-mainconf">
+	<groovy><![CDATA[
+		properties.'alllocale.list'.eachMatch(/([a-zA-Z-]+)[\s,]*/) { a,locale ->
+			ant.antcall(target:'clone-locale') { param(name: 'locale', value: locale) }
+		}
+	]]></groovy>
+</target>
+<target name="pull-alllocale" depends="load-mainconf">
+	<groovy><![CDATA[
+		properties.'alllocale.list'.eachMatch(/([a-zA-Z-]+)[\s,]*/) { a,locale ->
+			ant.antcall(target:'pull-locale') { param(name: 'locale', value: locale) }
+		}
+	]]></groovy>
+</target>
+<target name="commoncheck-alllocale" depends="load-mainconf">
+	<groovy><![CDATA[
+		properties.'alllocale.list'.eachMatch(/([a-zA-Z-]+)[\s,]*/) { a,locale ->
+			println "error checking $locale locale files..."
+			// to avoid OutOfMemoryError without ANT_OPTS, folk with java task (not ant/subant)
+			ant.java(classname: "org.apache.tools.ant.Main", fork: true, clonevm: true) {
+				arg(line: "commoncheck -Dconfig.user.file='${properties.'alllocale.config.dir'}/user.${locale}.conf' -Dlot.log.dir='log/locales' -Dsyntaxcheck.failonerror=false -Dplaceholdercheck.failonerror=false -Dpluralcheck.failonerror=false")
+			}
+		}
+	]]></groovy>
+</target>
+<target name="commoncheck-eachapp-alllocale" depends="load-mainconf">
+	<groovy><![CDATA[
+		properties.'alllocale.list'.eachMatch(/([a-zA-Z-]+)[\s,]*/) { a,locale ->
+			println "error checking $locale locale files..."
+			ant.java(classname: "org.apache.tools.ant.Main", fork: true, clonevm: true) {
+				arg(line: "commoncheck-eachapp -Dconfig.user.file='${properties.'alllocale.config.dir'}/user.${locale}.conf' -Dlot.log.dir='log/locales' -Dsyntaxcheck.failonerror=false -Dplaceholdercheck.failonerror=false -Dpluralcheck.failonerror=false")
+			}
+		}
+	]]></groovy>
+</target>
+<target name="compare-alllocale" depends="load-mainconf">
+	<groovy><![CDATA[
+		properties.'alllocale.list'.eachMatch(/([a-zA-Z-]+)[\s,]*/) { a,locale ->
+			println "comparing en-US and $locale locale files..."
+			// to avoid OutOfMemoryError without ANT_OPTS, folk with java task (not ant/subant)
+			ant.java(classname: "org.apache.tools.ant.Main", fork: true, clonevm: true) {
+				arg(line: "compare -Dconfig.user.file='${properties.'alllocale.config.dir'}/user.${locale}.conf' -Dlot.log.dir='log/locales'")
+			}
+		}
+	]]></groovy>
+</target>
+<target name="compare-eachapp-alllocale" depends="load-mainconf">
+	<groovy><![CDATA[
+		properties.'alllocale.list'.eachMatch(/([a-zA-Z-]+)[\s,]*/) { a,locale ->
+			println "comparing en-US and $locale locale files..."
+			ant.java(classname: "org.apache.tools.ant.Main", fork: true, clonevm: true) {
+				arg(line: "compare-eachapp -Dconfig.user.file='${properties.'alllocale.config.dir'}/user.${locale}.conf' -Dlot.log.dir='log/locales'")
+			}
+		}
+	]]></groovy>
+</target>
+<target name="checksuite-alllocale" depends="commoncheck-alllocale, compare-alllocale"/>
+<target name="checksuite-eachapp-alllocale" depends="commoncheck-eachapp-alllocale, compare-eachapp-alllocale"/>
+
+
+<!-- * backup and restore * -->
+<target name="backupsrc" depends="load-mainconf" unless="nobackup"
+	description="backup whole src files">
+	<mkdir dir="${backupsrc.dir}"/>
+	<zip destfile="${backupsrc.file}">
+		<zipfileset dir="." defaultexcludes="no"
+			includes="${backupsrc.includes}" excludes="${backupsrc.excludes}"/>
+	</zip>
+</target>
+
+<target name="restoresrc" depends="load-mainconf" unless="norestore"
+	description="restore whole src files">
+	<loadmessage pattern="^vmsg\.restoresrc\."/>
+	<availableassert file="${restoresrc.file}" type="file" message="${vmsg.restoresrc.notfound}"/>
+	<confirm message="${vmsg.restoresrc.confirm}" failmessage="${cmsg.restoresrc.cancelled}"/>
+	
+	<condition property="nobackup">
+		<not><available file="${lot.src.dir}" type="dir"/></not>
+	</condition>
+	<antcall target="backupsrc"/>
+	
+	<unzip src="${restoresrc.file}" dest="${lot.temp.dir}/restore"/>
+	<delete dir="${lot.src.dir}/"/>
+	<move todir="${lot.src.dir}">
+		<fileset dir="${lot.temp.dir}/restore/${lot.src.dir}"/>
+	</move>
+</target>
+
+<target name="backuplot" depends="load-mainconf" unless="nobackup"
+	description="zip localization tools">
+	<mkdir dir="${backuplot.dir}"/>
+	<zip destfile="${backuplot.file}">
+		<zipfileset dir="." defaultexcludes="no"
+			includes="${backuplot.includes}" excludes="${backuplot.excludes}"/>
+	</zip>
+</target>
+
+<target name="backup" depends="load-mainconf" unless="nobackup"
+	description="zip localization tools with src files">
+	<mkdir dir="${backup.dir}"/>
+	<zip destfile="${backup.file}">
+		<zipfileset dir="." defaultexcludes="no"
+			includes="${backup.includes}" excludes="${backup.excludes}"/>
+	</zip>
+</target>
+
+
+<!-- * escape and unescape * -->
+<!-- switching unicode escape from/to utf-8 (only *.properties files are escaped/unescaped and others are just copied by default) -->
+<target name="escape" depends="load-mainconf"
+	description="escape *.properties files and copy other files">
+	<loadmessage pattern="^vmsg\.escape\."/>
+	<availableassert file="${escape.fromdir}" type="dir" message="${vmsg.escape.no.fromdir}"/>
+	<escapeunicode-copy fromdir="${escape.fromdir}" todir="${escape.todir}" encoding="${escape.encoding}"
+		includes="${escape.includes}" excludes="${escape.excludes}"
+		escapeincludes="${escape.escapeincludes}" escapeexcludes="${escape.escapeexcludes}"/>
+	<antcall target="-escape-jar-"/>
+	<if>
+		<isset property="escape.jar.file"/>
+		<then>
+			<property name="escape.jar.dir" value="${escape.todir}"/>
+			<zip taskname="JAR Packaging (${escape.jar.file})" destfile="${escape.jar.dir}/${escape.jar.file}" compress="false" update="false">
+				<zipfileset dir="${escape.todir}/" excludes="${escape.jar.file}"/>
+			</zip>
+		</then>
+	</if>
+</target>
+
+<target name="unescape" depends="load-mainconf"
+	description="unescape *.properties files and copy other files">
+	<loadmessage pattern="^vmsg\.unescape\."/>
+	<availableassert  file="${unescape.fromdir}" type="dir" message="${vmsg.unescape.no.fromdir}"/>
+	<if>
+		<isset property="unescape.jar.file"/>
+		<then>
+			<unjar src="${unescape.jar.file}" dest="${unescape.fromdir}"/>
+		</then>
+	</if>
+	<unescapeunicode-copy fromdir="${unescape.fromdir}" todir="${unescape.todir}" encoding="${unescape.encoding}"
+		includes="${unescape.includes}" excludes="${unescape.excludes}"
+		unescapeincludes="${unescape.unescapeincludes}" unescapeexcludes="${unescape.unescapeexcludes}"/>
+</target>
+
+
+<!-- * better to have * -->
+<target name="imedic"
+	description="generate IME dictionary for filters">
+	<!-- 例えば "ウィンドウ" で "@@Window@@" に変換するための辞書を生成 -->
+	<fail message="not implemented yet..."/>
+</target>
+
+
+</project>
