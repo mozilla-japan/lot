@@ -600,6 +600,7 @@
 	<attribute name="dir" default="."/>
 	<attribute name="failonerror" default="true"/>
 	<sequential>
+		<!-- hg up -C は止めておくべきか？ -->
 		<echo message="executing hg pull on @{dir}:${N}hg up -C; hg pull -u"/>
 		<hg dir="@{dir}" failonerror="true"><arg line="up -C"/></hg>
 		<hg dir="@{dir}" failonerror="true"><arg line="pull -u"/></hg>
