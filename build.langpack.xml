@@ -22,7 +22,7 @@
 		<target name="errorcheck"/>
 	</antcall>
 </presetdef>
-<target name="convert" depends=""
+<target name="convert"
 	description="apply filters to src files and modify them">
 	<groovy><![CDATA[
 		if (properties.locale == 'ja' || properties.locale == 'ja-JP-mac') {
