@@ -83,7 +83,7 @@
 		<then>
 			<loadconf file="${config.user.file}">
 				<morefilters>
-					<replaceregex pattern="^(${targetapp}\\.${locale}|${targetapp}|${locale})#" replace="" flags="i"/>
+					<replaceregex pattern="^(${targetapp}\.${locale}|${targetapp}|${locale})#" replace="" flags="i"/>
 				</morefilters>
 			</loadconf>
 		</then>
