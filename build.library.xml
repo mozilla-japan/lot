@@ -589,21 +589,53 @@
 <macrodef name="hgclone">
 	<attribute name="repo"/>
 	<attribute name="dir" default="."/>
+	<attribute name="failonexists" default="true"/>
 	<attribute name="failonerror" default="true"/>
 	<sequential>
-		<mkdir dir="@{dir}"/>
-		<echo message="executing hg clone:${N}hg clone @{repo} @{dir}"/>
-		<hg failonerror="@{failonerror}"><arg line="clone @{repo} @{dir}"/></hg>
+		<if>
+			<available file="@{dir}" type="dir"/>
+			<then>
+				<if>
+					<available file="@{dir}/.hg" type="dir"/>
+					<then><echo message="@{dir} directory already exists."/></then>
+					<else><echo message="@{dir} directory already exists (but no .hg dir)."/></else>
+				</if>
+				<fail message="Couldn't clone repository since @{dir} directory already exists.">
+					<condition><istrue value="@{failonexists}"/></condition>
+				</fail>
+			</then>
+			<else>
+				<mkdir dir="@{dir}"/>
+				<echo message="executing hg clone:${N}hg clone @{repo} @{dir}"/>
+				<hg failonerror="@{failonerror}"><arg line="clone @{repo} @{dir}"/></hg>
+			</else>
+		</if>
 	</sequential>
 </macrodef>
 <macrodef name="hgpull">
 	<attribute name="dir" default="."/>
+	<attribute name="clean" default="false"/>
+	<attribute name="up" default="true"/>
 	<attribute name="failonerror" default="true"/>
 	<sequential>
-		<!-- hg up -C は止めておくべきか？ -->
-		<echo message="executing hg pull on @{dir}:${N}hg up -C; hg pull -u"/>
-		<hg dir="@{dir}" failonerror="true"><arg line="up -C"/></hg>
-		<hg dir="@{dir}" failonerror="true"><arg line="pull -u"/></hg>
+		<if>
+			<istrue value="@{clean}"/>
+			<then>
+				<echo message="executing 'hg up --clean' on @{dir}"/>
+				<hg dir="@{dir}" failonerror="true"><arg line="up -C"/></hg>
+			</then>
+		</if>
+		<if>
+			<istrue value="@{up}"/>
+			<then>
+				<echo message="executing 'hg pull --update' on @{dir}"/>
+				<hg dir="@{dir}" failonerror="true"><arg line="pull -u"/></hg>
+			</then>
+			<else>
+				<echo message="executing 'hg pull' on @{dir}"/>
+				<hg dir="@{dir}" failonerror="true"><arg line="pull"/></hg>
+			</else>
+		</if>
 	</sequential>
 </macrodef>
 
