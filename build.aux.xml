@@ -152,7 +152,7 @@
 	<if>
 		<matches string="${targetbranch}" pattern="^(2.0|1.9.2|1.9.1)$"/>
 		<then><hgclone repo="${hg.mobile.repo}" dir="${hg.mobile.dir}"/></then>
-		<else><echo messge="no mobile independent repo for the branch"/></else>
+		<else><echo message="no mobile independent repo for the branch"/></else>
 	</if>
 </target>
 <target name="pull-mobile" depends="load-mainconf"
@@ -160,7 +160,7 @@
 	<if>
 		<matches string="${targetbranch}" pattern="^(2.0|1.9.2|1.9.1)$"/>
 		<then><hgpull dir="${hg.mobile.dir}" clean="true"/></then>
-		<else><echo messge="no mobile independent repo for the branch"/></else>
+		<else><echo message="no mobile independent repo for the branch"/></else>
 	</if>
 </target>
 
@@ -277,7 +277,7 @@
 	<if>
 		<matches string="${targetbranch}" pattern="^(2.0|1.9.2|1.9.1)$"/>
 		<then><hgtol10n hgdir="${hg.mobile.dir}" rev="${mobiletol10n.rev}"/></then>
-		<else><echo messge="no mobile independent repo for the branch"/></else>
+		<else><echo message="no mobile independent repo for the branch"/></else>
 	</if>
 </presetdef>
 
@@ -332,9 +332,33 @@
 </target>
 <target name="repo-to-l10n" depends="mozilla-to-l10n, comm-to-l10n, mobile-to-l10n, other-to-l10n"
 	description="copy en-US locale files from hg repository to l10n directory"/>
-<target name="get-en-US" depends="repo-to-l10n"/>
 <target name="en-US-to-l10n" depends="repo-to-l10n"/>
-
+<target name="get-en-US" depends="load-mainconf">
+	<if>
+		<and>
+			<available file="${hg.mozilla.dir}/.hg" type="dir"/>
+			<available file="${hg.comm.dir}/.hg" type="dir"/>
+		</and>
+		<then>
+			<antcall target="repo-to-l10n"/>
+		</then>
+		<else>
+			<echo message="${hg.mozilla.dir}/.hg"/>
+			<echo message="Clone of mozilla/comm hg repositories are not found."/>
+			<input addproperty="do.clone-mozilla.now" defaultvalue="yes" validargs="yes,no"
+				message="You need clone the repositories now. But it takes long time and if you want, you can just download zip of en-US files.${N}Do you want to clone repositories now? (default: yes)"/>
+			<if>
+				<equals arg1="yes" arg2="${do.clone-mozilla.now}"/>
+				<then>
+					<antcall target="clone-mozilla"/>
+					<antcall target="clone-comm"/>
+					<antcall target="repo-to-l10n"/>
+				</then>
+				<else><antcall target="download-en-US"/></else>
+			</if>
+		</else>
+	</if>
+</target>
 
 <!-- * Routine Work Interface * -->
 <!-- check for each applications -->
