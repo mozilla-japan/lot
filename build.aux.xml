@@ -93,13 +93,13 @@
 	</copy>
 </target>
 
-<target name="setupl10n" depends="genconf, download-en-US, clone-locale, clone-src"
+<target name="setupl10n" depends="genconf, get-en-US, clone-locale, clone-src"
 	description="generate config file and get l10n files for your locale"/>
-<target name="setupnewl10n" depends="genconf, download-en-US, newlocale"
+<target name="setupnewl10n" depends="genconf, get-en-US, newlocale"
 	description="generate config file and get en-US files for your new locale"/>
 <target name="setupchildbrowser">
 	<antcall>
-		<target name="genconf"/><target name="download-en-US"/><target name="checkout-src"/>
+		<target name="genconf"/><target name="get-en-US"/><target name="checkout-src"/>
 		<param name="genconf.type" value="childbrowser"/>
 	</antcall>
 </target>
@@ -343,10 +343,9 @@
 			<antcall target="repo-to-l10n"/>
 		</then>
 		<else>
-			<echo message="${hg.mozilla.dir}/.hg"/>
-			<echo message="Clone of mozilla/comm hg repositories are not found."/>
+			<echo message="Clone of mozilla/comm hg repositories are not found.${N}You need clone the repositories now. But it takes long time and require about 1GB disk space. If you want, you can just download zip of en-US files instead."/>
 			<input addproperty="do.clone-mozilla.now" defaultvalue="yes" validargs="yes,no"
-				message="You need clone the repositories now. But it takes long time and if you want, you can just download zip of en-US files.${N}Do you want to clone repositories now? (default: yes)"/>
+				message="Do you want to clone repositories now? (recommended: yes)"/>
 			<if>
 				<equals arg1="yes" arg2="${do.clone-mozilla.now}"/>
 				<then>
