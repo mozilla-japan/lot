@@ -344,8 +344,8 @@
 		</then>
 		<else>
 			<echo message="Clone of mozilla/comm hg repositories are not found.${N}You need clone the repositories now. But it takes long time and require about 1GB disk space. If you want, you can just download zip of en-US files instead."/>
-			<input addproperty="do.clone-mozilla.now" defaultvalue="yes" validargs="yes,no"
-				message="Do you want to clone repositories now? (recommended: yes)"/>
+			<input addproperty="do.clone-mozilla.now" defaultvalue="no" validargs="yes,no"
+				message="Do you want to clone repositories now? (recommended: yes, default: no)"/>
 			<if>
 				<equals arg1="yes" arg2="${do.clone-mozilla.now}"/>
 				<then>
