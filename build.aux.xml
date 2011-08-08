@@ -211,7 +211,6 @@
 		<target name="forbeta"/>
 		<target name="clone-mozilla"/><target name="clone-comm"/><target name="clone-locale"/>
 	</antcall>
-	<antcall target="clone-mobile"/>
 </target>
 <target name="pull-all" description="pull all hg repogitories">
 	<antcall>
@@ -226,7 +225,6 @@
 		<target name="forbeta"/>
 		<target name="pull-mozilla"/><target name="pull-comm"/><target name="pull-locale"/>
 	</antcall>
-	<antcall target="pull-mobile"/>
 </target>
 
 <target name="pre-commit-hg" depends="load-mainconf"
