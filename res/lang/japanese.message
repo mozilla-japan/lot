@@ -1,0 +1,93 @@
+#		日本語メッセージファイル
+#
+# このファイルの文字コードは UTF-8 にすること(エスケープ不要)
+# cmsg.* で使用可能なプロパティは ${lot.temp.dir}, ${lot.lang}, ${package}, ${tstamp.*} などのみ
+# Windows標準設定コマンドプロンプトで Ant を使用する場合 echo/input で1行に収まるのは半角68字まで
+#				= つまりここまで----------------------------------------------------->
+#
+
+#	common
+cmsg.notimplemented		= まだ実装されていません。
+
+vmsg.config.package.notfound	= パッケージ設定ファイルが見つかりませんでした: ${config.package.file}
+
+cmsg.noprop.package		= package プロパティが設定されていません
+cmsg.noprop.locale		= locale プロパティが設定されていません
+cmsg.invalidprop.package	= package プロパティの値が不正です: ${package}
+
+
+
+#	library
+cmsg.confirm.failmessage	= ビルドはユーザにより中断されました。
+vmsg.safedelete.file.confirm	= "${file}" ファイルを削除します。本当に削除してもよろしいですか？(Y/N)
+vmsg.safedelete.file.aborted	= "${file}" ファイルの削除は中断されました。
+vmsg.safedelete.dir.confirm	= "${dir}" ディレクトリを削除します。本当に削除してもよろしいですか？(Y/N)
+vmsg.safedelete.dir.aborted	= "${dir}" ディレクトリの削除は中断されました。
+
+
+
+#	main targets
+vmsg.help.usagefile		= この簡易ヘルプは次のファイルでもご覧になれます。${N}${usage.file}
+
+cmsg.intro			= Localization Tools (通称 lot) のご利用ありがとうございます。${N}\
+				  Mozilla 製品の言語パックや拡張機能の管理などに使用できます。${N}\
+				  lot はデフォルトでは Trunk Firefox 用の言語パックを作成します。${N}\
+				  ant help を実行すると簡易ヘルプが出力されます。${N}\
+				  ant examples を実行するとコマンド例が出力されます。${N}\
+				  Enter キーを押すと処理を開始します。 (Ctrl+C で中止)
+
+cmsg.clean.confirm		= 全ての一時ファイルを削除します。${lot.temp.dir} ディレクトリを削除してもよろしいですか？(Y/N)
+cmsg.clean.aborted		= 一時ファイルの削除は中断されました。
+
+vmsg.delete.converted.confirm	= 既存のファイルを削除します。${convert.dest.dir} ディレクトリのファイルを削除してもよろしいですか？(Y/N)
+cmsg.delete.converted.aborted	= 既存ファイルの削除は中断されました。
+vmsg.delete.xpi.confirm		= 既存の XPI パッケージを削除します。 ${pack.dest.dir}/${xpi.filename} ファイルを削除してもよろしいですか？(Y/N)
+cmsg.delete.xpi.aborted		= 既存の XPI パッケージの削除は中断されました。
+
+cmsg.localeconf.no.locale	= ロケール別設定ファイルの読み込み以前に locale プロパティが設定されていなければなりません
+
+
+
+#	diff targets
+vmsg.diff.no.fromdir		= 比較元ディレクトリ "${diff.fromdir}" が存在しません。変更前のファイルを含むディレクトリを diff.fromdir プロパティで指定してください。
+vmsg.diff.no.todir		= 比較先ディレクトリ "${diff.todir}" が存在しません。変更後のファイルを含むディレクトリを diff.todir プロパティで指定してください。
+vmsg.diff.successed		= "${diff.fromdir}" ディレクトリと "${diff.todir}" ディレクトリの差分を "${diff.output}" に出力しました。
+
+vmsg.patch.no.patchfile		= パッチファイルが見つかりませんでした: ${patch.file}
+
+
+
+#	aux targets
+vmsg.restoresrc.notfound	= リストア対象ファイルが見つかりませんでした: ${restoresrc.file}
+vmsg.restoresrc.confimrm	= 現在のソースファイルを削除した後でバックアップしたソースファイルがリストアされます。${N}\
+				  ${restoresrc.file} ファイルからリストアしてもよろしいですか？(Y/N)
+cmsg.restoresrc.cancelled	= リストアは中止されました。
+
+cmsg.installer.not.windows	= 残念ながら installer ターゲットは Windows でのみサポートされています。
+cmsg.installer.no.product	= インストーラを作成する製品を指定してください。
+
+cmsg.noprop.syntaxcheck.dir	= syntaxcheck.dir プロパティが設定されていません
+vmsg.syntaxcheck.no.srcdir	= 構文エラーチェック対象ファイルを含むディレクトリが見つかりませんでした: ${syntaxcheck.dir}
+vmsg.syntaxcheck.found		= "${syntaxcheck.dir}" ディレクトリ中のファイルに構文エラーが見つかりました。"${syntaxcheck.output}" ファイルを確認してください。
+
+cmsg.noprop.placeholdercheck.dir	= placeholdercheck.dir プロパティが設定されていません
+vmsg.placeholdercheck.no.srcdir		= プレースホルダエラーチェック対象ファイルを含むディレクトリが見つかりませんでした: ${placeholdercheck.dir}
+vmsg.placeholdercheck.found		= "${placeholdercheck.dir}" ディレクトリ中のファイルにプレースホルダエラーが見つかりました。"${placeholdercheck.output}" ファイルを確認してください。
+
+cmsg.noprop.pluralcheck.dir	= pluralcheck.dir プロパティが設定されていません
+vmsg.pluralcheck.no.srcdir	= PluralForm エラーチェック対象ファイルを含むディレクトリが見つかりませんでした: ${pluralcheck.dir}
+vmsg.pluralcheck.found		= "${pluralcheck.dir}" ディレクトリ中のファイルに PluralForm エラーが見つかりました。"${pluralcheck.output}" ファイルを確認してください。
+
+cmsg.noprop.wordcheck.dir	= wordcheck.dir プロパティが設定されていません
+vmsg.wordcheck.no.srcdir	= 使用語句チェック対象ファイルを含むディレクトリが見つかりませんでした: ${wordcheck.dir}
+vmsg.wordcheck.found		= "${wordcheck.dir}" ディレクトリ中のファイルに使用禁止語句が見つかりました。"${wordcheck.output}" ファイルを確認してください。
+
+cmsg.noprop.charcheck.dir	= charcheck.dir プロパティが設定されていません
+vmsg.charcheck.no.srcdir	= 使用文字チェック対象ファイルを含むディレクトリが見つかりませんでした: ${charcheck.dir}
+vmsg.charcheck.found		= "${charcheck.dir}" ディレクトリ中のファイルに使用禁止文字が見つかりました。"${charcheck.output}" ファイルを確認してください。
+
+vmsg.escape.no.fromdir		= ${escape.encoding} から Unicode エスケープに変換するファイルを "${escape.fromdir}" ディレクトリに入れてください。
+vmsg.unescape.no.fromdir	= Unicode エスケープから ${unescape.encoding} に変換するファイルを "${unescape.fromdir}" ディレクトリに入れてください。
+
+
+

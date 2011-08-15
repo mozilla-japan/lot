@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="Shift_JIS"?>
+
+<project name="LpDiff" default="jar"  basedir=".">
+
+  <!-- ソースファイル格納 -->
+  <property name="src.dir" value="src"/>
+
+  <!-- cssファイル名格納 -->
+  <property name="css.dir" value="css"/>
+
+  <!-- クラスファイル格納 -->
+  <property name="classes.dir" value="classes"/>
+
+  <!-- jar格納ファイル格納 -->
+  <property name="jarsource.dir" value="jarsource"/>
+
+  <!-- javadoc出力 -->
+  <property name="javadoc.dir" value="docs"/>
+
+  <!-- 出力jarファイル名 -->
+  <property name="jar.name" value="LpDiff.jar"/>
+
+
+  <!-- jarファイル作成 -->
+  <target name="jar" depends="collect">
+    <jar jarfile="${jar.name}" basedir="${jarsource.dir}">
+      <manifest>
+        <attribute name="Main-Class" value="LpDiff" />
+      </manifest>
+    </jar>
+  </target>
+
+  <!-- jar格納ファイル収集 -->
+  <target name="collect" depends="compile">
+    <copy todir="${jarsource.dir}">
+      <fileset dir="${classes.dir}" />
+    </copy>
+    <copy todir="${jarsource.dir}">
+      <fileset dir="${css.dir}" />
+    </copy>
+  </target>
+
+  <!-- コンパイル -->
+  <target name="compile">
+    <mkdir dir="${classes.dir}" />
+    <javac srcdir="${src.dir}" destdir="${classes.dir}"/>
+  </target>
+
+  <!-- javadoc作成 -->
+  <target name="javadoc">
+    <javadoc destdir="${javadoc.dir}">
+      <fileset dir="${src.dir}"/>
+    </javadoc>
+  </target>
+ 
+  <!-- 生成物削除 -->
+  <target name="clean">
+    <delete dir="${classes.dir}" />
+    <delete dir="${javadoc.dir}" />
+    <delete dir="${jarsource.dir}" />
+    <delete file="${jar.name}" />
+  </target>
+</project>

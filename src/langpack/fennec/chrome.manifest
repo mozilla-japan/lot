@@ -1,0 +1,25 @@
+# fennec part
+locale	browser		${langpack.locale}	chrome/locale/${langpack.locale}/browser/
+# current fennec use common branding locale files
+#locale	branding	${langpack.locale}	chrome/locale/${langpack.locale}/branding/
+#locale	branding	${langpack.locale}	chrome/locale/branding/
+
+override chrome://global/locale/appstrings.properties	chrome://browser/locale/appstrings.properties
+override chrome://global/locale/netError.dtd			chrome://browser/locale/netError.dtd
+override chrome://global/locale/passwordmgr.properties	chrome://browser/locale/passwordmgr.properties
+
+# xulrunner part
+locale	alerts		${langpack.locale}	chrome/locale/${langpack.locale}/alerts/
+locale	autoconfig	${langpack.locale}	chrome/locale/${langpack.locale}/autoconfig/
+locale	cookie		${langpack.locale}	chrome/locale/${langpack.locale}/cookie/
+locale	global		${langpack.locale}	chrome/locale/${langpack.locale}/global/
+locale	global-region	${langpack.locale}	chrome/locale/${langpack.locale}/global-region/
+locale	global-platform	${langpack.locale}	chrome/locale/${langpack.locale}/global-platform/
+locale	mozapps		${langpack.locale}	chrome/locale/${langpack.locale}/mozapps/
+locale	necko		${langpack.locale}	chrome/locale/${langpack.locale}/necko/
+locale	passwordmgr	${langpack.locale}	chrome/locale/${langpack.locale}/passwordmgr/
+locale	places		${langpack.locale}	chrome/locale/${langpack.locale}/places/
+locale	pipnss		${langpack.locale}	chrome/locale/${langpack.locale}/pipnss/
+locale	pippki		${langpack.locale}	chrome/locale/${langpack.locale}/pippki/
+locale	weave		${langpack.locale}	chrome/locale/${langpack.locale}/
+
