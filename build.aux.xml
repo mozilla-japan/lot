@@ -115,19 +115,6 @@
 	<hgpull dir="${hg.mozja.dir}"/>
 </target>
 
-<target name="pull-src-all"
-	description="pull all branch src files from mozja hg repository (only for ja locale)">
-	<antcall>
-		<target name="fortrunk"/><target name="pull-src"/>
-	</antcall>
-	<antcall>
-		<target name="foraurora"/><target name="pull-src"/>
-	</antcall>
-	<antcall>
-		<target name="forbeta"/><target name="pull-src"/>
-	</antcall>
-</target>
-
 <!-- * Work with hg.mozilla.org repository * -->
 <target name="clone-mozilla" depends="load-mainconf"
 	description="clone mozilla repository from hg.mozilla.org">
@@ -195,32 +182,14 @@
 	</if>
 </target>
 
-<target name="clone-all" description="clone all hg repogitories">
+<target name="clone-all" description="clone all hg repogitories except src">
 	<antcall>
-		<target name="fortrunk"/>
-		<target name="clone-mozilla"/><target name="clone-comm"/><target name="clone-locale"/>
-	</antcall>
-	<antcall>
-		<target name="foraurora"/>
-		<target name="clone-mozilla"/><target name="clone-comm"/><target name="clone-locale"/>
-	</antcall>
-	<antcall>
-		<target name="forbeta"/>
-		<target name="clone-mozilla"/><target name="clone-comm"/><target name="clone-locale"/>
+		<target name="clone-locale"/><target name="clone-mozilla"/><target name="clone-comm"/>
 	</antcall>
 </target>
 <target name="pull-all" description="pull all hg repogitories">
 	<antcall>
-		<target name="fortrunk"/>
-		<target name="pull-mozilla"/><target name="pull-comm"/><target name="pull-locale"/>
-	</antcall>
-	<antcall>
-		<target name="foraurora"/>
-		<target name="pull-mozilla"/><target name="pull-comm"/><target name="pull-locale"/>
-	</antcall>
-	<antcall>
-		<target name="forbeta"/>
-		<target name="pull-mozilla"/><target name="pull-comm"/><target name="pull-locale"/>
+		<target name="pull-locale"/><target name="pull-mozilla"/><target name="pull-comm"/>
 	</antcall>
 </target>
 
