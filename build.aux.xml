@@ -108,11 +108,14 @@
 <target name="clone-src" depends="load-mainconf"
 	description="clone japanese l10n repository from google code">
 	<hgclone repo="${hg.mozja.repo}" dir="${hg.mozja.dir}"/>
-	<hg dir="${hg.mozja.dir}" failonerror="true"><arg line="up ${hg.mozja.branch}"/></hg>
+	<hgup dir="${hg.mozja.dir}" branch="${hg.mozja.branch}"/>
+	<echo message="set default-push in ${hg.mozja.dir}/.hg/hgrc file if you want"/>
 </target>
 <target name="pull-src" depends="load-mainconf"
 	description="pull japanese l10n repository from google code">
 	<hgpull dir="${hg.mozja.dir}"/>
+	<confirm message="${hg.mozja.dir} の未コミット変更は失われます。よろしいですか？(Y/N)"/>
+	<hgup dir="${hg.mozja.dir}" branch="${hg.mozja.branch}" clean="true"/>
 </target>
 
 <!-- * Work with hg.mozilla.org repository * -->
@@ -122,7 +125,8 @@
 </target>
 <target name="pull-mozilla" depends="load-mainconf"
 	description="pull mozilla repository from hg.mozilla.org">
-	<hgpull dir="${hg.mozilla.dir}" clean="true"/>
+	<hgpull dir="${hg.mozilla.dir}"/>
+	<hgup dir="${hg.mozilla.dir}" branch="default" clean="true"/>
 </target>
 
 <target name="clone-comm" depends="load-mainconf"
@@ -131,7 +135,8 @@
 </target>
 <target name="pull-comm" depends="load-mainconf"
 	description="pull comm repository from hg.mozilla.org">
-	<hgpull dir="${hg.comm.dir}" clean="true"/>
+	<hgpull dir="${hg.comm.dir}"/>
+	<hgup dir="${hg.comm.dir}" branch="default" clean="true"/>
 </target>
 
 <target name="clone-mobile" depends="load-mainconf"
@@ -146,7 +151,10 @@
 	description="pull mobile-browser mercurial repository from hg.mozilla.org">
 	<if>
 		<matches string="${targetbranch}" pattern="^(2.0|1.9.2|1.9.1)$"/>
-		<then><hgpull dir="${hg.mobile.dir}" clean="true"/></then>
+		<then>
+			<hgpull dir="${hg.mobile.dir}"/>
+			<hgup dir="${hg.mobile.dir}" branch="default" clean="true"/>
+		</then>
 		<else><echo message="no mobile independent repo for the branch"/></else>
 	</if>
 </target>
@@ -173,11 +181,13 @@
 <target name="pull-locale" depends="load-mainconf"
 	description="pull l10n mercurial repository from hg.mozilla.org">
 	<propertyalias property="default.locale" alias="locale"/>
-	<hgpull dir="${hg.l10n.dir}/${locale}" clean="true"/>
+	<hgpull dir="${hg.l10n.dir}/${locale}"/>
+	<hgup dir="${hg.l10n.dir}/${locale}" branch="default" clean="true"/>
 	<if>
 		<equals arg1="${locale}" arg2="ja"/>
 		<then>
-			<hgpull dir="${hg.l10n.dir}/ja-JP-mac" clean="true"/>
+			<hgpull dir="${hg.l10n.dir}/ja-JP-mac"/>
+			<hgup dir="${hg.l10n.dir}/ja-JP-mac" branch="default" clean="true"/>
 		</then>
 	</if>
 </target>
