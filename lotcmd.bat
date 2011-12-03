@@ -25,18 +25,11 @@ if %ERRORLEVEL% equ 0 (
 	)
 )
 
-if "%SSH_AGENT_PID%" == "" (
-	set HOME=%HOMEDRIVE%%HOMEPATH%
-	for /f "eol=; tokens=1,2 delims==;" %%1 in ('ssh-agent') do (
-		if "%%1" == "SSH_AUTH_SOCK" set SSH_AUTH_SOCK=%%2
-		if "%%1" == "SSH_AGENT_PID" set SSH_AGENT_PID=%%2
-	)
+set HOME=%HOMEDRIVE%%HOMEPATH%
+bash %~d0\mozilla-build\msys\etc\profile.d\profile-sshagent.sh
+for /f "eol=; tokens=1,2 delims==;" %%1 in ('type "%HOME%\.ssh\environment"') do (
+	if "%%1" == "SSH_AUTH_SOCK" set SSH_AUTH_SOCK=%%2
+	if "%%1" == "SSH_AGENT_PID" set SSH_AGENT_PID=%%2
 )
-ssh-add
-
 start /b /wait
-
-if not "%SSH_AGENT_PID%" == "" (
-	ssh-agent -k
-)
 @endlocal
