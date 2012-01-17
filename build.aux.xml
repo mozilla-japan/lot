@@ -264,6 +264,10 @@
 	<property name="mozillatol10n.rev" value=""/>
 	<echo message="getting en-US locale files from ${hg.mozilla.dir}"/>
 	<mozillatol10n hgpath="mobile/locales/en-US" l10npath="mobile"/>
+	<!-- Fennec 11 or later to support both XUL and NativeUI -->
+	<mozillatol10n hgpath="mobile/android/base/locales/en-US" l10npath="mobile/android/base"/>
+	<mozillatol10n hgpath="mobile/android/locales/en-US" l10npath="mobile/android"/>
+	<mozillatol10n hgpath="mobile/xul/locales/en-US" l10npath="mobile/xul"/>
 </target>
 <target name="other-to-l10n" depends="remove-en-US"
 	description="copy en-US locale files from other hg repository to l10n directory">
