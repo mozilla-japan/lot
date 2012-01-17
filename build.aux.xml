@@ -139,26 +139,6 @@
 	<hgup dir="${hg.comm.dir}" branch="default" clean="true"/>
 </target>
 
-<target name="clone-mobile" depends="load-mainconf"
-	description="clone mobile-browser mercurial repository from hg.mozilla.org">
-	<if>
-		<matches string="${targetbranch}" pattern="^(2.0|1.9.2|1.9.1)$"/>
-		<then><hgclone repo="${hg.mobile.repo}" dir="${hg.mobile.dir}"/></then>
-		<else><echo message="no mobile independent repo for the branch"/></else>
-	</if>
-</target>
-<target name="pull-mobile" depends="load-mainconf"
-	description="pull mobile-browser mercurial repository from hg.mozilla.org">
-	<if>
-		<matches string="${targetbranch}" pattern="^(2.0|1.9.2|1.9.1)$"/>
-		<then>
-			<hgpull dir="${hg.mobile.dir}"/>
-			<hgup dir="${hg.mobile.dir}" branch="default" clean="true"/>
-		</then>
-		<else><echo message="no mobile independent repo for the branch"/></else>
-	</if>
-</target>
-
 <target name="clone-locale" depends="load-mainconf"
 	description="clone l10n mercurial repository from hg.mozilla.org">
 	<propertyalias property="default.locale" alias="locale"/>
@@ -252,13 +232,6 @@
 <presetdef name="commtol10n">
 	<hgtol10n hgdir="${hg.comm.dir}" rev="${commtol10n.rev}"/>
 </presetdef>
-<presetdef name="mobiletol10n">
-	<if>
-		<matches string="${targetbranch}" pattern="^(2.0|1.9.2|1.9.1)$"/>
-		<then><hgtol10n hgdir="${hg.mobile.dir}" rev="${mobiletol10n.rev}"/></then>
-		<else><echo message="no mobile independent repo for the branch"/></else>
-	</if>
-</presetdef>
 
 <target name="mozilla-to-l10n" depends="remove-en-US"
 	description="copy en-US locale files from mozilla hg repository to l10n directory">
@@ -287,20 +260,10 @@
 	<commtol10n hgpath="suite/locales/en-US" l10npath="suite"/><!-- only seamonkey -->
 </target>
 <target name="mobile-to-l10n" depends="remove-en-US"
-	description="copy en-US locale files from mobile hg repository to l10n directory">
-	<if>
-		<matches string="${targetbranch}" pattern="^(2.0|1.9.2|1.9.1)$"/>
-		<then>
-			<property name="mobiletol10n.rev" value=""/>
-			<echo message="getting en-US locale files from ${hg.mobile.dir}"/>
-			<mobiletol10n hgpath="locales/en-US" l10npath="mobile"/>
-		</then>
-		<else>
-			<property name="mozillatol10n.rev" value=""/>
-			<echo message="getting en-US locale files from ${hg.mozilla.dir}"/>
-			<mozillatol10n hgpath="mobile/locales/en-US" l10npath="mobile"/>
-		</else>
-	</if>
+	description="copy en-US locale files from mozilla hg repository to l10n directory">
+	<property name="mozillatol10n.rev" value=""/>
+	<echo message="getting en-US locale files from ${hg.mozilla.dir}"/>
+	<mozillatol10n hgpath="mobile/locales/en-US" l10npath="mobile"/>
 </target>
 <target name="other-to-l10n" depends="remove-en-US"
 	description="copy en-US locale files from other hg repository to l10n directory">
