@@ -25,7 +25,23 @@ if %ERRORLEVEL% equ 0 (
 	)
 )
 
-set HOME=%HOMEDRIVE%%HOMEPATH%
+if "%EDITOR%" == "" (
+if "%VISUAL%" == "" (
+	if "%SVN_EDITOR%" == "" (
+		set SVN_EDITOR=notepad
+	)
+	if "%HGEDITOR%" == "" (
+		set HGEDITOR=notepad
+	)
+	rem if "%GIT_EDITOR%" == "" (
+	rem 	set GIT_EDITOR=notepad
+	rem )
+)
+)
+
+if "%HOME%" == "" (
+	set HOME=%HOMEDRIVE%%HOMEPATH%
+)
 bash %~d0\mozilla-build\msys\etc\profile.d\profile-sshagent.sh
 if exist "%HOME%\.ssh\environment" (
 	for /f "eol=; tokens=1,2 delims==;" %%1 in ('type "%HOME%\.ssh\environment"') do (
