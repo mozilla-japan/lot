@@ -239,7 +239,7 @@
 	<echo message="getting en-US locale files from ${hg.mozilla.dir}"/>
 	<mozillatol10n hgpath="browser/locales/en-US" l10npath="browser"/><!-- only firefox -->
 	<mozillatol10n hgpath="dom/locales/en-US" l10npath="dom"/>
-	<mozillatol10n hgpath="embedding/android/locales/en-US/" l10npath="embedding/android"/>
+	<mozillatol10n hgpath="embedding/android/locales/en-US/" l10npath="embedding/android"/><!-- only fennec -->
 	<mozillatol10n hgpath="extensions/spellcheck/locales/en-US" l10npath="extensions/spellcheck"/>
 	<mozillatol10n hgpath="extensions/reporter/locales/en-US" l10npath="extensions/reporter"/>
 	<mozillatol10n hgpath="netwerk/locales/en-US" l10npath="netwerk"/>
@@ -247,6 +247,10 @@
 	<mozillatol10n hgpath="security/manager/locales/en-US" l10npath="security/manager"/>
 	<mozillatol10n hgpath="toolkit/locales/en-US" l10npath="toolkit"/>
 	<mozillatol10n hgpath="services/sync/locales/en-US" l10npath="services/sync"/>
+	<mozillatol10n hgpath="mobile/locales/en-US" l10npath="mobile"/><!-- only fennec -->
+	<mozillatol10n hgpath="mobile/android/base/locales/en-US" l10npath="mobile/android/base"/><!-- only nativeui fennec -->
+	<mozillatol10n hgpath="mobile/android/locales/en-US" l10npath="mobile/android"/><!-- only nativeui fennec -->
+	<mozillatol10n hgpath="mobile/xul/locales/en-US" l10npath="mobile/xul"/><!-- only fennec -->
 </target>
 <target name="comm-to-l10n" depends="remove-en-US"
 	description="copy en-US locale files from comm hg repository to l10n directory">
@@ -259,16 +263,6 @@
 	<commtol10n hgpath="other-licenses/branding/thunderbird/locales/en-US" l10npath="other-licenses/branding/thunderbird"/><!-- only thunderbird -->
 	<commtol10n hgpath="suite/locales/en-US" l10npath="suite"/><!-- only seamonkey -->
 </target>
-<target name="mobile-to-l10n" depends="remove-en-US"
-	description="copy en-US locale files from mozilla hg repository to l10n directory">
-	<property name="mozillatol10n.rev" value=""/>
-	<echo message="getting en-US locale files from ${hg.mozilla.dir}"/>
-	<mozillatol10n hgpath="mobile/locales/en-US" l10npath="mobile"/>
-	<!-- Fennec 11 or later to support both XUL and NativeUI -->
-	<mozillatol10n hgpath="mobile/android/base/locales/en-US" l10npath="mobile/android/base"/>
-	<mozillatol10n hgpath="mobile/android/locales/en-US" l10npath="mobile/android"/>
-	<mozillatol10n hgpath="mobile/xul/locales/en-US" l10npath="mobile/xul"/>
-</target>
 <target name="other-to-l10n" depends="remove-en-US"
 	description="copy en-US locale files from other hg repository to l10n directory">
 	<echo message="getting en-US locale files from other repositories"/>
@@ -276,7 +270,7 @@
 	<hgtol10n hgpath="extensions/irc/locales/en-US" l10npath="extensions/irc"/>
 	<hgtol10n hgpath="extensions/venkman/locales/en-US" l10npath="extensions/venkman"/>
 </target>
-<target name="repo-to-l10n" depends="mozilla-to-l10n, comm-to-l10n, mobile-to-l10n, other-to-l10n"
+<target name="repo-to-l10n" depends="mozilla-to-l10n, comm-to-l10n, other-to-l10n"
 	description="copy en-US locale files from hg repository to l10n directory"/>
 <target name="en-US-to-l10n" depends="repo-to-l10n"/>
 <target name="get-en-US" depends="load-mainconf">
