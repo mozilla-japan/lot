@@ -34,7 +34,7 @@
 <issetassert property="package"/>
 <issetassert property="targetbranch"/>
 <matchesassert string="${package}" pattern="^(langpack|repack|venkman|chatzilla)$"/>
-<matchesassert string="${targetbranch}" pattern="^(trunk|aurora|beta|2\.0|1\.9\.2|1\.9\.1)$"/>
+<matchesassert string="${targetbranch}" pattern="^(trunk|aurora|beta)$"/>
 
 
 <!-- load constants -->
@@ -200,51 +200,6 @@
 		<param name="targetapp" value="seamonkey"/>
 	</antcall>
 </target>
-<target name="buildfxtb">
-	<!-- exec common part only once -->
-	<antcall>
-		<param name="package" value="langpack"/>
-		<target name="intro"/><target name="clean"/><target name="convert"/>
-	</antcall>
-	<!-- targetapp dependent part -->
-	<antcall target="pack">
-		<param name="package" value="langpack"/>
-		<param name="targetapp" value="firefox"/>
-	</antcall>
-	<antcall target="pack">
-		<param name="package" value="langpack"/>
-		<param name="targetapp" value="thunderbird"/>
-	</antcall>
-</target>
-<target name="buildall">
-	<!-- exec common part only once -->
-	<antcall>
-		<param name="package" value="langpack"/>
-		<target name="intro"/><target name="clean"/><target name="convert"/>
-	</antcall>
-	<!-- targetapp dependent part -->
-	<antcall target="pack">
-		<param name="package" value="langpack"/>
-		<param name="targetapp" value="firefox"/>
-	</antcall>
-	<antcall target="pack">
-		<param name="package" value="langpack"/>
-		<param name="targetapp" value="thunderbird"/>
-	</antcall>
-	<antcall target="pack">
-		<param name="package" value="langpack"/>
-		<param name="targetapp" value="fennec"/>
-	</antcall>
-	<antcall target="pack">
-		<param name="package" value="langpack"/>
-		<param name="targetapp" value="sunbird"/>
-	</antcall>
-	<antcall target="pack">
-		<param name="package" value="langpack"/>
-		<param name="targetapp" value="seamonkey"/>
-	</antcall>
-</target>
-
 
 
 		<!-- *** Option Targets *** -->
@@ -269,21 +224,6 @@
 </target>
 
 <!-- * Select Branch * -->
-<target name="for1.9.1" depends="for191"/>
-<target name="for191" description="exec following targets for mozilla-1.9.1 files">
-	<fail if="mainconf.loaded" message="this target must be used before 'load-mainconf' target"/>
-	<updateproperty name="targetbranch" value="1.9.1"/>
-</target>
-<target name="for1.9.2" depends="for192"/>
-<target name="for192" description="exec following targets for mozilla-1.9.2 files">
-	<fail if="mainconf.loaded" message="this target must be used before 'load-mainconf' target"/>
-	<updateproperty name="targetbranch" value="1.9.2"/>
-</target>
-<target name="for2.0" depends="for20"/>
-<target name="for20" description="exec following targets for mozilla-2.0 files">
-	<fail if="mainconf.loaded" message="this target must be used before 'load-mainconf' target"/>
-	<updateproperty name="targetbranch" value="2.0"/>
-</target>
 <target name="foraurora" description="exec following targets for mozilla-aurora files">
 	<fail if="mainconf.loaded" message="this target must be used before 'load-mainconf' target"/>
 	<updateproperty name="targetbranch" value="aurora"/>
@@ -296,7 +236,7 @@
 	<fail if="mainconf.loaded" message="this target must be used before 'load-mainconf' target"/>
 	<updateproperty name="targetbranch" value="trunk"/>
 </target>
-<target name="forcentral" depends="fortrunk"/>
+<target name="forcentral" depends="fortrunk"/> 
 
 <!-- * Select Target Application * -->
 <target name="includeall" description="exec following targets for all files">
@@ -391,18 +331,13 @@ ant merge -Ddir1=l10n/en-US/browser -Ddir2=l10n/ja/browser
 </echo><echo taskname=" "/>
 <echo taskname=" ">ant auto buildfx
 ant auto buildtb
-ant auto buildfxtb
 ant auto buildfe
 ant auto buildall
 </echo><echo taskname=" "/>
 <echo taskname=" ">ant escape -Dfromdir=native -Dtodir=escaped
 ant unescape -Dfromdir=escaped -Dtodir=native
 </echo><echo taskname=" "/>
-<echo taskname=" ">ant backuplot
-ant backupsrc
-ant restoresrc
-ant restoresrc -Dfile=backup/src-mozilla1.8-2005081813.zip
-</echo><echo taskname=" "/>
+
 </target>
 
 
