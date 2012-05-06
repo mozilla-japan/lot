@@ -256,6 +256,7 @@
 	description="copy en-US locale files from comm hg repository to l10n directory">
 	<property name="commtol10n.rev" value=""/>
 	<echo message="getting en-US locale files from ${hg.comm.dir}"/>
+	<commtol10n hgpath="chat/locales/en-US" l10npath="chat"/><!-- only thunderbird -->
 	<commtol10n hgpath="calendar/locales/en-US" l10npath="calendar"/><!-- only sunbird -->
 	<commtol10n hgpath="editor/ui/locales/en-US" l10npath="editor/ui"/><!-- only thunderbird -->
 	<commtol10n hgpath="mail/locales/en-US" l10npath="mail"/><!-- only thunderbird -->
