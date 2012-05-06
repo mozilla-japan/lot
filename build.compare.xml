@@ -182,8 +182,6 @@
 		hgpath="dom/locales/en-US" l10npath="dom"/>
 	<hgtol10n hgdir="${hg.mozilla.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.extensions.rev}"
 		hgpath="extensions/spellcheck/locales/en-US" l10npath="extensions/spellcheck"/>
-	<hgtol10n hgdir="${hg.mozilla.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.extensions.rev}"
-		hgpath="extensions/reporter/locales/en-US" l10npath="extensions/reporter"/>
 	<hgtol10n hgdir="${hg.mozilla.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.netwerk.rev}"
 		hgpath="netwerk/locales/en-US" l10npath="netwerk"/>
 	<hgtol10n hgdir="${hg.mozilla.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.other-licenses.fx.rev}"

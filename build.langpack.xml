@@ -344,8 +344,6 @@
 	<update-jar dir="${jar.src.dir}/editor/ui/chrome/dialogs"				prefix="locale/${langpack.locale}/editor"/>
 	<update-jar dir="${jar.src.dir}/editor/ui/chrome/region"				prefix="locale/${langpack.locale}/editor-region"/>
 	
-	<update-jar dir="${jar.src.dir}/extensions/reporter/chrome"				prefix="locale/${langpack.locale}/reporter"/>
-	
 	<update-jar dir="${jar.src.dir}/toolkit/crashreporter"					prefix="locale/${langpack.locale}/global"
 		includes="**" excludes="crashreporter.ini"/>
 	<update-jar dir="${jar.src.dir}/toolkit/chrome/search"					prefix="locale/${langpack.locale}/global/search"/>
