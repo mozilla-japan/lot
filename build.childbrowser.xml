@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="childbrowser" default="" basedir=".">
+<description>targets specific to childbrowser</description>
+<property name="buildfile.childbrowser.loaded" value="true"/>
+
+
+<target name="update-childbrowser" depends="load-mainconf">
+	<svn><arg line="update ${svn.childbrowser.dir}"/></svn>
+</target>
+
+
+<target name="junior6">
+	<fail if="mainconf.loaded" message="this target must be used before 'load-mainconf' target"/>
+	<updateproperty name="replace.file" value="childbrowser/ja.sixth.replace"/>
+	<updateproperty name="charcheck.deny" value="${charcheck.deny.kanji.junior6}"/>
+	<updateproperty name="langpack.locale" value="ja-JP-junior6"/>
+</target>
+<target name="junior5">
+	<fail if="mainconf.loaded" message="this target must be used before 'load-mainconf' target"/>
+	<updateproperty name="replace.file" value="childbrowser/ja.fifth.replace"/>
+	<updateproperty name="charcheck.deny" value="${charcheck.deny.kanji.junior5}"/>
+	<updateproperty name="langpack.locale" value="ja-JP-junior5"/>
+</target>
+<target name="junior4">
+	<fail if="mainconf.loaded" message="this target must be used before 'load-mainconf' target"/>
+	<updateproperty name="replace.file" value="childbrowser/ja.fourth.replace"/>
+	<updateproperty name="charcheck.deny" value="${charcheck.deny.kanji.junior4}"/>
+	<updateproperty name="langpack.locale" value="ja-JP-junior4"/>
+</target>
+<target name="junior3">
+	<fail if="mainconf.loaded" message="this target must be used before 'load-mainconf' target"/>
+	<updateproperty name="replace.file" value="childbrowser/ja.third.replace"/>
+	<updateproperty name="charcheck.deny" value="${charcheck.deny.kanji.junior3}"/>
+	<updateproperty name="langpack.locale" value="ja-JP-junior3"/>
+</target>
+<target name="junior2">
+	<fail if="mainconf.loaded" message="this target must be used before 'load-mainconf' target"/>
+	<updateproperty name="replace.file" value="childbrowser/ja.second.replace"/>
+	<updateproperty name="charcheck.deny" value="${charcheck.deny.kanji.junior2}"/>
+	<updateproperty name="langpack.locale" value="ja-JP-junior2"/>
+</target>
+<target name="junior1">
+	<fail if="mainconf.loaded" message="this target must be used before 'load-mainconf' target"/>
+	<updateproperty name="replace.file" value="childbrowser/ja.first.replace"/>
+	<updateproperty name="charcheck.deny" value="${charcheck.deny.kanji.junior1}"/>
+	<updateproperty name="langpack.locale" value="ja-JP-junior1"/>
+</target>
+<target name="hiragana">
+	<fail if="mainconf.loaded" message="this target must be used before 'load-mainconf' target"/>
+	<updateproperty name="replace.file" value="childbrowser/ja.hiragana.replace"/>
+	<updateproperty name="charcheck.deny" value="${charcheck.deny.kanji.hiragana}"/>
+	<updateproperty name="langpack.locale" value="ja-JP-hiragana"/>
+</target>
+
+
+</project>

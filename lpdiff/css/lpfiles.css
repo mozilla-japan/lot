@@ -1,0 +1,1 @@
+div.name {	font-weight: bold ;	font-style: italic ;	font-size: 1.5em ;}div.filenames {	display: none ;}table {	width: 80% ;}tr.match {	color: black ;}tr.modify {	color: blue ;}tr.add {	color: red ;}tr.remove {	color: green ;}td {	text-align: left ;	border-style: solid ;}

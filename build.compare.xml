@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="compare" default="" basedir=".">
+<description>diff/compare/merge targets</description>
+<property name="buildfile.compare.loaded" value="true"/>
+
+
+<!-- * diff and patch * -->
+<!-- set path to the diff command to use these tasks, or you'll see a "error=2" -->
+<target name="diff" depends="load-mainconf"
+	description="make patch file to send it as a feedback">
+	<loadmessage pattern="^vmsg\.diff\."/>
+	<availableassert file="${diff.fromdir}" type="dir" message="${vmsg.diff.no.fromdir}"/>
+	<availableassert file="${diff.todir}"   type="dir" message="${vmsg.diff.no.todir}"/>
+	
+	<mkdir dir="${diff.output.dir}"/>
+	<diff dir="." from="${diff.fromdir}" to="${diff.todir}" option="${diff.option}" output="${diff.output}" append="false"/>
+	<echo message="${vmsg.diff.successed}"/>
+</target>
+
+<target name="patch" depends="load-mainconf"
+	description="apply patch file to src locale files">
+	<loadmessage pattern="^vmsg\.patch\."/>
+	<availableassert file="${patch.file}" type="file" message="${vmsg.patch.no.patchfile}"/>
+	
+	<property name="patch.strip" value="3"/>
+	<property name="patch.locale" value="ja"/>
+	<patch patchfile="${patch.file}" strip="${patch.strip}" dir="${lot.src.dir}/${mode}/${patch.locale}"/>
+	<!-- patch -p3 -d src/trunk/ja < patch/trunk/patchfile -->
+</target>
+
+<target name="patch-dry" depends="load-mainconf"
+	description="test patch file without any actual changes">
+	<loadmessage pattern="^vmsg\.patch\."/>
+	<availableassert file="${patch.file}" type="file" message="${vmsg.patch.no.patchfile}"/>
+	
+	<property name="patch.strip" value="3"/>
+	<property name="patch.locale" value="ja"/>
+	<exec executable="patch" input="${patch.file}">
+		<arg line="--dry-run -p${patch.strip} -d ${lot.src.dir}/${mode}/${patch.locale}"/>
+	</exec>
+	<!-- patch - -dry-run -p3 -d ${lot.src.dir}/${mode}/${patch.locale} < ${patch.file} -->
+</target>
+
+<target name="show-revisions" depends="load-mainconf">
+	<echo taskname="info" message="mozilla repogitory = ${hg.mozilla.repo}"/>
+	<hgrevision property="hg.mozilla.rev"	dir="${hg.mozilla.dir}"		type="id" failonerror="true"/>
+	<hgrevision property="hg.mozilla.revn"	dir="${hg.mozilla.dir}"		type="num" failonerror="true"/>
+	<echo taskname="info" message="mozilla repogitory revision = ${hg.mozilla.revn}:${hg.mozilla.rev}"/>
+	
+	<echo taskname="info" message="comm repogitory = ${hg.comm.repo}"/>
+	<hgrevision property="hg.comm.rev"		dir="${hg.comm.dir}"		type="id" failonerror="true"/>
+	<hgrevision property="hg.comm.revn"		dir="${hg.comm.dir}"		type="num" failonerror="true"/>
+	<echo taskname="info" message="comm repogitory revision    = ${hg.comm.revn}:${hg.comm.rev}"/>
+</target>
+
+<macrodef name="diffl10n">
+	<attribute name="dir" default="."/>
+	<attribute name="fromdir"/>
+	<attribute name="todir"/>
+	<attribute name="output"/>
+	<attribute name="option" default="-ru"/>
+	<attribute name="includes" default="${diff.l10n.includes}"/>
+	<attribute name="excludes" default="${diff.l10n.excludes}"/>
+	<sequential>
+		<groovy>
+			<arg value="@{dir}"/>
+			<arg value="@{fromdir}"/>
+			<arg value="@{todir}"/>
+			<arg value="@{output}"/>
+			<arg value="@{option}"/>
+			<arg value="@{includes}"/>
+			<arg value="@{excludes}"/>
+			<!-- 今のところ includes のターゲットはディレクトリのみという仕様
+			includes 上位ディレクトリにマッチしないがファイルにだけマッチする場合はファイル個別で diff 取るべきか？ -->
+			<![CDATA[
+				def basedir = args[0]
+				def fromdir = args[1]
+				def todir   = args[2]
+				def output  = args[3]
+				def option  = args[4]
+				def includes = args[5]
+				def excludes = args[6]
+				
+				ant.availableassert(file:"$basedir/$fromdir", type:'dir')
+				ant.availableassert(file:"$basedir/$todir", type:'dir')
+				def fromdirpath = ant.dirset(dir:basedir, includes:fromdir).iterator().next().getFile().getPath()
+				def todirpath = ant.dirset(dir:basedir, includes:todir).iterator().next().getFile().getPath()
+				def dirlist = [], templist = []
+				ant.dirset(dir:basedir+'/'+fromdir, includes:includes, excludes:excludes).each {
+					templist.push(it.getFile().getPath().replace("$fromdirpath/",'').replace(fromdirpath,''))
+				}
+				ant.dirset(dir:basedir+'/'+todir, includes:includes, excludes:excludes).each {
+					templist.push(it.getFile().getPath().replace("$todirpath/",'').replace(todirpath,''))
+				}
+				templist.sort()
+				templist.each {
+					if (dirlist.size() == 0 || !it.contains(dirlist.last())) {
+						dirlist.push(it)
+					}
+				}
+				ant.delete(file:output)
+				ant.echo(message:"generating diff file: $output")
+				dirlist.each { diffpath ->
+					ant.diff(dir:basedir, from:"$fromdir/$diffpath", to:"$todir/$diffpath", output:output, option:option, append:true)
+				}
+		]]></groovy>
+	</sequential>
+</macrodef>
+
+<target name="diff-download-revisions" depends="load-mainconf"
+	description="downlaod two en-US l10n zip and generate diff of them">
+	<!-- できればリビジョン番号は数値だけ指定で済ませられるようにしたい... -->
+	<issetassert property="diff.download.rev1"/>
+	<issetassert property="diff.download.rev2"/>
+	<property name="diff.download.url1" value="${download.en-US.url.dir}/en-US-rev${diff.download.rev1}.zip"/>
+	<property name="diff.download.url2" value="${download.en-US.url.dir}/en-US-rev${diff.download.rev2}.zip"/>
+	<expandproperty name="diff.download.output"/>
+	<!-- now download and generate diff -->
+	<mkdir dir="${lot.temp.dir}/diff-en-US"/>
+	<delete dir="${lot.temp.dir}/diff-en-US/${diff.download.rev1}"/>
+	<get src="${diff.download.url1}" dest="${lot.temp.dir}/diff-en-US/${diff.download.rev1}.zip"/>
+	<unzip src="${lot.temp.dir}/diff-en-US/${diff.download.rev1}.zip" dest="${lot.temp.dir}/diff-en-US/${diff.download.rev1}">
+		<globmapper from="en-US/*" to="*"/>
+	</unzip>
+	<delete dir="${lot.temp.dir}/diff-en-US/${diff.download.rev2}"/>
+	<get src="${diff.download.url2}" dest="${lot.temp.dir}/diff-en-US/${diff.download.rev2}.zip"/>
+	<unzip src="${lot.temp.dir}/diff-en-US/${diff.download.rev2}.zip" dest="${lot.temp.dir}/diff-en-US/${diff.download.rev2}">
+		<globmapper from="en-US/*" to="*"/>
+	</unzip>
+	<diffl10n dir="${lot.temp.dir}/diff-en-US" option="${diff.option}" output="${diff.download.output}"
+		fromdir="${diff.download.rev1}" todir="${diff.download.rev2}"/>
+</target>
+
+<target name="diff-revisions" depends="load-mainconf"
+	description="get two sets of en-US files from local hg repo and generate diff of them">
+	<!-- check and get revision ids -->
+	<issetassert property="diff.mozilla.rev1"/><!-- rev1 for mozilla/comm repo must be specified -->
+	<issetassert property="diff.comm.rev1"/>
+	<hgrevision property="diff.mozilla.rev2" dir="${hg.mozilla.dir}" failonerror="true"/>
+	<hgrevision property="diff.comm.rev2" dir="${hg.comm.dir}" failonerror="true"/>
+	<!-- get revision numbers -->
+	<hgrevision property="diff.mozilla.revn1" dir="${hg.mozilla.dir}" type="num" rev="${diff.mozilla.rev1}" failonerror="true"/>
+	<hgrevision property="diff.mozilla.revn2" dir="${hg.mozilla.dir}" type="num" rev="${diff.mozilla.rev2}" failonerror="true"/>
+	<hgrevision property="diff.comm.revn1" dir="${hg.comm.dir}" type="num" rev="${diff.comm.rev1}" failonerror="true"/>
+	<hgrevision property="diff.comm.revn2" dir="${hg.comm.dir}" type="num" rev="${diff.comm.rev2}" failonerror="true"/>
+	<!-- check and set properties -->
+	<echo message="mozilla repo1 = ${diff.mozilla.revn1}:${diff.mozilla.rev1}, comm repo1 = ${diff.comm.revn1}:${diff.comm.rev1}"/>
+	<echo message="mozilla repo2 = ${diff.mozilla.revn2}:${diff.mozilla.rev2}, comm repo2 = ${diff.comm.revn2}:${diff.comm.rev2}"/>
+	<issetassert property="diff.en-US.dir1"/><expandproperty name="diff.en-US.dir1"/>
+	<issetassert property="diff.en-US.dir2"/><expandproperty name="diff.en-US.dir2"/>
+	<issetassert property="diff.revisions.output"/><expandproperty name="diff.revisions.output"/>
+	<!-- get en-US files from repogitory and exec diff -->
+	<antcall target="get-en-US">
+		<param name="en-US.dir" value="${diff.en-US.dir1}"/>
+		<param name="mozillatol10n.rev" value="${diff.mozilla.rev1}"/>
+		<param name="commtol10n.rev" value="${diff.comm.rev1}"/>
+	</antcall>
+	<antcall target="get-en-US">
+		<param name="en-US.dir" value="${diff.en-US.dir2}"/>
+		<param name="mozillatol10n.rev" value="${diff.mozilla.rev2}"/>
+		<param name="commtol10n.rev" value="${diff.comm.rev2}"/>
+	</antcall>
+	<diffl10n dir="." option="${diff.option}" output="${diff.revisions.output}"
+		fromdir="${diff.en-US.dir1}" todir="${diff.en-US.dir2}" excludes="${sync.diff.excludes}"/>
+</target>
+<target name="diff-branches" depends="load-mainconf">
+	<fail message="sorry, not implemented yet..."/>
+</target>
+
+<target name="diff-to-sync" depends="load-mainconf">
+	<!-- ja.status ファイルに記載の最新リビジョンから差分を生成する機能を検討 -->
+	<loadconf file="${svn.l10n.dir}/ja.status">
+		<morefilters>
+			<linecontainsregexp><regexp pattern="^sync\.[0-9a-zA-Z.-]+\.rev\s+="/></linecontainsregexp>
+		</morefilters>
+	</loadconf>
+	<delete dir="${lot.temp.dir}/diff-to-sync/"/>
+	<!-- mozilla repo files -->
+	<hgtol10n hgdir="${hg.mozilla.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.browser.rev}"
+		hgpath="browser/locales/en-US" l10npath="browser"/>
+	<hgtol10n hgdir="${hg.mozilla.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.dom.rev}"
+		hgpath="dom/locales/en-US" l10npath="dom"/>
+	<hgtol10n hgdir="${hg.mozilla.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.extensions.rev}"
+		hgpath="extensions/spellcheck/locales/en-US" l10npath="extensions/spellcheck"/>
+	<hgtol10n hgdir="${hg.mozilla.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.extensions.rev}"
+		hgpath="extensions/reporter/locales/en-US" l10npath="extensions/reporter"/>
+	<hgtol10n hgdir="${hg.mozilla.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.netwerk.rev}"
+		hgpath="netwerk/locales/en-US" l10npath="netwerk"/>
+	<hgtol10n hgdir="${hg.mozilla.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.other-licenses.fx.rev}"
+		hgpath="browser/branding/official/locales/en-US" l10npath="browser/branding/official"/>
+	<hgtol10n hgdir="${hg.mozilla.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.security.rev}"
+		hgpath="security/manager/locales/en-US" l10npath="security/manager"/>
+	<hgtol10n hgdir="${hg.mozilla.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.toolkit.rev}"
+		hgpath="toolkit/locales/en-US" l10npath="toolkit"/>
+	<hgtol10n hgdir="${hg.mozilla.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.services.rev}"
+		hgpath="services/sync/locales/en-US" l10npath="services/sync"/>
+	<!-- comm repo files -->
+	<hgtol10n hgdir="${hg.comm.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.calendar.rev}"
+		hgpath="calendar/locales/en-US" l10npath="calendar"/>
+	<hgtol10n hgdir="${hg.comm.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.editor.rev}"
+		hgpath="editor/ui/locales/en-US" l10npath="editor/ui"/>
+	<hgtol10n hgdir="${hg.comm.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.mail.rev}"
+		hgpath="mail/locales/en-US" l10npath="mail"/>
+	<hgtol10n hgdir="${hg.comm.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.other-licenses.sb.rev}"
+		hgpath="other-licenses/branding/sunbird/locales/en-US" l10npath="other-licenses/branding/sunbird"/>
+	<hgtol10n hgdir="${hg.comm.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.other-licenses.tb.rev}"
+		hgpath="other-licenses/branding/thunderbird/locales/en-US" l10npath="other-licenses/branding/thunderbird"/>
+	<hgtol10n hgdir="${hg.comm.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.suite.rev}"
+		hgpath="suite/locales/en-US" l10npath="suite" failonerror="false"/>
+	<move todir="${sync.en-US.dir1}" preservelastmodified="true">
+		<fileset dir="${lot.temp.dir}/diff-to-sync/"/>
+	</move>
+	<!-- get latest en-US from repo -->
+	<hgrevision property="sync.mozilla.rev" dir="${hg.mozilla.dir}" failonerror="true"/>
+	<hgrevision property="sync.comm.rev" dir="${hg.comm.dir}" failonerror="true"/>
+	<hgrevision property="sync.mozilla.revn" dir="${hg.mozilla.dir}" type="num" rev="${sync.mozilla.rev}" failonerror="true"/>
+	<hgrevision property="sync.comm.revn" dir="${hg.comm.dir}" type="num" rev="${sync.comm.rev}" failonerror="true"/>
+	<issetassert property="sync.en-US.dir1"/><expandproperty name="sync.en-US.dir1"/>
+	<issetassert property="sync.en-US.dir2"/><expandproperty name="sync.en-US.dir2"/>
+	<antcall target="get-en-US">
+		<param name="en-US.dir" value="${sync.en-US.dir2}"/>
+		<param name="mozillatol10n.rev" value="${sync.mozilla.rev}"/>
+		<param name="commtol10n.rev" value="${sync.comm.rev}"/>
+	</antcall>
+	<diffl10n dir="." option="${diff.option}" output="${sync.diff.output}"
+		fromdir="${sync.en-US.dir1}" todir="${sync.en-US.dir2}"
+		includes="${sync.diff.includes}" excludes="${sync.diff.excludes}"/>
+</target>
+
+<!-- * compare/merge locales * -->
+<macrodef name="compare">
+	<attribute name="mode"				default="compare"/>
+	<attribute name="locale1"			default="en-US"/>
+	<attribute name="locale2"			default="ja"/>
+	<attribute name="dir1"				default="${l10n.dir}/@{locale1}"/>
+	<attribute name="dir2"				default="${l10n.dir}/@{locale2}"/>
+	<attribute name="includes"			default="**"/>
+	<attribute name="excludes"			default=""/>
+	<attribute name="output"			default="${compare.output}"/>
+	<attribute name="format"			default="text"/>
+	<attribute name="failonerror"		default="true"/>
+	<sequential>
+	<groovy taskname="compare" src="compare.groovy">
+		<!-- pass attributes using args to avoid being interprited as groovy code -->
+		<arg value="@{mode}"/>
+		<arg value="@{locale1}"/>
+		<arg value="@{locale2}"/>
+		<arg value="@{dir1}"/>
+		<arg value="@{dir2}"/>
+		<arg value="@{includes}"/>
+		<arg value="@{excludes}"/>
+		<arg value="@{output}"/>
+		<arg value="@{format}"/>
+		<arg value="@{failonerror}"/>
+	</groovy>
+	</sequential>
+</macrodef>
+
+<target name="compare" depends="load-conf" unless="nocompare"
+	description="compare l10n files and check new/obsolate files/entities etc">
+	<property name="compare.mode" value="compare"/>
+	<compare mode="${compare.mode}" locale2="${locale}" failonerror="${compare.failonerror}"
+		dir1="${compare.dir1}" dir2="${compare.dir2}" includes="${compare.includes}" excludes="${compare.excludes}"/>
+</target>
+
+<target name="merge" depends="load-conf" unless="nomerge"
+	description="compare l10n files and merge new/obsolate files/entities">
+	<istrue arg="${merge.withcomment}" property="merge.mode" value="merge+withcomment" else="merge"/>
+	<confirm message="${merge.dir1} ディレクトリのファイルと ${merge.dir2} ディレクトリのファイルを比較し、新しいファイルやエンティティを追加、古いものは削除します。実行してもよろしいですか？ (Y/N)${N}次のファイルが対象になります: ${merge.includes}${N}次のファイルやディレクトリは除外されます: ${merge.excludes}${N}注: 古いものを削除せず残したい場合は merge ではなく insertnew ターゲットを使用してください。"/>
+	<compare mode="${merge.mode}" locale2="${locale}" output="${merge.output}" failonerror="${merge.failonerror}"
+		dir1="${merge.dir1}" dir2="${merge.dir2}" includes="${merge.includes}" excludes="${merge.excludes}"/>
+	<echo message="ブロック最初のエンティティが削除される場合、ブロックに対するコメントがそのエンティティ単体のものとして削除されることがあります(現時点での仕様)。必ず処理結果を差分ファイルで確認し、必要に応じて修正してください。"/>
+</target>
+
+<target name="insertnew" depends="load-conf" unless="nomerge"
+	description="compare l10n files and merge new files/entities (not remove obsolate ones)">
+	<istrue arg="${merge.withcomment}" property="insertnew.mode" value="insert+withcomment" else="insert"/>
+	<confirm message="${merge.dir1} ディレクトリのファイルを ${merge.dir2} ディレクトリのファイルを比較し、新しいファイルやエンティティを追加します。実行してもよろしいですか？ (Y/N)${N}次のファイルが対象になります: ${merge.includes}${N}次のファイルやディレクトリは除外されます: ${merge.excludes}"/>
+	<compare mode="${insertnew.mode}" locale2="${locale}" output="${merge.output}" failonerror="${merge.failonerror}"
+		dir1="${merge.dir1}" dir2="${merge.dir2}" includes="${merge.includes}" excludes="${merge.excludes}"/>
+</target>
+
+<target name="merge-onlyfile" depends="load-conf" unless="nomerge"
+	description="compare l10n files and merge new/obsolate files (not merge entities)">
+	<confirm message="${merge.dir1} ディレクトリのファイルと ${merge.dir2} ディレクトリのファイルを比較し、新しいファイルを追加、古いものは削除します。実行してもよろしいですか？ (Y/N)${N}次のファイルが対象になります: ${merge.includes}${N}次のファイルやディレクトリは除外されます: ${merge.excludes}"/>
+	<compare mode="merge-onlyfile" locale2="${locale}" output="${merge.output}" failonerror="${merge.failonerror}"
+		dir1="${merge.dir1}" dir2="${merge.dir2}" includes="${merge.includes}" excludes="${merge.excludes}"/>
+</target>
+
+<target name="merge-onlyaccesskey" depends="load-conf" unless="nomerge"
+	description="compare l10n files and merge new/obsolate accesskeys (only in common files)">
+	<confirm message="${merge.dir1} ディレクトリのファイルと ${merge.dir2} ディレクトリのファイルを比較し、新しいアクセスキーを追加、古いものは削除します。実行してもよろしいですか？ (Y/N)${N}次のファイルが対象になります: ${merge.includes}${N}次のファイルやディレクトリは除外されます: ${merge.excludes}"/>
+	<compare mode="merge-onlyaccesskey" locale2="${locale}" output="${merge.output}" failonerror="${merge.failonerror}"
+		dir1="${merge.dir1}" dir2="${merge.dir2}" includes="${merge.includes}" excludes="${merge.excludes}"/>
+</target>
+
+<target name="resetaccesskey" depends="load-conf" unless="nomerge"
+	description="compare l10n files and reset accesskeys (only in common files)">
+	<confirm message="${resetaccesskey.dir1} ディレクトリと ${resetaccesskey.dir2} ディレクトリのファイルのアクセスキーを比較し、異なるものは前者の定義に書き換えます。実行してもよろしいですか？ (Y/N)${N}次のファイルが対象になります: ${resetaccesskey.includes}${N}次のファイルやディレクトリは除外されます: ${resetaccesskey.excludes}"/>
+	<compare mode="resetaccesskey" locale2="${locale}" output="${resetaccesskey.output}"
+		dir1="${resetaccesskey.dir1}" dir2="${resetaccesskey.dir2}" includes="${resetaccesskey.includes}" excludes="${resetaccesskey.excludes}"/>
+</target>
+
+
+</project>
