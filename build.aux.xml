@@ -241,7 +241,6 @@
 	<mozillatol10n hgpath="dom/locales/en-US" l10npath="dom"/>
 	<mozillatol10n hgpath="embedding/android/locales/en-US/" l10npath="embedding/android"/><!-- only fennec -->
 	<mozillatol10n hgpath="extensions/spellcheck/locales/en-US" l10npath="extensions/spellcheck"/>
-	<mozillatol10n hgpath="extensions/reporter/locales/en-US" l10npath="extensions/reporter"/>
 	<mozillatol10n hgpath="netwerk/locales/en-US" l10npath="netwerk"/>
 	<mozillatol10n hgpath="browser/branding/official/locales/en-US" l10npath="browser/branding/official"/><!-- only firefox -->
 	<mozillatol10n hgpath="security/manager/locales/en-US" l10npath="security/manager"/>
