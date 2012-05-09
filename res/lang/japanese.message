@@ -68,23 +68,23 @@ cmsg.installer.no.product	= インストーラを作成する製品を指定し�
 
 cmsg.noprop.syntaxcheck.dir	= syntaxcheck.dir プロパティが設定されていません
 vmsg.syntaxcheck.no.srcdir	= 構文エラーチェック対象ファイルを含むディレクトリが見つかりませんでした: ${syntaxcheck.dir}
-vmsg.syntaxcheck.found		= "${syntaxcheck.dir}" ディレクトリ中のファイルに構文エラーが見つかりました。"${syntaxcheck.output}" ファイルを確認してください。
+vmsg.syntaxcheck.found		= 構文エラーが見つかりました。エラーログは "${syntaxcheck.output}" ファイルに記録されています。
 
 cmsg.noprop.placeholdercheck.dir	= placeholdercheck.dir プロパティが設定されていません
 vmsg.placeholdercheck.no.srcdir		= プレースホルダエラーチェック対象ファイルを含むディレクトリが見つかりませんでした: ${placeholdercheck.dir}
-vmsg.placeholdercheck.found		= "${placeholdercheck.dir}" ディレクトリ中のファイルにプレースホルダエラーが見つかりました。"${placeholdercheck.output}" ファイルを確認してください。
+vmsg.placeholdercheck.found		= プレースホルダエラーが見つかりました。エラーログは "${placeholdercheck.output}" ファイルに記録されています。
 
 cmsg.noprop.pluralcheck.dir	= pluralcheck.dir プロパティが設定されていません
 vmsg.pluralcheck.no.srcdir	= PluralForm エラーチェック対象ファイルを含むディレクトリが見つかりませんでした: ${pluralcheck.dir}
-vmsg.pluralcheck.found		= "${pluralcheck.dir}" ディレクトリ中のファイルに PluralForm エラーが見つかりました。"${pluralcheck.output}" ファイルを確認してください。
+vmsg.pluralcheck.found		= PluralForm エラーの可能性のある項目が見つかりました。エラーログは "${pluralcheck.output}" ファイルに記録されています。Pluralform について詳しくは次のページをご覧ください:${N}https://developer.mozilla.org/ja/Localization_and_Plurals
 
 cmsg.noprop.wordcheck.dir	= wordcheck.dir プロパティが設定されていません
 vmsg.wordcheck.no.srcdir	= 使用語句チェック対象ファイルを含むディレクトリが見つかりませんでした: ${wordcheck.dir}
-vmsg.wordcheck.found		= "${wordcheck.dir}" ディレクトリ中のファイルに使用禁止語句が見つかりました。"${wordcheck.output}" ファイルを確認してください。
+vmsg.wordcheck.found		= 使用禁止語句が見つかりました。エラーログは "${wordcheck.output}" ファイルに記録されています。
 
 cmsg.noprop.charcheck.dir	= charcheck.dir プロパティが設定されていません
 vmsg.charcheck.no.srcdir	= 使用文字チェック対象ファイルを含むディレクトリが見つかりませんでした: ${charcheck.dir}
-vmsg.charcheck.found		= "${charcheck.dir}" ディレクトリ中のファイルに使用禁止文字が見つかりました。"${charcheck.output}" ファイルを確認してください。
+vmsg.charcheck.found		= "${charcheck.dir}" ディレクトリ中のファイルに使用禁止文字が見つかりました。エラーログは "${charcheck.output}" ファイルに記録されています。${N}使用不可と検出された文字のリストを取得したい場合は次の(一行の)コマンドを実行してください:${N}cat ${charcheck.output} | perl -pe 'use utf8; use encoding ("utf-8"); s/^[^\[\]]*(\[CHARERROR\[([^\]]+)\]CHARERROR\])?[^\[\]]*|[^\[\]]*|^Error.+/$1\n/g; s/CHARERROR|[\[\]\s]//g; s/(.)/$1\n/g;' | sort | uniq
 
 vmsg.escape.no.fromdir		= ${escape.encoding} から Unicode エスケープに変換するファイルを "${escape.fromdir}" ディレクトリに入れてください。
 vmsg.unescape.no.fromdir	= Unicode エスケープから ${unescape.encoding} に変換するファイルを "${unescape.fromdir}" ディレクトリに入れてください。

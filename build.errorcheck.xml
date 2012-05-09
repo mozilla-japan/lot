@@ -62,7 +62,7 @@
 			content = new StringBuilder()
 			file.getFile().getText('UTF-8').replaceFirst(/^\ufeff/, '').eachLine{ line,n -> content << "@line ${n+1}: $line\n" }
 			content = content.toString().replaceAll(validpattern, '')
-			if (content) errormsg << "Syntax Error Found in $file:\n$content\n"
+			if (content) errormsg << "Syntax error found in $file:\n$content\n"
 		}
 		if (errormsg) {
 			ant.mkdir(dir:new File(properties.'errorsummary.output').getParent())
@@ -105,7 +105,7 @@
 				}
 				if (err) errorlines << "@line ${n+1}: $line\n"
 			}
-			if (errorlines) errormsg << "Placeholder Error Found in $it:\n$errorlines\n"
+			if (errorlines) errormsg << "Placeholder error found in $it:\n$errorlines\n"
 		}
 		if (errormsg) {
 			ant.mkdir(dir:new File(properties.'errorsummary.output').getParent())
@@ -136,7 +136,7 @@
 					errorlines << "@line ${n+1}: $line\n"
 				}
 			}
-			if (errorlines) errormsg << "Plural Form Error Found in $it:\n$errorlines\n\n"
+			if (errorlines) errormsg << "Plural form error may exists in $it:\n$errorlines\n\n"
 		}
 		if (errormsg) {
 			ant.mkdir(dir:new File(properties.'errorsummary.output').getParent())
@@ -282,14 +282,20 @@
 	<wordchecksuite includes="${wordcheck.includes}" excludes="${l10n.includes.not.only.tb.sm}"
 		denypattern="${wordcheck.deny}|${wordcheck.deny.thunderbird}|${wordcheck.deny.seamonkey}"/>
 	
-	<loadfile property="wordcheck.error" srcfile="${wordcheck.output}" encoding="UTF-8"
-		failonerror="false" quiet="true"/>
 	<if>
-		<istrue value="${wordcheck.failonerror}"/>
-		<then><fail message="${N}${wordcheck.error}${vmsg.wordcheck.found}" if="wordcheck.error"/></then>
-		<else><if><isset property="wordcheck.error"/>
-			<then><echo message="${N}${wordcheck.error}${vmsg.wordcheck.found}"/></then>
-		</if></else>
+		<available file="${wordcheck.output}"/>
+		<then>
+			<loadfile property="wordcheck.error" srcfile="${wordcheck.output}" encoding="UTF-8"/>
+			<if>
+				<istrue value="${wordcheck.failonerror}"/>
+				<then>
+					<fail message="${N}${wordcheck.error}${vmsg.wordcheck.found}"/>
+				</then>
+				<else>
+					<echo taskname="wordcheckerror" message="${N}${wordcheck.error}${vmsg.wordcheck.found}"/>
+				</else>
+			</if>
+		</then>
 	</if>
 </target>
 
@@ -318,14 +324,20 @@
 		includes="${charcheck.includes}" excludes="${charcheck.excludes}"
 		allowpattern="${charcheck.allow}" denypattern="${charcheck.deny}" replacement="${charcheck.deny.replace}"/>
 	
-	<loadfile property="charcheck.error" srcfile="${charcheck.output}" encoding="UTF-8"
-		failonerror="false" quiet="true"/>
 	<if>
-		<istrue value="${charcheck.failonerror}"/>
-		<then><fail if="charcheck.error">${N}${charcheck.error}${vmsg.charcheck.found}${N}使用不可と検出された文字のリストを取得したい場合は次の(一行の)コマンドを実行してください:${N}cat ${charcheck.output} | perl -pe 'use utf8; use encoding ("utf-8"); s/^[^\[\]]*(\[CHARERROR\[([^\]]+)\]CHARERROR\])?[^\[\]]*|[^\[\]]*|^Error.+/$1\n/g; s/CHARERROR|[\[\]\s]//g; s/(.)/$1\n/g;' | sort | uniq</fail></then>
-		<else><if><isset property="charcheck.error"/>
-			<then><echo>${N}${charcheck.error}${vmsg.charcheck.found}${N}使用不可と検出された文字のリストを取得したい場合は次の(一行の)コマンドを実行してください:${N}cat ${charcheck.output} | perl -pe 'use utf8; use encoding ("utf-8"); s/^[^\[\]]*(\[CHARERROR\[([^\]]+)\]CHARERROR\])?[^\[\]]*|[^\[\]]*|^Error.+/$1\n/g; s/CHARERROR|[\[\]\s]//g; s/(.)/$1\n/g;' | sort | uniq</echo></then>
-		</if></else>
+		<available file="${charcheck.output}"/>
+		<then>
+			<loadfile property="charcheck.error" srcfile="${charcheck.output}" encoding="UTF-8"/>
+			<if>
+				<istrue value="${charcheck.failonerror}"/>
+				<then>
+					<fail message="${N}${charcheck.error}${vmsg.charcheck.found}"/>
+				</then>
+				<else>
+					<echo taskname="charcheckerror" message="${N}${charcheck.error}${vmsg.charcheck.found}"/>
+				</else>
+			</if>
+		</then>
 	</if>
 </target>
 
