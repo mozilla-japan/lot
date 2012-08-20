@@ -578,7 +578,7 @@
 		<if>
 			<os family="windows"/>
 			<then><!-- need to use cmd.exe to run hg.cmd in windows -->
-				<exec taskname="hg" dir="@{dir}" executable="cmd.exe" failonerror="@{failonerror}" outputproperty="@{property}"><arg line="/c hg"/><arg line="id --${type}"/></exec>
+				<exec taskname="hg" dir="@{dir}" executable="cmd.exe" failonerror="@{failonerror}" outputproperty="@{property}"><arg line="/c hg"/><arg line="id --@{type}"/></exec>
 			</then>
 			<else>
 				<exec taskname="hg" dir="@{dir}" executable="hg" failonerror="@{failonerror}" outputproperty="@{property}"><arg line="id --@{type} --rev @{rev}"/></exec>
