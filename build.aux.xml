@@ -246,6 +246,7 @@
 	<mozillatol10n hgpath="security/manager/locales/en-US" l10npath="security/manager"/>
 	<mozillatol10n hgpath="toolkit/locales/en-US" l10npath="toolkit"/>
 	<mozillatol10n hgpath="services/sync/locales/en-US" l10npath="services/sync"/>
+	<mozillatol10n hgpath="webapprt/locales/en-US" l10npath="webapprt"/>
 	<mozillatol10n hgpath="mobile/locales/en-US" l10npath="mobile"/><!-- only fennec -->
 	<mozillatol10n hgpath="mobile/android/base/locales/en-US" l10npath="mobile/android/base"/><!-- only nativeui fennec -->
 	<mozillatol10n hgpath="mobile/android/locales/en-US" l10npath="mobile/android"/><!-- only nativeui fennec -->
