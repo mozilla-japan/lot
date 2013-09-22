@@ -238,6 +238,7 @@
 	<property name="mozillatol10n.rev" value=""/>
 	<echo message="getting en-US locale files from ${hg.mozilla.dir}"/>
 	<mozillatol10n hgpath="browser/locales/en-US" l10npath="browser"/><!-- only firefox -->
+	<mozillatol10n hgpath="browser/metro/locales/en-US" l10npath="browser/metro"/><!-- only firefox metro -->
 	<mozillatol10n hgpath="dom/locales/en-US" l10npath="dom"/>
 	<mozillatol10n hgpath="embedding/android/locales/en-US/" l10npath="embedding/android"/><!-- only fennec -->
 	<mozillatol10n hgpath="extensions/spellcheck/locales/en-US" l10npath="extensions/spellcheck"/>
