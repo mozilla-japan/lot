@@ -3,6 +3,7 @@
 set PATH=%PATH%;%~d0\mozilla-build\svn-win32-1.6.3\bin
 set PATH=%PATH%;%~d0\mozilla-build\hg
 set PATH=%PATH%;%~d0\mozilla-build\python
+set PATH=%PATH%;%~d0\mozilla-build\python\Scripts
 set PATH=%PATH%;%~d0\mozilla-build\msys\local\bin
 set PATH=%PATH%;%~d0\mozilla-build\msys\bin
 set PATH=%PATH%;%~d0\git\bin
