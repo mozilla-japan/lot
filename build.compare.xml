@@ -178,6 +178,10 @@
 	<!-- mozilla repo files -->
 	<hgtol10n hgdir="${hg.mozilla.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.browser.rev}"
 		hgpath="browser/locales/en-US" l10npath="browser"/>
+	<hgtol10n hgdir="${hg.mozilla.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.devtools.client.rev}"
+		hgpath="devtools/client/locales/en-US" l10npath="devtools/client"/>
+	<hgtol10n hgdir="${hg.mozilla.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.devtools.shared.rev}"
+		hgpath="devtools/shared/locales/en-US" l10npath="devtools/shared"/>
 	<hgtol10n hgdir="${hg.mozilla.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.dom.rev}"
 		hgpath="dom/locales/en-US" l10npath="dom"/>
 	<hgtol10n hgdir="${hg.mozilla.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.extensions.rev}"
