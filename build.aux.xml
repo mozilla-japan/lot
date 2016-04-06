@@ -258,7 +258,6 @@
 	<mozillatol10n hgpath="devtools/client/locales/en-US" l10npath="devtools/client"/>
 	<mozillatol10n hgpath="devtools/shared/locales/en-US" l10npath="devtools/shared"/>
 	<mozillatol10n hgpath="dom/locales/en-US" l10npath="dom"/>
-	<mozillatol10n hgpath="embedding/android/locales/en-US/" l10npath="embedding/android"/><!-- only fennec -->
 	<mozillatol10n hgpath="extensions/spellcheck/locales/en-US" l10npath="extensions/spellcheck"/>
 	<mozillatol10n hgpath="netwerk/locales/en-US" l10npath="netwerk"/>
 	<mozillatol10n hgpath="browser/branding/official/locales/en-US" l10npath="browser/branding/official"/><!-- only firefox -->
@@ -269,7 +268,6 @@
 	<mozillatol10n hgpath="mobile/locales/en-US" l10npath="mobile"/><!-- only fennec -->
 	<mozillatol10n hgpath="mobile/android/base/locales/en-US" l10npath="mobile/android/base"/><!-- only nativeui fennec -->
 	<mozillatol10n hgpath="mobile/android/locales/en-US" l10npath="mobile/android"/><!-- only nativeui fennec -->
-	<mozillatol10n hgpath="mobile/xul/locales/en-US" l10npath="mobile/xul"/><!-- only fennec -->
 </target>
 <target name="comm-to-l10n" depends="remove-en-US"
 	description="copy en-US locale files from comm hg repository to l10n directory">
