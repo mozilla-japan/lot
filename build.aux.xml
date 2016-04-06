@@ -140,19 +140,21 @@
 </target>
 
 <target name="clone-extensions" depends="load-mainconf"
-	description="clone other repositoris from hg.mozilla.org (inspector, venkman, chatzilla)">
+	description="clone other repositoris from hg.mozilla.org (inspector, chatzilla)">
 	<hgclone repo="${hg.inspector.repo}" dir="${hg.inspector.dir}"/>
-	<hgclone repo="${hg.venkman.repo}" dir="${hg.venkman.dir}"/>
 	<hgclone repo="${hg.chatzilla.repo}" dir="${hg.chatzilla.dir}"/>
 </target>
 <target name="pull-extensions" depends="load-mainconf"
-	description="pull other repositoris from hg.mozilla.org (inspector, venkman, chatzilla)">
+	description="pull other repositoris from hg.mozilla.org (inspector, chatzilla)">
 	<hgpull dir="${hg.inspector.dir}"/>
 	<hgup dir="${hg.inspector.dir}" branch="default" clean="true"/>
-	<hgpull dir="${hg.venkman.dir}"/>
-	<hgup dir="${hg.venkman.dir}" branch="default" clean="true"/>
 	<hgpull dir="${hg.chatzilla.dir}"/>
 	<hgup dir="${hg.chatzilla.dir}" branch="default" clean="true"/>
+</target>
+
+<target name="clone-venkman" depends="load-mainconf"
+	description="clone venkman from hg.mozilla.org">
+	<hgclone repo="${hg.venkman.repo}" dir="${hg.venkman.dir}"/>
 </target>
 
 <target name="clone-locale" depends="load-mainconf"
@@ -286,7 +288,7 @@
 	<echo message="getting en-US locale files from other repositories"/>
 	<hgtol10n hgdir="${hg.inspector.dir}" hgpath="resources/locale/en-US" l10npath="extensions/inspector/chrome"/>
 	<hgtol10n hgdir="${hg.chatzilla.dir}" hgpath="locales/en-US" l10npath="extensions/irc"/>
-	<hgtol10n hgdir="${hg.venkman.dir}" hgpath="locales/en-US" l10npath="extensions/venkman"/>
+	<!-- hgtol10n hgdir="${hg.venkman.dir}" hgpath="locales/en-US" l10npath="extensions/venkman"/ -->
 </target>
 <target name="repo-to-l10n" depends="mozilla-to-l10n, comm-to-l10n, other-to-l10n"
 	description="copy en-US locale files from hg repository to l10n directory"/>
