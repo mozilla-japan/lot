@@ -139,6 +139,22 @@
 	<hgup dir="${hg.comm.dir}" branch="default" clean="true"/>
 </target>
 
+<target name="clone-extensions" depends="load-mainconf"
+	description="clone other repositoris from hg.mozilla.org (inspector, venkman, chatzilla)">
+	<hgclone repo="${hg.inspector.repo}" dir="${hg.inspector.dir}"/>
+	<hgclone repo="${hg.venkman.repo}" dir="${hg.venkman.dir}"/>
+	<hgclone repo="${hg.chatzilla.repo}" dir="${hg.chatzilla.dir}"/>
+</target>
+<target name="pull-extensions" depends="load-mainconf"
+	description="pull other repositoris from hg.mozilla.org (inspector, venkman, chatzilla)">
+	<hgpull dir="${hg.inspector.dir}"/>
+	<hgup dir="${hg.inspector.dir}" branch="default" clean="true"/>
+	<hgpull dir="${hg.venkman.dir}"/>
+	<hgup dir="${hg.venkman.dir}" branch="default" clean="true"/>
+	<hgpull dir="${hg.chatzilla.dir}"/>
+	<hgup dir="${hg.chatzilla.dir}" branch="default" clean="true"/>
+</target>
+
 <target name="clone-locale" depends="load-mainconf"
 	description="clone l10n mercurial repository from hg.mozilla.org">
 	<propertyalias property="default.locale" alias="locale"/>
@@ -174,12 +190,12 @@
 
 <target name="clone-all" description="clone all hg repogitories except src">
 	<antcall>
-		<target name="clone-locale"/><target name="clone-mozilla"/><target name="clone-comm"/>
+		<target name="clone-locale"/><target name="clone-mozilla"/><target name="clone-comm"/><target name="clone-extensions"/>
 	</antcall>
 </target>
 <target name="pull-all" description="pull all hg repogitories">
 	<antcall>
-		<target name="pull-locale"/><target name="pull-mozilla"/><target name="pull-comm"/>
+		<target name="pull-locale"/><target name="pull-mozilla"/><target name="pull-comm"/><target name="pull-extensions"/>
 	</antcall>
 </target>
 
@@ -270,9 +286,9 @@
 <target name="other-to-l10n" depends="remove-en-US"
 	description="copy en-US locale files from other hg repository to l10n directory">
 	<echo message="getting en-US locale files from other repositories"/>
-	<hgtol10n hgpath="extensions/inspector/resources/locale/en-US" l10npath="extensions/inspector/chrome"/>
-	<hgtol10n hgpath="extensions/irc/locales/en-US" l10npath="extensions/irc"/>
-	<hgtol10n hgpath="extensions/venkman/locales/en-US" l10npath="extensions/venkman"/>
+	<hgtol10n hgdir="${hg.inspector.dir}" hgpath="resources/locale/en-US" l10npath="extensions/inspector/chrome"/>
+	<hgtol10n hgdir="${hg.chatzilla.dir}" hgpath="locales/en-US" l10npath="extensions/irc"/>
+	<hgtol10n hgdir="${hg.venkman.dir}" hgpath="locales/en-US" l10npath="extensions/venkman"/>
 </target>
 <target name="repo-to-l10n" depends="mozilla-to-l10n, comm-to-l10n, other-to-l10n"
 	description="copy en-US locale files from hg repository to l10n directory"/>
@@ -295,6 +311,7 @@
 				<then>
 					<antcall target="clone-mozilla"/>
 					<antcall target="clone-comm"/>
+					<antcall target="clone-extensions"/>
 					<antcall target="repo-to-l10n"/>
 				</then>
 				<else><antcall target="download-en-US"/></else>
