@@ -256,7 +256,7 @@
 	<property name="mozillatol10n.rev" value=""/>
 	<echo message="getting en-US locale files from ${hg.mozilla.dir}"/>
 	<mozillatol10n hgpath="browser/locales/en-US" l10npath="browser"/><!-- only firefox -->
-	<mozillatol10n hgpath="browser/extensions/pocket/locales/en-US" l10npath="browser/extensions/pocket"/>
+	<mozillatol10n hgpath="browser/extensions/webcompat-reporter/locales/en-US" l10npath="browser/extensions/webcompat-reporter"/><!-- only firefox -->
 	<mozillatol10n hgpath="devtools/client/locales/en-US" l10npath="devtools/client"/>
 	<mozillatol10n hgpath="devtools/shared/locales/en-US" l10npath="devtools/shared"/>
 	<mozillatol10n hgpath="dom/locales/en-US" l10npath="dom"/>
@@ -266,7 +266,6 @@
 	<mozillatol10n hgpath="security/manager/locales/en-US" l10npath="security/manager"/>
 	<mozillatol10n hgpath="toolkit/locales/en-US" l10npath="toolkit"/>
 	<mozillatol10n hgpath="services/sync/locales/en-US" l10npath="services/sync"/>
-	<mozillatol10n hgpath="webapprt/locales/en-US" l10npath="webapprt"/>
 	<mozillatol10n hgpath="mobile/locales/en-US" l10npath="mobile"/><!-- only fennec -->
 	<mozillatol10n hgpath="mobile/android/base/locales/en-US" l10npath="mobile/android/base"/><!-- only nativeui fennec -->
 	<mozillatol10n hgpath="mobile/android/locales/en-US" l10npath="mobile/android"/><!-- only nativeui fennec -->
@@ -276,10 +275,9 @@
 	<property name="commtol10n.rev" value=""/>
 	<echo message="getting en-US locale files from ${hg.comm.dir}"/>
 	<commtol10n hgpath="chat/locales/en-US" l10npath="chat"/><!-- only thunderbird -->
-	<commtol10n hgpath="calendar/locales/en-US" l10npath="calendar"/><!-- only sunbird -->
-	<commtol10n hgpath="editor/ui/locales/en-US" l10npath="editor/ui"/><!-- only thunderbird -->
+	<commtol10n hgpath="calendar/locales/en-US" l10npath="calendar"/><!-- only thunderbird -->
+	<commtol10n hgpath="editor/ui/locales/en-US" l10npath="editor/ui"/><!-- thunderbird & seamonkey -->
 	<commtol10n hgpath="mail/locales/en-US" l10npath="mail"/><!-- only thunderbird -->
-	<commtol10n hgpath="other-licenses/branding/sunbird/locales/en-US" l10npath="other-licenses/branding/sunbird"/><!-- only sunbird -->
 	<commtol10n hgpath="other-licenses/branding/thunderbird/locales/en-US" l10npath="other-licenses/branding/thunderbird"/><!-- only thunderbird -->
 	<commtol10n hgpath="suite/locales/en-US" l10npath="suite"/><!-- only seamonkey -->
 </target>
@@ -340,9 +338,8 @@
 <target name="commoncheckfx"><commoncheckapp app="firefox"/></target>
 <target name="commonchecktb"><commoncheckapp app="thunderbird"/></target>
 <target name="commoncheckfe"><commoncheckapp app="fennec"/></target>
-<target name="commonchecksb"><commoncheckapp app="sunbird"/></target>
 <target name="commonchecksm"><commoncheckapp app="seamonkey"/></target>
-<target name="commoncheck-eachapp" depends="commonchecktk, commoncheckfx, commonchecktb, commoncheckfe, commonchecksb, commonchecksm"
+<target name="commoncheck-eachapp" depends="commonchecktk, commoncheckfx, commonchecktb, commoncheckfe, commonchecksm"
 		description="exec error check suite for l10n files per targetapp"/>
 
 <macrodef name="compareapp">
@@ -359,9 +356,8 @@
 <target name="comparefx"><compareapp app="firefox"/></target>
 <target name="comparetb"><compareapp app="thunderbird"/></target>
 <target name="comparefe"><compareapp app="fennec"/></target>
-<target name="comparesb"><compareapp app="sunbird"/></target>
 <target name="comparesm"><compareapp app="seamonkey"/></target>
-<target name="compare-eachapp" depends="comparetk, comparefx, comparetb, comparefe, comparesb, comparesm"
+<target name="compare-eachapp" depends="comparetk, comparefx, comparetb, comparefe, comparesm"
 	description="compare l10n files and check new/obsolate files/entities per targetapp"/>
 
 <!-- check for all locales -->
