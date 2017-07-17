@@ -257,6 +257,7 @@
 	<echo message="getting en-US locale files from ${hg.mozilla.dir}"/>
 	<mozillatol10n hgpath="browser/locales/en-US" l10npath="browser"/><!-- only firefox -->
 	<mozillatol10n hgpath="browser/extensions/webcompat-reporter/locales/en-US" l10npath="browser/extensions/webcompat-reporter"/><!-- only firefox -->
+	<mozillatol10n hgpath="browser/extensions/onboarding/locales/en-US" l10npath="browser/extensions/onboarding"/><!-- only firefox -->
 	<mozillatol10n hgpath="devtools/client/locales/en-US" l10npath="devtools/client"/>
 	<mozillatol10n hgpath="devtools/shared/locales/en-US" l10npath="devtools/shared"/>
 	<mozillatol10n hgpath="dom/locales/en-US" l10npath="dom"/>
