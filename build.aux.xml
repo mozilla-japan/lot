@@ -280,7 +280,6 @@
 	<commtol10n hgpath="calendar/locales/en-US" l10npath="calendar"/><!-- only thunderbird -->
 	<commtol10n hgpath="editor/ui/locales/en-US" l10npath="editor/ui"/><!-- thunderbird & seamonkey -->
 	<commtol10n hgpath="mail/locales/en-US" l10npath="mail"/><!-- only thunderbird -->
-	<commtol10n hgpath="other-licenses/branding/thunderbird/locales/en-US" l10npath="other-licenses/branding/thunderbird"/><!-- only thunderbird -->
 	<commtol10n hgpath="suite/locales/en-US" l10npath="suite"/><!-- only seamonkey -->
 </target>
 <target name="other-to-l10n" depends="remove-en-US"

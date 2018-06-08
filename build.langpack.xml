@@ -234,8 +234,6 @@
 		includes="editor.properties, editorOverlay.dtd, editorSmileyOverlay.dtd"/>
 	<update-jar dir="${jar.src.dir}/editor/ui/chrome/dialogs"				prefix="locale/${langpack.locale}/editor"
 		includes="EdAdvancedEdit.dtd, EdColorPicker.dtd, EdConvertToTable.dtd, EdDialogOverlay.dtd, EditorColorProperties.dtd, EditorHLineProperties.dtd, EditorImageProperties.dtd, EditorInsertChars.dtd, EditorInsertSource.dtd, EditorInsertTable.dtd, EditorInsertTOC.dtd, EditorLinkProperties.dtd, EditorListProperties.dtd, EditorPersonalDictionary.dtd, EditorReplace.dtd, EditorSpellCheck.dtd, EditorTableProperties.dtd, EdNamedAnchorProperties.dtd"/>
-	
-	<update-jar dir="${jar.src.dir}/other-licenses/branding/thunderbird"	prefix="locale/${langpack.locale}/branding"/>
 </target>
 
 <target name="-jar-fennec-" if="targetapp.is.fennec">
@@ -266,24 +264,6 @@
 		includes="**" excludes="branding/, lightning/, prototypes/"/>
 	<update-jar dir="${jar.src.dir}/calendar/chrome/prototypes"				prefix="locale/calendar"
 		includes="sun-calendar-event-dialog.dtd, sun-calendar-event-dialog.properties"/>
-	
-	<update-jar dir="${jar.src.dir}/other-licenses/branding/sunbird"		prefix="locale/branding"
-		includes="**" excludes="brand.properties"/>
-
-	<!-- sunbird/brand.properties は %S を置き換える必要あり -->
-	<copy file="${jar.src.dir}/other-licenses/branding/sunbird/brand.properties"
-		tofile="${lot.temp.dir}/${jar.src.dir}/other-licenses/branding/sunbird/brand.properties">
-		<filterchain>
-			<replaceregex pattern="(releaseNotesURL *= *.+)%S(.+)" replace="\1${sunbird.version}\2"/>
-			<!-- <replaceregex pattern="%S" replace="${sunbird.version}"/> -->
-		</filterchain>
-	</copy>
-	<update-jar dir="${lot.temp.dir}/${jar.src.dir}/other-licenses/branding/sunbird/"	prefix="locale/branding"
-		includes="brand.properties"/>
-
-	<!-- global/brand.dtd では branding/brand.dtd をインポートするだけだから置き換えてしまう。 -->
-	<update-jar dir="${jar.src.dir}/other-licenses/branding/sunbird/"		prefix="locale/${langpack.locale}/global"
-		includes="brand.dtd"/>
 
 	<!-- sunbird-l10n.js は @AB_CD@ を置き換えて defaults ディレクトリにコピーする必要あり -->
 	<copy file="${jar.src.dir}/calendar/sunbird-l10n.js"

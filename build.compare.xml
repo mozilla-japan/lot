@@ -190,8 +190,6 @@
 		hgpath="extensions/spellcheck/locales/en-US" l10npath="extensions/spellcheck"/>
 	<hgtol10n hgdir="${hg.mozilla.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.netwerk.rev}"
 		hgpath="netwerk/locales/en-US" l10npath="netwerk"/>
-	<hgtol10n hgdir="${hg.mozilla.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.other-licenses.fx.rev}"
-		hgpath="browser/branding/official/locales/en-US" l10npath="browser/branding/official"/>
 	<hgtol10n hgdir="${hg.mozilla.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.security.rev}"
 		hgpath="security/manager/locales/en-US" l10npath="security/manager"/>
 	<hgtol10n hgdir="${hg.mozilla.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.toolkit.rev}"
@@ -205,10 +203,6 @@
 		hgpath="editor/ui/locales/en-US" l10npath="editor/ui"/>
 	<hgtol10n hgdir="${hg.comm.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.mail.rev}"
 		hgpath="mail/locales/en-US" l10npath="mail"/>
-	<hgtol10n hgdir="${hg.comm.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.other-licenses.sb.rev}"
-		hgpath="other-licenses/branding/sunbird/locales/en-US" l10npath="other-licenses/branding/sunbird"/>
-	<hgtol10n hgdir="${hg.comm.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.other-licenses.tb.rev}"
-		hgpath="other-licenses/branding/thunderbird/locales/en-US" l10npath="other-licenses/branding/thunderbird"/>
 	<hgtol10n hgdir="${hg.comm.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.suite.rev}"
 		hgpath="suite/locales/en-US" l10npath="suite" failonerror="false"/>
 	<move todir="${sync.en-US.dir1}" preservelastmodified="true">
