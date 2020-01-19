@@ -59,7 +59,7 @@ def calendarCheck():
 def l10nStatus():
     soup = bs4.BeautifulSoup(requests.get(L10N_STATUS).text, "html.parser")
     table = soup.select("#fx")[0].parent.parent
-    error = table.select(".treestatus > .error")[0]
+    error = table.select(".treestatus > .error, .treestatus > .translated")[0]
     status  = error.string.strip()
     compare = L10N_ROOT + error["href"]
 
@@ -77,7 +77,7 @@ def postSlack(token, text):
 if __name__ == "__main__":
     token = os.environ.get("L10NBOT_TOKEN")
     try:
-        text  = calendarCheck() + l10nStatus()
+        text = calendarCheck() + l10nStatus()
     except:
         text = "```%s```" % traceback.format_exc()
     finally:
