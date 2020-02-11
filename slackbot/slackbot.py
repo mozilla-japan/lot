@@ -23,7 +23,7 @@ def getLocaleCheck(event):
     return NOW_STR < str(event.begin) and "Final locale check" in event.name
 
 def getSignoff(event):
-    return NOW_STR < str(event.begin) and "pre-release signoff" in event.name
+    return NOW_STR < str(event.begin) and ("pre-release signoff" in event.name or "pre-release sign-off" in event.name)
 
 def getReleased(event):
     return NOW_STR < str(event.begin) and "released" in event.name and not "RC" in event.name
@@ -38,21 +38,28 @@ def calendarCheck():
     signoff     = sorted(filter(getSignoff,     cal.events))
     released    = sorted(filter(getReleased,    cal.events))
 
+    error = False
     text = ""
     if len(localeCheck):
         text += formatLimit(localeCheck[0]) + "\n"
     else:
-        text += "チェック日不明 カレンダー %s\n" % (CALENDAR_PAGE)
+        error = True
+        text += "チェック日不明\n"
 
     if len(signoff):
         text += formatLimit(signoff[0]) + "\n"
     else:
-        text += "サインオフ期限不明 カレンダー %s\n" % (CALENDAR_PAGE)
+        error = True
+        text += "サインオフ期限不明\n"
 
     if len(released):
         text += formatLimit(released[0]) + "\n"
     else:
-        text += "リリース日不明 カレンダー %s\n" % (CALENDAR_PAGE)
+        error = True
+        text += "リリース日不明\n"
+
+    if error:
+        text += "カレンダー %s\n" % (CALENDAR_PAGE)
     return text
 
 
