@@ -3,20 +3,17 @@
 import datetime
 import os
 import traceback
+import json
 
 # pip install
 import ics
 import requests
-import bs4
 
 REKEASE_WIKI = "https://wiki.mozilla.org/Release_Management/Calendar"
 CALENDAR_PAGE = "https://www.google.com/calendar/embed?src=bW96aWxsYS5jb21fZGJxODRhbnI5aTh0Y25taGFiYXRzdHY1Y29AZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ"
 ICS_URL = "https://calendar.google.com/calendar/ical/mozilla.com_dbq84anr9i8tcnmhabatstv5co%40group.calendar.google.com/public/basic.ics"
 NOW = datetime.datetime.utcnow()
 NOW_STR = NOW.isoformat()
-
-L10N_ROOT = "https://l10n.mozilla.org"
-L10N_STATUS = L10N_ROOT + "/teams/ja"
 
 
 def getLocaleCheck(event):
@@ -64,16 +61,14 @@ def calendarCheck():
 
 
 def l10nStatus():
-    soup = bs4.BeautifulSoup(requests.get(L10N_STATUS).text, "html.parser")
-    table = soup.select("#fx")[0].parent.parent
-    error = table.select(".treestatus > .error, .treestatus > .translated")[0]
-    status  = error.string.strip()
-    compare = L10N_ROOT + error["href"]
+    with open("/tmp/compare-locales.json") as f:
+        result = json.load(f)[0]["summary"]["ja"]
+    missing = result["missing"]
 
-    if status == "Translated":
-        return "firefoxの翻訳状況: %s" % (status)
+    if missing:
+        return "firefoxの翻訳状況: *%d missing*" % (missing)
     else :
-        return "firefoxの翻訳状況: *%s* %s" % (status, compare)
+        return "firefoxの翻訳状況: Translated"
 
 
 def postSlack(token, text):
