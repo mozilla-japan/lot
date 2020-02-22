@@ -63,7 +63,7 @@ def calendarCheck():
 def l10nStatus():
     with open("/tmp/compare-locales.json") as f:
         result = json.load(f)[0]["summary"]["ja"]
-    missing = result["missing"]
+    missing = result.get("missing")
 
     if missing:
         return "firefoxの翻訳状況: *%d missing*" % (missing)
