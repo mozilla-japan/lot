@@ -2,6 +2,7 @@
 
 CURDIR=$(cd $(dirname ${0})/.. && pwd)
 PYTHON_PATH=$(cd $(dirname ${PYTHON_EXE}) && pwd)
+export PATH=${PATH}:${PYTHON_PATH}
 
 if [ ! -d ${CURDIR}/l10n/trunk/en-US ] ; then
     mkdir -p ${CURDIR}/l10n/trunk/en-US
@@ -16,5 +17,5 @@ fi
 (cd ${CURDIR}/l10n/trunk/en-US && hg update -C)
 (cd ${CURDIR}/src/trunk && git pull origin master)
 
-${PYTHON_PATH}/compare-locales --json /tmp/compare-locales.json ${CURDIR}/l10n/trunk/en-US/_configs/browser.toml ${CURDIR}/src/trunk ja > /dev/null
+compare-locales --json /tmp/compare-locales.json ${CURDIR}/l10n/trunk/en-US/_configs/browser.toml ${CURDIR}/src/trunk ja > /dev/null
 ${PYTHON_EXE} ${CURDIR}/slackbot/slackbot.py

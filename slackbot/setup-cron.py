@@ -1,22 +1,31 @@
 import os
 import sys
 import stat
+import subprocess
 
 print("checking for datetime.fromisoformat ...")
 import datetime
 datetime.datetime.fromisoformat("2011-11-04T00:05:23")
 print("ok.")
 
-print("checking for ics ...")
-import ics
-print("ok.")
-
 print("checking for requests ...")
 import requests
 print("ok.")
 
+print("checking for pyquery ...")
+import pyquery.pyquery
+print("ok.")
+
 print("checking for compare-locales ...")
 import compare_locales
+print("ok.")
+
+print("checking for git ...")
+subprocess.run(["git", "--version"], check=True)
+print("ok.")
+
+print("checking for mercurial ...")
+subprocess.run(["hg", "--version"], check=True)
 print("ok.")
 
 PYTHON_EXE = sys.executable
