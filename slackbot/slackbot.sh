@@ -1,9 +1,6 @@
 #!/bin/bash
 
 CURDIR=$(cd $(dirname ${0})/.. && pwd)
-PYTHON_PATH=$(cd $(dirname ${PYTHON_EXE}) && pwd)
-export PATH=${PATH}:${PYTHON_PATH}
-
 GECKO_STRINGS=${CURDIR}/l10n/trunk/en-US
 L10N_CENTRAL=${CURDIR}/l10n/trunk/ja
 MJ_GIT_REPO=${CURDIR}/src/trunk

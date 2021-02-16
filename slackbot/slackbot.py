@@ -12,14 +12,12 @@ from compare_locales.paths import TOMLParser
 from compare_locales.compare import compareProjects
 
 PONTOON_URL = "https://pontoon.mozilla.org/ja/firefox/"
-NOW = datetime.datetime.utcnow()
-NOW_STR = NOW.isoformat()
 
 
 def calendarCheck():
     d = pyquery.pyquery.PyQuery(url=PONTOON_URL)
     deadline = datetime.datetime.strptime(d("#heading li.deadline time").text(), "%b %d, %Y")
-    remain = deadline.date() - NOW.date()
+    remain = deadline.date() - datetime.datetime.utcnow().date()
     return "次回締切まであと *%d 日* (%s)\n" % (remain.days, deadline.date())
 
 
