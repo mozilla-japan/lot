@@ -2,12 +2,14 @@
 
 import datetime
 import os
+import sys
 import traceback
-import json
 
 # pip install
 import requests
 import pyquery.pyquery
+from compare_locales.paths import TOMLParser
+from compare_locales.compare import compareProjects
 
 PONTOON_URL = "https://pontoon.mozilla.org/ja/firefox/"
 NOW = datetime.datetime.utcnow()
@@ -18,18 +20,25 @@ def calendarCheck():
     d = pyquery.pyquery.PyQuery(url=PONTOON_URL)
     deadline = datetime.datetime.strptime(d("#heading li.deadline time").text(), "%b %d, %Y")
     remain = deadline.date() - NOW.date()
-    return "次回締切まであと *%d 日*\n" % (remain.days)
+    return "次回締切まであと *%d 日* (%s)\n" % (remain.days, deadline.date())
 
 
-def l10nStatus():
-    with open("/tmp/compare-locales.json") as f:
-        result = json.load(f)[0]["summary"]["ja"]
-    missing = result.get("missing")
+def compare(browser_toml, l10n_base_dir):
+    config_env = {"l10n_base": l10n_base_dir}
+    configs = [TOMLParser().parse(browser_toml, env=config_env)]
+    return compareProjects(configs, ["ja"], l10n_base_dir).toJSON()
+
+def l10nStatus(browser_toml, mj_git_repo, l10n_central):
+    missing         = compare(browser_toml,  mj_git_repo)["summary"]["ja"].get("missing", 0)
+    missing_central = compare(browser_toml, l10n_central)["summary"]["ja"].get("missing", 0)
 
     if missing:
-        return "firefoxの翻訳状況: *%d missing*" % (missing)
+        message = "firefoxの翻訳状況: *%d missing*" % (missing)
     else :
-        return "firefoxの翻訳状況: Translated"
+        message = "firefoxの翻訳状況: Translated"
+    if missing > missing_central:
+        message += "\n_l10n-centralが先行:_ %d Translated" % (missing - missing_central)
+    return message
 
 
 def postSlack(token, text):
@@ -40,7 +49,8 @@ def postSlack(token, text):
 if __name__ == "__main__":
     token = os.environ.get("L10NBOT_TOKEN")
     try:
-        text = calendarCheck() + l10nStatus()
+        (browser_toml, mj_git_repo, l10n_central) = sys.argv[1:]
+        text = calendarCheck() + l10nStatus(browser_toml, mj_git_repo, l10n_central)
     except:
         text = "```%s```" % traceback.format_exc()
     finally:
