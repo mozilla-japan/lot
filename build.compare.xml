@@ -194,8 +194,6 @@
 		hgpath="security/manager/locales/en-US" l10npath="security/manager"/>
 	<hgtol10n hgdir="${hg.mozilla.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.toolkit.rev}"
 		hgpath="toolkit/locales/en-US" l10npath="toolkit"/>
-	<hgtol10n hgdir="${hg.mozilla.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.services.rev}"
-		hgpath="services/sync/locales/en-US" l10npath="services/sync"/>
 	<!-- comm repo files -->
 	<hgtol10n hgdir="${hg.comm.dir}" l10ndir="${lot.temp.dir}/diff-to-sync/" rev="${sync.calendar.rev}"
 		hgpath="calendar/locales/en-US" l10npath="calendar"/>
