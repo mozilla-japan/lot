@@ -17,7 +17,7 @@ PONTOON_URL = "https://pontoon.mozilla.org/ja/firefox/"
 def calendarCheck():
     d = pyquery.pyquery.PyQuery(url=PONTOON_URL)
     deadline = datetime.datetime.strptime(d("#heading li.deadline time").text(), "%b %d, %Y")
-    remain = deadline.date() - datetime.datetime.utcnow().date()
+    remain = deadline.date() - datetime.datetime.now(datetime.timezone.utc).date()
     return "次回締切まであと *%d 日* (%s)\n" % (remain.days, deadline.date())
 
 

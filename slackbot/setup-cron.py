@@ -24,10 +24,6 @@ print("checking for git ...")
 subprocess.run(["git", "--version"], check=True)
 print("ok.")
 
-print("checking for mercurial ...")
-subprocess.run(["hg", "--version"], check=True)
-print("ok.")
-
 PYTHON_EXE = sys.executable
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(sys.argv[0]))
 L10NBOT_TOKEN = os.getenv("L10NBOT_TOKEN")
